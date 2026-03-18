@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "ThruntOps",
+  "project_id": "7ed2bb35-77c2-4ecc-ab61-f174552a5e38"
+}
