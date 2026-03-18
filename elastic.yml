@@ -39,8 +39,7 @@ ludus:
       sysprep: false
     domain:
       fqdn: secondary.thruntops.domain
-      role: child-dc
-      parent_domain_fqdn: thruntops.domain
+      role: primary-dc
     roles:
       - badsectorlabs.ludus_elastic_agent
   - vm_name: "{{ range_id }}-ad-win11-22h2-enterprise-x64-1"
