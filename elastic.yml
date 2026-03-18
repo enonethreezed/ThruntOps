@@ -28,6 +28,21 @@ ludus:
       role: primary-dc
     roles:
       - badsectorlabs.ludus_elastic_agent
+  - vm_name: "{{ range_id }}-ad-dc-win2022-secondary"
+    hostname: "{{ range_id }}-DC01-SEC"
+    template: win2022-server-x64-template
+    vlan: 50
+    ip_last_octet: 12
+    ram_gb: 8
+    cpus: 4
+    windows:
+      sysprep: false
+    domain:
+      fqdn: secondary.thruntops.domain
+      role: child-dc
+      parent_domain_fqdn: thruntops.domain
+    roles:
+      - badsectorlabs.ludus_elastic_agent
   - vm_name: "{{ range_id }}-ad-win11-22h2-enterprise-x64-1"
     hostname: "{{ range_id }}-WIN11-22H2-1"
     template: win11-22h2-x64-enterprise-template
@@ -40,7 +55,7 @@ ludus:
       office_version: 2019
       office_arch: 64bit
     domain:
-      fqdn: thuntops.domain
+      fqdn: thruntops.domain
       role: member
     roles:
       - badsectorlabs.ludus_elastic_agent
