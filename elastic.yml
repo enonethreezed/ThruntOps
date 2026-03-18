@@ -59,6 +59,22 @@ ludus:
       role: member
     roles:
       - badsectorlabs.ludus_elastic_agent
+  - vm_name: "{{ range_id }}-ad-win11-22h2-enterprise-x64-2"
+    hostname: "{{ range_id }}-WIN11-22H2-2"
+    template: win11-22h2-x64-enterprise-template
+    vlan: 50
+    ip_last_octet: 22
+    ram_gb: 8
+    cpus: 4
+    windows:
+      install_additional_tools: true
+      office_version: 2019
+      office_arch: 64bit
+    domain:
+      fqdn: secondary.thruntops.domain
+      role: member
+    roles:
+      - badsectorlabs.ludus_elastic_agent
   - vm_name: "{{ range_id }}-kali"
     hostname: "{{ range_id }}-kali"
     template: kali-x64-desktop-template
