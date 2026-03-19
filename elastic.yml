@@ -28,20 +28,8 @@ ludus:
       role: primary-dc
     roles:
       - badsectorlabs.ludus_elastic_agent
-      - ludus_local_users
       - ludus_ad_content
     role_vars:
-      ludus_local_users:
-        - login: basicuser
-          password: password
-      ludus_local_groups:
-        - name: Remote Desktop Users
-          members:
-            - localuser
-            - basicuser
-            - "thruntops.domain\\domainadmin"
-            - "thruntops.domain\\domainuser"
-            - "thruntops.domain\\basicdomainuser"
       ludus_ad:
         users:
           - name: basicdomainuser
@@ -62,6 +50,11 @@ ludus:
             description: PKI/ADCS administrator
             groups:
               - Domain Admins
+        rdp_members:
+          - "thruntops\\domainadmin"
+          - "thruntops\\domainuser"
+          - "thruntops\\basicdomainuser"
+          - "thruntops\\pkiadmin"
   - vm_name: "{{ range_id }}-ad-dc-win2022-secondary"
     hostname: "{{ range_id }}-DC01-SEC"
     template: win2022-server-x64-template
@@ -76,20 +69,8 @@ ludus:
       role: primary-dc
     roles:
       - badsectorlabs.ludus_elastic_agent
-      - ludus_local_users
       - ludus_ad_content
     role_vars:
-      ludus_local_users:
-        - login: basicuser
-          password: password
-      ludus_local_groups:
-        - name: Remote Desktop Users
-          members:
-            - localuser
-            - basicuser
-            - "secondary.thruntops.domain\\domainadmin"
-            - "secondary.thruntops.domain\\domainuser"
-            - "secondary.thruntops.domain\\basicdomainuser"
       ludus_ad:
         users:
           - name: basicdomainuser
@@ -101,6 +82,10 @@ ludus:
             description: Low privilege domain user
             groups:
               - Domain Users
+        rdp_members:
+          - "secondary\\domainadmin"
+          - "secondary\\domainuser"
+          - "secondary\\basicdomainuser"
   - vm_name: "{{ range_id }}-ad-win11-22h2-enterprise-x64-1"
     hostname: "{{ range_id }}-WIN11-22H2-1"
     template: win11-22h2-x64-enterprise-template
@@ -127,9 +112,9 @@ ludus:
           members:
             - localuser
             - basicuser
-            - "thruntops.domain\\domainadmin"
-            - "thruntops.domain\\domainuser"
-            - "thruntops.domain\\basicdomainuser"
+            - "thruntops\\domainadmin"
+            - "thruntops\\domainuser"
+            - "thruntops\\basicdomainuser"
   - vm_name: "{{ range_id }}-ad-win11-22h2-enterprise-x64-2"
     hostname: "{{ range_id }}-WIN11-22H2-2"
     template: win11-22h2-x64-enterprise-template
@@ -156,9 +141,9 @@ ludus:
           members:
             - localuser
             - basicuser
-            - "secondary.thruntops.domain\\domainadmin"
-            - "secondary.thruntops.domain\\domainuser"
-            - "secondary.thruntops.domain\\basicdomainuser"
+            - "secondary\\domainadmin"
+            - "secondary\\domainuser"
+            - "secondary\\basicdomainuser"
   - vm_name: "{{ range_id }}-adcs"
     hostname: "{{ range_id }}-ADCS"
     template: win2022-server-x64-template
@@ -184,10 +169,10 @@ ludus:
           members:
             - localuser
             - basicuser
-            - "thruntops.domain\\domainadmin"
-            - "thruntops.domain\\domainuser"
-            - "thruntops.domain\\basicdomainuser"
-            - "thruntops.domain\\pkiadmin"
+            - "thruntops\\domainadmin"
+            - "thruntops\\domainuser"
+            - "thruntops\\basicdomainuser"
+            - "thruntops\\pkiadmin"
   - vm_name: "{{ range_id }}-kali"
     hostname: "{{ range_id }}-kali"
     template: kali-x64-desktop-template
