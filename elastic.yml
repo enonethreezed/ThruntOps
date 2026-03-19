@@ -152,7 +152,7 @@ ludus:
     ram_gb: 4
     cpus: 2
     windows:
-      sysprep: false
+      sysprep: true
     domain:
       fqdn: thruntops.domain
       role: member
