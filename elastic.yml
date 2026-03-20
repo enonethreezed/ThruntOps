@@ -50,6 +50,56 @@ ludus:
             description: PKI/ADCS administrator
             groups:
               - Domain Admins
+          - name: primary_user01
+            password: password
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user02
+            password: password
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user03
+            password: password
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user04
+            password: password
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user05
+            password: password
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user06
+            password: password
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user07
+            password: password
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user08
+            password: password
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user09
+            password: password
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user10
+            password: password
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
         rdp_members:
           - "thruntops\\domainadmin"
           - "thruntops\\domainuser"
@@ -80,6 +130,56 @@ ludus:
             password: password
             path: "DC=secondary,DC=thruntops,DC=domain"
             description: Low privilege domain user
+            groups:
+              - Domain Users
+          - name: secondary_user01
+            password: password
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user02
+            password: password
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user03
+            password: password
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user04
+            password: password
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user05
+            password: password
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user06
+            password: password
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user07
+            password: password
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user08
+            password: password
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user09
+            password: password
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user10
+            password: password
+            path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
         rdp_members:
