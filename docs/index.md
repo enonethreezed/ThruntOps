@@ -4,7 +4,7 @@ layout: home
 nav_order: 1
 ---
 
-![ThruntOps](logo.png)
+<img src="logo.png" alt="ThruntOps" width="50%">
 
 # ThruntOps
 
