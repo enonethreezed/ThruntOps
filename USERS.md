@@ -17,7 +17,7 @@ All credentials used in the ThruntOps lab.
 | `primary_user02` | `OS)O69H"` | Domain User |
 | `primary_user03` | `o)@9t7iq` | Domain User |
 | `primary_user04` | `ggA15$y!` | Domain User |
-| `primary_user05` | `X¿s|m7C8` | Domain User |
+| `primary_user05` | `X¿s\|m7C8` | Domain User |
 | `primary_user06` | `U34SO/p@` | Domain User |
 | `primary_user07` | `n9ro$8=M` | Domain User |
 | `primary_user08` | `c7eX@/8N` | Domain User |
