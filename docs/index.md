@@ -4,6 +4,8 @@ layout: home
 nav_order: 1
 ---
 
+![ThruntOps](logo.png)
+
 # ThruntOps
 
 A Ludus-based lab environment for TTP testing and security research.

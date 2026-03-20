@@ -2,7 +2,6 @@ title: ThruntOps
 description: TTP testing lab — vulnerability reference
 remote_theme: just-the-docs/just-the-docs
 
-logo: logo.png
 color_scheme: dark
 
 plugins:
