@@ -1,0 +1,8 @@
+---
+- name: (LAPS) Extend AD schema
+  include_tasks: schema.yml
+  when: ludus_laps_configure_schema | bool
+
+- name: (LAPS) Configure LAPS policy on client
+  include_tasks: client.yml
+  when: not (ludus_laps_configure_schema | bool)

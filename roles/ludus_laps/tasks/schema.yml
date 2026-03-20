@@ -1,0 +1,18 @@
+---
+- name: (LAPS) Extend AD schema with msLAPS attributes
+  ansible.windows.win_powershell:
+    script: |
+      Import-Module LAPS
+      $result = Update-LapsADSchema -Confirm:$false
+      $Ansible.Changed = $true
+  register: laps_schema
+  failed_when: laps_schema.error | length > 0
+
+- name: (LAPS) Grant computers self-write permission on domain root
+  ansible.windows.win_powershell:
+    script: |
+      Import-Module LAPS
+      Set-LapsADComputerSelfPermission -Identity "{{ laps_domain_dn }}" -Confirm:$false
+      $Ansible.Changed = $true
+  vars:
+    laps_domain_dn: "DC={{ ansible_domain.split('.') | join(',DC=') }}"

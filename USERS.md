@@ -50,7 +50,7 @@ All credentials used in the ThruntOps lab.
 
 | User | Password | Type | Scope |
 |---|---|---|---|
-| `localuser` | `ZT4q?%5x` | Local Admin | All Windows VMs (Ludus default) |
+| `localuser` | LAPS-managed (workstations) / `ZT4q?%5x` (WEB, ADCS) | Local Admin | All Windows VMs (Ludus default) |
 | `basicuser` | `H)2?H8vC` | Local User | All Windows VMs |
 | `webadmin` | `O5G=S(5q` | Local Admin | WEB only — IIS/wwwroot access |
 

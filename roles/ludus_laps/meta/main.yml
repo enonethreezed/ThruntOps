@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  role_name: ludus_laps
+  author: enonethreezed
+  description: Configure Windows LAPS (built-in) for local account management
+  license: MIT
+  min_ansible_version: "2.9"
+dependencies: []

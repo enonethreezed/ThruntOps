@@ -1,0 +1,61 @@
+---
+- name: (LAPS) Create policy registry key
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\LAPS\Config
+    state: present
+
+- name: (LAPS) Set BackupDirectory to Active Directory
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\LAPS\Config
+    name: BackupDirectory
+    data: 1
+    type: dword
+
+- name: (LAPS) Set managed account name
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\LAPS\Config
+    name: AdministratorAccountName
+    data: "{{ ludus_laps_managed_account }}"
+    type: string
+
+- name: (LAPS) Set password age
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\LAPS\Config
+    name: PasswordAgeDays
+    data: "{{ ludus_laps_password_age_days }}"
+    type: dword
+
+- name: (LAPS) Set password length
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\LAPS\Config
+    name: PasswordLength
+    data: "{{ ludus_laps_password_length }}"
+    type: dword
+
+- name: (LAPS) Set password complexity
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\LAPS\Config
+    name: PasswordComplexity
+    data: "{{ ludus_laps_password_complexity }}"
+    type: dword
+
+- name: (LAPS) Set post-authentication actions
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\LAPS\Config
+    name: PostAuthenticationActions
+    data: "{{ ludus_laps_post_auth_actions }}"
+    type: dword
+
+- name: (LAPS) Set post-authentication reset delay (hours)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\LAPS\Config
+    name: PostAuthenticationResetDelay
+    data: "{{ ludus_laps_post_auth_reset_delay }}"
+    type: dword
+
+- name: (LAPS) Trigger immediate password rotation
+  ansible.windows.win_powershell:
+    script: |
+      Import-Module LAPS
+      Invoke-LapsPolicyProcessing
+      $Ansible.Changed = $true

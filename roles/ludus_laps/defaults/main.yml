@@ -1,0 +1,10 @@
+---
+ludus_laps_configure_schema: false
+ludus_laps_managed_account: "localuser"
+ludus_laps_password_age_days: 30
+ludus_laps_password_length: 14
+# 4 = uppercase + lowercase + digits + specials
+ludus_laps_password_complexity: 4
+# 3 = reset password + sign out any interactive sessions
+ludus_laps_post_auth_actions: 3
+ludus_laps_post_auth_reset_delay: 24

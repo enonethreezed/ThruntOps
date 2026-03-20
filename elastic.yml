@@ -29,7 +29,9 @@ ludus:
     roles:
       - badsectorlabs.ludus_elastic_agent
       - ludus_ad_content
+      - ludus_laps
     role_vars:
+      ludus_laps_configure_schema: true
       ludus_ad:
         groups:
           - name: Developers
@@ -237,6 +239,7 @@ ludus:
     roles:
       - badsectorlabs.ludus_elastic_agent
       - ludus_local_users
+      - ludus_laps
     role_vars:
       ludus_local_users:
         - login: localuser
@@ -268,6 +271,7 @@ ludus:
     roles:
       - badsectorlabs.ludus_elastic_agent
       - ludus_local_users
+      - ludus_laps
     role_vars:
       ludus_local_users:
         - login: localuser
