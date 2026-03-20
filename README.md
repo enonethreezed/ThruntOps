@@ -78,7 +78,7 @@ GitLab CE (`10.2.50.15`) is the source control and CI/CD hub for the web applica
 
 ## Attack Surface
 
-See [VULNERABILITIES.md](VULNERABILITIES.md) for the full attack surface reference.
+See the [Vulnerabilities reference](https://enonethreezed.github.io/ThruntOps/vulnerabilities) for the full attack surface reference.
 
 ## Roadmap
 
