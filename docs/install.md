@@ -1,6 +1,22 @@
+---
+title: Installation
+layout: default
+nav_order: 3
+---
+
 # Installation Guide
+{: .no_toc }
 
 Full setup from a bare Debian/Proxmox host to a running ThruntOps lab.
+{: .fs-6 .fw-300 }
+
+---
+
+## Table of contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
 
 ---
 
@@ -100,6 +116,11 @@ mkdir -p /tmp/ludus_gitlab_ce
 tar -xzf /tmp/ludus-gitlab-ce.tar.gz -C /tmp/ludus_gitlab_ce --strip-components=1
 sed -i 's/role_name: ludus_ad_content/role_name: ludus_gitlab_ce/' /tmp/ludus_gitlab_ce/meta/main.yml
 ludus ansible roles add -d /tmp/ludus_gitlab_ce
+
+# Local roles (included in this repo)
+ludus ansible roles add -d roles/ludus_ad_content
+ludus ansible roles add -d roles/ludus_gitlab_ldap
+ludus ansible roles add -d roles/ludus_laps
 ```
 
 Verify all roles are installed:
@@ -148,12 +169,12 @@ Run the Fleet status check to confirm all Elastic agents are enrolled:
 bash tests/fleet_status.sh
 ```
 
-All Windows VMs (`DC01-2022`, `DC01-SEC`, `ADCS`, `WIN11-22H2-1`, `WIN11-22H2-2`) should appear with status `online`.
+All Windows VMs (`DC01-2022`, `DC01-SEC`, `ADCS`, `WEB`, `WIN11-22H2-1`, `WIN11-22H2-2`) and the GitLab VM should appear with status `online`.
 
 ---
 
 ## Notes
 
-- The ADCS VM requires `sysprep: true` to generate a unique machine SID — this is already set in `elastic.yml`
-- DCs do not support local SAM accounts; local user provisioning only applies to member machines
-- The `synzack.ludus_sccm` role requires 16 GB of additional RAM — not included in the default deployment
+- The ADCS VM requires `sysprep: true` to generate a unique machine SID — already set in `elastic.yml`
+- DCs do not support local SAM accounts — local user provisioning only applies to member machines
+- Windows LAPS schema extension runs on DC01-2022 — requires the domain to be fully provisioned first

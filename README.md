@@ -70,7 +70,7 @@ graph TB
 
 ## Users
 
-See [USERS.md](USERS.md) for the full credentials reference.
+See the [Users reference](https://enonethreezed.github.io/ThruntOps/users) for the full credentials reference.
 
 ## Development Pipeline
 
@@ -79,6 +79,10 @@ GitLab CE (`10.2.50.15`) is the source control and CI/CD hub for the web applica
 ## Attack Surface
 
 See the [Vulnerabilities reference](https://enonethreezed.github.io/ThruntOps/vulnerabilities) for the full attack surface reference.
+
+## Installation
+
+See the [Installation guide](https://enonethreezed.github.io/ThruntOps/install) for full setup instructions.
 
 ## Roadmap
 
