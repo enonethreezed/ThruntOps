@@ -258,14 +258,11 @@ ludus:
       - ludus_laps
     role_vars:
       ludus_local_users:
-        - login: localuser
-          password: 'ZT4q?%5x'
         - login: basicuser
           password: 'H)2?H8vC'
       ludus_local_groups:
         - name: Remote Desktop Users
           members:
-            - localuser
             - basicuser
             - "thruntops\\domainadmin"
             - "thruntops\\domainuser"
@@ -290,14 +287,11 @@ ludus:
       - ludus_laps
     role_vars:
       ludus_local_users:
-        - login: localuser
-          password: 'ZT4q?%5x'
         - login: basicuser
           password: 'H)2?H8vC'
       ludus_local_groups:
         - name: Remote Desktop Users
           members:
-            - localuser
             - basicuser
             - "secondary\\domainadmin"
             - "secondary\\domainuser"
@@ -322,8 +316,6 @@ ludus:
       ludus_adcs_domain_username: "thruntops\\domainadmin"
       ludus_adcs_domain_password: 'iFgu¿83¿'
       ludus_local_users:
-        - login: localuser
-          password: 'ZT4q?%5x'
         - login: basicuser
           password: 'H)2?H8vC'
       ludus_local_groups:
@@ -355,14 +347,11 @@ ludus:
       ludus_iis_webadmin_user: webadmin
       ludus_iis_webadmin_password: 'O5G=S(5q'
       ludus_local_users:
-        - login: localuser
-          password: 'ZT4q?%5x'
         - login: basicuser
           password: 'H)2?H8vC'
       ludus_local_groups:
         - name: Remote Desktop Users
           members:
-            - localuser
             - basicuser
             - "thruntops\\domainadmin"
             - "thruntops\\domainuser"
