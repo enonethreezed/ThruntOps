@@ -78,13 +78,7 @@ GitLab CE (`10.2.50.15`) is the source control and CI/CD hub for the web applica
 
 ## Attack Surface
 
-| Technology | Vectors |
-|---|---|
-| Active Directory (dual domain) | Kerberoasting, AS-REP roasting, ACL abuse, lateral movement, trust abuse |
-| ADCS | ESC1–ESC16 certificate template misconfigurations |
-| IIS + ASP.NET + MSSQL | Web application attacks, SQL injection, authentication bypass |
-| GitLab CE | Source code exposure, CI/CD pipeline abuse, secret leakage |
-| Elastic SIEM | Detection engineering, alert tuning, log analysis |
+See [VULNERABILITIES.md](VULNERABILITIES.md) for the full attack surface reference.
 
 ## Roadmap
 
