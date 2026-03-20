@@ -7,6 +7,13 @@
       $Ansible.Changed = $false
   register: laps_check
 
+- name: (LAPS) Enable Windows Update service temporarily
+  ansible.windows.win_service:
+    name: wuauserv
+    state: started
+    start_mode: manual
+  when: laps_check.result == "missing"
+
 - name: (LAPS) Install Windows Updates to get built-in LAPS (requires KB5025230+)
   ansible.windows.win_updates:
     category_names:
@@ -14,6 +21,13 @@
       - CriticalUpdates
     reboot: true
     reboot_timeout: 600
+  when: laps_check.result == "missing"
+
+- name: (LAPS) Disable Windows Update service after patching
+  ansible.windows.win_service:
+    name: wuauserv
+    state: stopped
+    start_mode: disabled
   when: laps_check.result == "missing"
 
 - name: (LAPS) Verify Windows LAPS cmdlets are available after update
