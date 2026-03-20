@@ -88,3 +88,4 @@ See the [Installation guide](https://enonethreezed.github.io/ThruntOps/install) 
 
 - Vulnerable web application covering OWASP Top 10
 - GitLab CI/CD pipeline to WEB (automated deploy on push)
+- Sigma rules + Atomic Red Team detection pipeline — see [proposal](https://enonethreezed.github.io/ThruntOps/sigma)
