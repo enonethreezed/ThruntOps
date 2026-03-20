@@ -1,0 +1,9 @@
+---
+ludus_sssd_domain: "thruntops.domain"
+ludus_sssd_bind_user: "domainadmin"
+ludus_sssd_bind_password: ""
+ludus_sssd_ou: ""
+# Comma-separated list of AD groups allowed to log in
+ludus_sssd_allowed_groups: ""
+# Comma-separated list of AD users allowed to SSH
+ludus_sssd_ssh_users: ""

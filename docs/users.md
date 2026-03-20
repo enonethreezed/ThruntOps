@@ -37,7 +37,7 @@ This reference is for a local lab environment. Never use these credentials in pr
 | `primary_user02` | `OS)O69H"` | Domain User — RDP on DC01-2022 ⚠️ |
 | `primary_user03` | `o)@9t7iq` | Domain User — LAPS read on workstations ⚠️ |
 | `primary_user04` | `ggA15$y!` | Domain User — RDP access to ADCS (intentional vulnerability) ⚠️ |
-| `primary_user05` | `X¿s\|m7C8` | Domain User |
+| `primary_user05` | `X¿s\|m7C8` | Domain User — SSH access to GitLab VM |
 | `primary_user06` | `U34SO/p@` | Domain User |
 | `primary_user07` | `n9ro$8=M` | Domain User |
 | `primary_user08` | `c7eX@/8N` | Domain User |
@@ -57,7 +57,7 @@ This reference is for a local lab environment. Never use these credentials in pr
 | `secondary_user02` | `G4L4¿/Ff` | Domain User — RDP on DC01-SEC ⚠️ |
 | `secondary_user03` | `cqA(&P91` | Domain User — LAPS read on workstations ⚠️ |
 | `secondary_user04` | `Xz"c7e7?` | Domain User — RDP access to ADCS (intentional vulnerability) ⚠️ |
-| `secondary_user05` | `B@80G(Va` | Domain User |
+| `secondary_user05` | `B@80G(Va` | Domain User — SSH access to GitLab VM |
 | `secondary_user06` | `kN&(2V3T` | Domain User |
 | `secondary_user07` | `aV%u9¿u5` | Domain User |
 | `secondary_user08` | `MV3(i)6F` | Domain User |

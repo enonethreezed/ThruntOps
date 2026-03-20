@@ -1,0 +1,88 @@
+---
+- name: (SSSD) Install required packages
+  ansible.builtin.apt:
+    name:
+      - sssd
+      - sssd-ad
+      - realmd
+      - adcli
+      - krb5-user
+      - packagekit
+      - samba-common-bin
+      - oddjob
+      - oddjob-mkhomedir
+    state: present
+    update_cache: true
+
+- name: (SSSD) Check if already joined to domain
+  ansible.builtin.command: realm list
+  register: realm_list
+  changed_when: false
+
+- name: (SSSD) Join domain
+  ansible.builtin.expect:
+    command: >
+      realm join
+      --user={{ ludus_sssd_bind_user }}
+      {% if ludus_sssd_ou %}--computer-ou="{{ ludus_sssd_ou }}"{% endif %}
+      {{ ludus_sssd_domain }}
+    responses:
+      Password.*: "{{ ludus_sssd_bind_password }}"
+    timeout: 60
+  when: ludus_sssd_domain not in realm_list.stdout
+
+- name: (SSSD) Configure SSSD
+  ansible.builtin.blockinfile:
+    path: /etc/sssd/sssd.conf
+    marker: "# {mark} SSSD ANSIBLE CONFIGURATION"
+    block: |
+      [sssd]
+      domains = {{ ludus_sssd_domain }}
+      config_file_version = 2
+      services = nss, pam
+
+      [domain/{{ ludus_sssd_domain }}]
+      default_shell = /bin/bash
+      krb5_store_password_if_offline = True
+      cache_credentials = True
+      krb5_realm = {{ ludus_sssd_domain | upper }}
+      realmd_tags = manages-system joined-with-adcli
+      id_provider = ad
+      fallback_homedir = /home/%u@%d
+      ad_domain = {{ ludus_sssd_domain }}
+      use_fully_qualified_names = False
+      ldap_id_mapping = True
+      access_provider = ad
+    create: true
+    mode: '0600'
+  notify: Restart SSSD
+
+- name: (SSSD) Enable automatic home directory creation
+  ansible.builtin.command: pam-auth-update --enable mkhomedir
+  changed_when: true
+
+- name: (SSSD) Restrict SSH access to specific AD users
+  ansible.builtin.blockinfile:
+    path: /etc/ssh/sshd_config
+    marker: "# {mark} SSSD AD SSH USERS"
+    block: |
+      AllowUsers {{ ludus_sssd_ssh_users }}
+  when: ludus_sssd_ssh_users | length > 0
+  notify: Restart SSH
+
+- name: (SSSD) Start and enable SSSD
+  ansible.builtin.service:
+    name: sssd
+    state: started
+    enabled: true
+
+handlers:
+  - name: Restart SSSD
+    ansible.builtin.service:
+      name: sssd
+      state: restarted
+
+  - name: Restart SSH
+    ansible.builtin.service:
+      name: ssh
+      state: restarted
