@@ -7,11 +7,6 @@ color_scheme: dark
 plugins:
   - jekyll-remote-theme
 
-just_the_docs:
-  collections:
-    vulnerabilities:
-      name: Vulnerabilities
-
 nav_external_links:
   - title: GitHub
     url: https://github.com/enonethreezed/ThruntOps
