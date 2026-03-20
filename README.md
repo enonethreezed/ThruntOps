@@ -25,6 +25,49 @@ Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). All VMs run on VLAN 5
 | 10.2.50.250 | kali | Kali Linux | Attacker |
 | 10.2.50.254 | router | Debian 11 | Router / DNS |
 
+## Network Diagram
+
+```mermaid
+graph TB
+    subgraph VLAN50["VLAN 50 — 10.2.50.0/24"]
+
+        subgraph primary["thruntops.domain"]
+            DC1["🖥 DC01-2022\n10.2.50.11\nPrimary DC"]
+            ADCS["🖥 ADCS\n10.2.50.13\nCertificate Authority"]
+            WEB["🖥 WEB\n10.2.50.14\nIIS + ASP.NET + MSSQL"]
+            W1["🖥 WIN11-22H2-1\n10.2.50.21\nWorkstation"]
+        end
+
+        subgraph secondary["secondary.thruntops.domain"]
+            DC2["🖥 DC01-SEC\n10.2.50.12\nPrimary DC"]
+            W2["🖥 WIN11-22H2-2\n10.2.50.22\nWorkstation"]
+        end
+
+        ELASTIC["🐧 elastic\n10.2.50.1\nElastic SIEM"]
+        GITLAB["🐧 gitlab\n10.2.50.15\nGitLab CE"]
+        KALI["🐧 kali\n10.2.50.250\nAttacker"]
+        ROUTER["🔀 router\n10.2.50.254\nRouter / DNS"]
+    end
+
+    DC1 <-->|"domain trust"| DC2
+    ADCS -->|"member"| DC1
+    WEB -->|"member"| DC1
+    W1 -->|"member"| DC1
+    W2 -->|"member"| DC2
+
+    GITLAB -->|"CI/CD deploy"| WEB
+
+    ELASTIC -.->|"Fleet agent"| DC1
+    ELASTIC -.->|"Fleet agent"| DC2
+    ELASTIC -.->|"Fleet agent"| ADCS
+    ELASTIC -.->|"Fleet agent"| WEB
+    ELASTIC -.->|"Fleet agent"| W1
+    ELASTIC -.->|"Fleet agent"| W2
+
+    KALI -->|"attacks"| VLAN50
+    ROUTER -->|"DNS / GW"| VLAN50
+```
+
 ## Users
 
 See [USERS.md](USERS.md) for the full credentials reference.
