@@ -173,6 +173,27 @@ ludus:
             - "thruntops\\domainuser"
             - "thruntops\\basicdomainuser"
             - "thruntops\\pkiadmin"
+  - vm_name: "{{ range_id }}-web"
+    hostname: "{{ range_id }}-WEB"
+    template: win2022-server-x64-template
+    vlan: 50
+    ip_last_octet: 14
+    ram_gb: 6
+    cpus: 4
+    windows:
+      sysprep: true
+    domain:
+      fqdn: thruntops.domain
+      role: member
+    roles:
+      - badsectorlabs.ludus_elastic_agent
+      - badsectorlabs.ludus_mssql
+      - ludus_iis
+    role_vars:
+      ludus_mssql_version: "2022"
+      ludus_mssql_install_ssms: true
+      ludus_iis_webadmin_user: webadmin
+      ludus_iis_webadmin_password: password
   - vm_name: "{{ range_id }}-kali"
     hostname: "{{ range_id }}-kali"
     template: kali-x64-desktop-template
