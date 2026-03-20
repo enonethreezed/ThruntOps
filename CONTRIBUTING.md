@@ -1,5 +1,7 @@
 # Contributing Guide
 
+> This guide is shamelessly adapted from [badsectorlabs/ludus](https://github.com/badsectorlabs/ludus). Thanks to the Ludus team for the solid template.
+
 Thank you for your interest in contributing to ThruntOps. This is a
 generic guide that details how to contribute in a way that is efficient
 for everyone.
