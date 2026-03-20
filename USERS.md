@@ -14,17 +14,17 @@ All credentials used in the ThruntOps lab.
 | `pkiadmin` | `L4U8v!P¿` | Domain Admin (PKI) |
 | `webdev` | `n4&1Kj@K` | Domain User — member of Developers group, GitLab maintainer |
 | `primary_user01` | `iFgu¿83¿` | Domain User |
-| `primary_user02` | `iFgu¿83¿` | Domain User |
-| `primary_user03` | `iFgu¿83¿` | Domain User |
-| `primary_user04` | `iFgu¿83¿` | Domain User |
-| `primary_user05` | `iFgu¿83¿` | Domain User |
-| `primary_user06` | `iFgu¿83¿` | Domain User |
-| `primary_user07` | `iFgu¿83¿` | Domain User |
-| `primary_user08` | `iFgu¿83¿` | Domain User |
-| `primary_user09` | `iFgu¿83¿` | Domain User |
-| `primary_user10` | `iFgu¿83¿` | Domain User |
+| `primary_user02` | `OS)O69H"` | Domain User |
+| `primary_user03` | `o)@9t7iq` | Domain User |
+| `primary_user04` | `ggA15$y!` | Domain User |
+| `primary_user05` | `X¿s|m7C8` | Domain User |
+| `primary_user06` | `U34SO/p@` | Domain User |
+| `primary_user07` | `n9ro$8=M` | Domain User |
+| `primary_user08` | `c7eX@/8N` | Domain User |
+| `primary_user09` | `bpR8#8t"` | Domain User |
+| `primary_user10` | `o6u8!PF=` | Domain User |
 
-> `primary_user01`–`primary_user10` share the domain admin password — intentional credential reuse for attack testing.
+> `primary_user01` shares the domain admin password — intentional credential reuse for attack testing.
 
 ## Domain — secondary.thruntops.domain
 
@@ -34,17 +34,17 @@ All credentials used in the ThruntOps lab.
 | `domainuser` | `p0aAQ¿9)` | Domain User (Ludus default) |
 | `basicdomainuser` | `FrN1u/1?` | Domain User |
 | `secondary_user01` | `Ut2cf7%/` | Domain User |
-| `secondary_user02` | `Ut2cf7%/` | Domain User |
-| `secondary_user03` | `Ut2cf7%/` | Domain User |
-| `secondary_user04` | `Ut2cf7%/` | Domain User |
-| `secondary_user05` | `Ut2cf7%/` | Domain User |
-| `secondary_user06` | `Ut2cf7%/` | Domain User |
-| `secondary_user07` | `Ut2cf7%/` | Domain User |
-| `secondary_user08` | `Ut2cf7%/` | Domain User |
-| `secondary_user09` | `Ut2cf7%/` | Domain User |
-| `secondary_user10` | `Ut2cf7%/` | Domain User |
+| `secondary_user02` | `G4L4¿/Ff` | Domain User |
+| `secondary_user03` | `cqA(&P91` | Domain User |
+| `secondary_user04` | `Xz"c7e7?` | Domain User |
+| `secondary_user05` | `B@80G(Va` | Domain User |
+| `secondary_user06` | `kN&(2V3T` | Domain User |
+| `secondary_user07` | `aV%u9¿u5` | Domain User |
+| `secondary_user08` | `MV3(i)6F` | Domain User |
+| `secondary_user09` | `Ug1$m%b4` | Domain User |
+| `secondary_user10` | `snx0"¿C1` | Domain User |
 
-> `secondary_user01`–`secondary_user10` share the domain admin password — intentional credential reuse for attack testing.
+> `secondary_user01` shares the domain admin password — intentional credential reuse for attack testing.
 
 ## Local (all Windows VMs)
 

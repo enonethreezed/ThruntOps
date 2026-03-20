@@ -78,47 +78,47 @@ ludus:
             groups:
               - Domain Users
           - name: primary_user02
-            password: 'iFgu¿83¿'
+            password: 'OS)O69H"'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user03
-            password: 'iFgu¿83¿'
+            password: 'o)@9t7iq'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user04
-            password: 'iFgu¿83¿'
+            password: 'ggA15$y!'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user05
-            password: 'iFgu¿83¿'
+            password: 'X¿s|m7C8'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user06
-            password: 'iFgu¿83¿'
+            password: 'U34SO/p@'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user07
-            password: 'iFgu¿83¿'
+            password: 'n9ro$8=M'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user08
-            password: 'iFgu¿83¿'
+            password: 'c7eX@/8N'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user09
-            password: 'iFgu¿83¿'
+            password: 'bpR8#8t"'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user10
-            password: 'iFgu¿83¿'
+            password: 'o6u8!PF='
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
@@ -170,47 +170,47 @@ ludus:
             groups:
               - Domain Users
           - name: secondary_user02
-            password: 'Ut2cf7%/'
+            password: 'G4L4¿/Ff'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user03
-            password: 'Ut2cf7%/'
+            password: 'cqA(&P91'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user04
-            password: 'Ut2cf7%/'
+            password: 'Xz"c7e7?'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user05
-            password: 'Ut2cf7%/'
+            password: 'B@80G(Va'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user06
-            password: 'Ut2cf7%/'
+            password: 'kN&(2V3T'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user07
-            password: 'Ut2cf7%/'
+            password: 'aV%u9¿u5'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user08
-            password: 'Ut2cf7%/'
+            password: 'MV3(i)6F'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user09
-            password: 'Ut2cf7%/'
+            password: 'Ug1$m%b4'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user10
-            password: 'Ut2cf7%/'
+            password: 'snx0"¿C1'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
