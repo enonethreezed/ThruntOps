@@ -22,6 +22,9 @@ Full setup from a bare Debian/Proxmox host to a running ThruntOps lab.
 
 ## 1. Install Ludus
 
+{: .note }
+Full Ludus documentation at [docs.ludus.cloud](https://docs.ludus.cloud). Project home at [ludus.cloud](https://ludus.cloud).
+
 ### Prerequisites
 
 - x86_64 CPU with VMX/SVM (hardware virtualization enabled in BIOS)
