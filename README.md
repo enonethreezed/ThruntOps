@@ -1,6 +1,6 @@
 # ThruntOps
 
-![ThruntOps](ChatGPT%20Image%2020%20mar%202026%2C%2008_44_22%20a.m..png)
+![ThruntOps](logo.png)
 
 A Ludus-based lab environment for TTP testing and security research.
 
