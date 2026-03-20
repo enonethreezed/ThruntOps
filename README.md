@@ -27,39 +27,7 @@ Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). All VMs run on VLAN 5
 
 ## Users
 
-### Domain — thruntops.domain
-
-| User | Password | Type |
-|---|---|---|
-| `domainadmin` | `password` | Domain Admin |
-| `domainuser` | `password` | Domain User |
-| `basicdomainuser` | `password` | Domain User |
-| `pkiadmin` | `password` | Domain Admin (PKI) |
-
-### Domain — secondary.thruntops.domain
-
-| User | Password | Type |
-|---|---|---|
-| `domainadmin` | `password` | Domain Admin |
-| `domainuser` | `password` | Domain User |
-| `basicdomainuser` | `password` | Domain User |
-
-### Local (all Windows VMs)
-
-| User | Password | Type |
-|---|---|---|
-| `localuser` | `password` | Local Admin |
-| `basicuser` | `password` | Local User |
-| `webadmin` | `password` | Local Admin (WEB only — IIS/wwwroot) |
-
-### Services
-
-| User | Password | Service |
-|---|---|---|
-| `elastic` | `thisisapassword` | Kibana / Fleet API |
-| `webdev` | `password` | GitLab maintainer |
-
-All Windows users have RDP access on their respective machines.
+See [USERS.md](USERS.md) for the full credentials reference.
 
 ## Development Pipeline
 
