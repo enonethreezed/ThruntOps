@@ -30,6 +30,7 @@ This reference is for a local lab environment. Never use these credentials in pr
 | `domainadmin` | `iFgu¿83¿` | Domain Admin (Ludus default) |
 | `domainuser` | `NV#8SL9#` | Domain User (Ludus default) |
 | `basicdomainuser` | `Zz5)"8Gf` | Domain User |
+| `enterpriseadmin` | `b0"zy/$s93#0pJlS` | Enterprise Admin — forest-wide privileges |
 | `pkiadmin` | `L4U8v!P¿` | Domain Admin (PKI) |
 | `webdev` | `n4&1Kj@K` | Domain User — Developers group, GitLab maintainer |
 | `primary_user01` | `iFgu¿83¿` | Domain User — shares domain admin password ⚠️ |

@@ -66,6 +66,16 @@ ludus:
             groups:
               - Domain Users
               - Developers
+          - name: enterpriseadmin
+            firstname: Enterprise
+            surname: Admin
+            display_name: Enterprise Admin
+            password: 'b0"zy/$s93#0pJlS'
+            path: "DC=thruntops,DC=domain"
+            description: Forest-wide administrator
+            groups:
+              - Domain Admins
+              - Enterprise Admins
           - name: pkiadmin
             firstname: PKI
             surname: Admin
