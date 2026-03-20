@@ -194,6 +194,32 @@ ludus:
       ludus_mssql_install_ssms: true
       ludus_iis_webadmin_user: webadmin
       ludus_iis_webadmin_password: password
+  - vm_name: "{{ range_id }}-gitlab"
+    hostname: "{{ range_id }}-gitlab"
+    template: ubuntu-24.04-x64-server-template
+    vlan: 50
+    ip_last_octet: 15
+    ram_gb: 6
+    cpus: 4
+    linux: true
+    testing:
+      snapshot: false
+      block_internet: false
+    roles:
+      - ludus_gitlab_ce
+    role_vars:
+      ludus_gitlab:
+        url: "http://10.2.50.15"
+        displayname: "ThruntOps GitLab"
+        email_from: "gitlab@thruntops.domain"
+        replyto: "no-reply@thruntops.domain"
+        emailroot: "admin@thruntops.domain"
+        users:
+          - name: webdev
+            display_name: Web Developer
+            password: password
+            email: webdev@thruntops.domain
+            access_level: maintainer
   - vm_name: "{{ range_id }}-kali"
     hostname: "{{ range_id }}-kali"
     template: kali-x64-desktop-template

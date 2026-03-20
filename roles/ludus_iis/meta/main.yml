@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  role_name: ludus_iis
+  author: thruntops
+  description: Install IIS with ASP.NET on Windows Server
+  min_ansible_version: "2.9"

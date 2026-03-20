@@ -84,9 +84,22 @@ ludus ansible roles add badsectorlabs.ludus_elastic_agent
 # ADCS role
 ludus ansible roles add badsectorlabs.ludus_adcs
 
-# Custom roles (local user management and AD content)
+# MSSQL
+ludus ansible roles add badsectorlabs.ludus_mssql
+
+# Custom roles (local user management, AD content, IIS, GitLab)
 ludus ansible roles add https://github.com/Cyblex-Consulting/ludus-local-users/archive/refs/heads/main.tar.gz
 ludus ansible roles add https://github.com/Cyblex-Consulting/ludus-ad-content/archive/refs/heads/main.tar.gz
+
+# IIS+ASP.NET (local role — included in this repo)
+ludus ansible roles add -d roles/ludus_iis
+
+# GitLab CE — requires role_name fix before installing
+curl -sL https://github.com/Cyblex-Consulting/ludus-gitlab-ce/archive/refs/heads/main.tar.gz -o /tmp/ludus-gitlab-ce.tar.gz
+mkdir -p /tmp/ludus_gitlab_ce
+tar -xzf /tmp/ludus-gitlab-ce.tar.gz -C /tmp/ludus_gitlab_ce --strip-components=1
+sed -i 's/role_name: ludus_ad_content/role_name: ludus_gitlab_ce/' /tmp/ludus_gitlab_ce/meta/main.yml
+ludus ansible roles add -d /tmp/ludus_gitlab_ce
 ```
 
 Verify all roles are installed:
