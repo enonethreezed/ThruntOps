@@ -1,0 +1,19 @@
+title: ThruntOps
+description: TTP testing lab — vulnerability reference
+remote_theme: just-the-docs/just-the-docs
+
+color_scheme: dark
+
+plugins:
+  - jekyll-remote-theme
+
+just_the_docs:
+  collections:
+    vulnerabilities:
+      name: Vulnerabilities
+
+nav_external_links:
+  - title: GitHub
+    url: https://github.com/enonethreezed/ThruntOps
+
+footer_content: "ThruntOps — MIT License"
