@@ -1,10 +1,27 @@
 ---
-- name: (LAPS) Verify Windows LAPS cmdlets are available
+- name: (LAPS) Check if Windows LAPS cmdlets already available
+  ansible.windows.win_powershell:
+    script: |
+      $cmd = Get-Command Update-LapsADSchema -ErrorAction SilentlyContinue
+      if ($cmd) { $Ansible.Result = "available" } else { $Ansible.Result = "missing" }
+      $Ansible.Changed = $false
+  register: laps_check
+
+- name: (LAPS) Install Windows Updates to get built-in LAPS (requires KB5025230+)
+  ansible.windows.win_updates:
+    category_names:
+      - SecurityUpdates
+      - CriticalUpdates
+    reboot: true
+    reboot_timeout: 600
+  when: laps_check.result == "missing"
+
+- name: (LAPS) Verify Windows LAPS cmdlets are available after update
   ansible.windows.win_powershell:
     script: |
       $cmd = Get-Command Update-LapsADSchema -ErrorAction SilentlyContinue
       if (-not $cmd) {
-        throw "Windows LAPS cmdlets not available. Ensure KB5025230 or later is installed on this host."
+        throw "Windows LAPS cmdlets still not available after update. Manual intervention required."
       }
       $Ansible.Changed = $false
 
