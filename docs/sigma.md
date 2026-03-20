@@ -20,6 +20,11 @@ Proposal for a detection engineering pipeline in ThruntOps using Atomic Red Team
 
 ---
 
+{: .note }
+**Sigma** — generic SIEM rule format: [sigmahq.github.io](https://sigmahq.github.io) · [github.com/SigmaHQ/sigma](https://github.com/SigmaHQ/sigma)<br>
+**Atomic Red Team** — ATT&CK-mapped attack simulations: [atomicredteam.io](https://atomicredteam.io) · [github.com/redcanaryco/atomic-red-team](https://github.com/redcanaryco/atomic-red-team)<br>
+**Invoke-AtomicRedTeam** — PowerShell execution framework: [github.com/redcanaryco/invoke-atomicredteam](https://github.com/redcanaryco/invoke-atomicredteam)
+
 ## Concept
 
 The lab already has intentional vulnerabilities mapped to MITRE ATT&CK. The logical next step is closing the loop:
