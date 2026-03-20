@@ -31,6 +31,8 @@ ludus:
       - ludus_ad_content
     role_vars:
       ludus_ad:
+        groups:
+          - name: Developers
         users:
           - name: basicdomainuser
             firstname: Basic
@@ -41,6 +43,16 @@ ludus:
             description: Low privilege domain user
             groups:
               - Domain Users
+          - name: webdev
+            firstname: Web
+            surname: Developer
+            display_name: Web Developer
+            password: password
+            path: "DC=thruntops,DC=domain"
+            description: Web developer with GitLab access
+            groups:
+              - Domain Users
+              - Developers
           - name: pkiadmin
             firstname: PKI
             surname: Admin
@@ -306,7 +318,9 @@ ludus:
       snapshot: false
       block_internet: false
     roles:
+      - badsectorlabs.ludus_elastic_agent
       - ludus_gitlab_ce
+      - ludus_gitlab_ldap
     role_vars:
       ludus_gitlab:
         url: "http://10.2.50.15"

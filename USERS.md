@@ -12,6 +12,7 @@ All credentials used in the ThruntOps lab.
 | `domainuser` | `password` | Domain User (Ludus default) |
 | `basicdomainuser` | `password` | Domain User |
 | `pkiadmin` | `password` | Domain Admin (PKI) |
+| `webdev` | `password` | Domain User — member of Developers group, GitLab maintainer |
 | `primary_user01` | `password` | Domain User |
 | `primary_user02` | `password` | Domain User |
 | `primary_user03` | `password` | Domain User |
@@ -59,7 +60,7 @@ All credentials used in the ThruntOps lab.
 | `beats_system` | `thisisapassword` | Beats monitoring | — |
 | `apm_system` | `thisisapassword` | APM monitoring | — |
 | `remote_monitoring_user` | `thisisapassword` | Metricbeat | — |
-| `webdev` | `password` | GitLab maintainer | http://10.2.50.15 |
+| `webdev` | `password` | GitLab maintainer (domain user — use AD credentials via LDAP) | http://10.2.50.15 |
 
 ## Notes
 
