@@ -1,0 +1,146 @@
+# Installation Guide
+
+Full setup from a bare Debian/Proxmox host to a running ThruntOps lab.
+
+---
+
+## 1. Install Ludus
+
+### Prerequisites
+
+- x86_64 CPU with VMX/SVM (hardware virtualization enabled in BIOS)
+- Debian 12/13 or Proxmox 8/9
+- Minimum 32 GB RAM, 200 GB storage (NVMe recommended)
+- Wired ethernet (WiFi not supported)
+- Root access + internet connectivity
+- Docker must NOT be installed on the host
+
+### Install
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://ludus.cloud/install | bash
+```
+
+The installer will prompt for configuration values (defaults are fine) and reboot the machine. After reboot, monitor progress:
+
+```bash
+ludus-install-status
+```
+
+---
+
+## 2. Configure API Access
+
+Once Ludus is running, get your API key and configure the client:
+
+```bash
+ludus users apikey
+```
+
+Set the API URL and key in `~/.config/ludus/config.yml` or via environment variables if accessing remotely.
+
+---
+
+## 3. Build Templates
+
+List available templates and build the ones required by this lab:
+
+```bash
+ludus templates list
+```
+
+Build required templates (each can take 20–60 minutes):
+
+```bash
+ludus templates build -n debian-12-x64-server-template
+ludus templates build -n win2022-server-x64-template
+ludus templates build -n win11-22h2-x64-enterprise-template
+ludus templates build -n kali-x64-desktop-template
+```
+
+Monitor build progress:
+
+```bash
+ludus templates logs -f
+```
+
+Wait for all four templates to show `BUILT` before proceeding:
+
+```bash
+ludus templates list
+```
+
+---
+
+## 4. Install Ansible Roles
+
+Install the required roles from Ansible Galaxy and GitHub:
+
+```bash
+# Elastic Stack roles
+ludus ansible roles add badsectorlabs.ludus_elastic_container
+ludus ansible roles add badsectorlabs.ludus_elastic_agent
+
+# ADCS role
+ludus ansible roles add badsectorlabs.ludus_adcs
+
+# Custom roles (local user management and AD content)
+ludus ansible roles add https://github.com/Cyblex-Consulting/ludus-local-users/archive/refs/heads/main.tar.gz
+ludus ansible roles add https://github.com/Cyblex-Consulting/ludus-ad-content/archive/refs/heads/main.tar.gz
+```
+
+Verify all roles are installed:
+
+```bash
+ludus ansible roles list
+```
+
+---
+
+## 5. Deploy the Range
+
+Set the range configuration from this repository:
+
+```bash
+ludus range config set -f elastic.yml
+```
+
+Verify the config was accepted without errors, then deploy:
+
+```bash
+ludus range deploy
+```
+
+Monitor deployment (takes 60–90 minutes for a full deploy):
+
+```bash
+ludus range logs -f
+```
+
+Check final status:
+
+```bash
+ludus range status
+```
+
+All VMs should show `BUILT` and the deployment status should be `SUCCESS`.
+
+---
+
+## 6. Verify
+
+Run the Fleet status check to confirm all Elastic agents are enrolled:
+
+```bash
+bash tests/fleet_status.sh
+```
+
+All Windows VMs (`DC01-2022`, `DC01-SEC`, `ADCS`, `WIN11-22H2-1`, `WIN11-22H2-2`) should appear with status `online`.
+
+---
+
+## Notes
+
+- The ADCS VM requires `sysprep: true` to generate a unique machine SID — this is already set in `elastic.yml`
+- DCs do not support local SAM accounts; local user provisioning only applies to member machines
+- The `synzack.ludus_sccm` role requires 16 GB of additional RAM — not included in the default deployment
