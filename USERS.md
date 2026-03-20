@@ -14,7 +14,7 @@ All credentials used in the ThruntOps lab.
 | `pkiadmin` | `L4U8v!P¿` | Domain Admin (PKI) |
 | `webdev` | `n4&1Kj@K` | Domain User — member of Developers group, GitLab maintainer |
 | `primary_user01` | `iFgu¿83¿` | Domain User |
-| `primary_user02` | `OS)O69H"` | Domain User |
+| `primary_user02` | `OS)O69H"` | Domain User — RDP access to DC01-2022 (intentional vulnerability) |
 | `primary_user03` | `o)@9t7iq` | Domain User |
 | `primary_user04` | `ggA15$y!` | Domain User |
 | `primary_user05` | `X¿s\|m7C8` | Domain User |
@@ -34,7 +34,7 @@ All credentials used in the ThruntOps lab.
 | `domainuser` | `p0aAQ¿9)` | Domain User (Ludus default) |
 | `basicdomainuser` | `FrN1u/1?` | Domain User |
 | `secondary_user01` | `Ut2cf7%/` | Domain User |
-| `secondary_user02` | `G4L4¿/Ff` | Domain User |
+| `secondary_user02` | `G4L4¿/Ff` | Domain User — RDP access to DC01-SEC (intentional vulnerability) |
 | `secondary_user03` | `cqA(&P91` | Domain User |
 | `secondary_user04` | `Xz"c7e7?` | Domain User |
 | `secondary_user05` | `B@80G(Va` | Domain User |

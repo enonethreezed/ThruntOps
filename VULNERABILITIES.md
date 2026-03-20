@@ -33,6 +33,33 @@ Compromise primary_user01 (low-priv)
 
 ---
 
+### RDP Access to Domain Controllers — Low-Privilege User
+
+| Field | Detail |
+|---|---|
+| **Accounts affected** | `primary_user02` (thruntops.domain → DC01-2022), `secondary_user02` (secondary.thruntops.domain → DC01-SEC) |
+| **Condition** | Low-privilege domain users are members of the `Remote Desktop Users` group on their respective domain controller |
+| **Primitive** | Interactive session on a DC as a non-admin — enables local enumeration, memory access attempts, and token abuse |
+| **MITRE ATT&CK** | [T1021.001 — Remote Services: Remote Desktop Protocol](https://attack.mitre.org/techniques/T1021/001/) |
+| **Related techniques** | [T1078.002 — Valid Accounts: Domain Accounts](https://attack.mitre.org/techniques/T1078/002/), [T1003.001 — OS Credential Dumping: LSASS Memory](https://attack.mitre.org/techniques/T1003/001/) |
+
+**Attack path:**
+
+```
+Compromise primary_user02 (low-priv)
+  → RDP to DC01-2022 (T1021.001)
+  → Interactive session on DC — LSASS in scope (T1003.001)
+  → Dump credentials / escalate to Domain Admin
+```
+
+**Detection opportunities:**
+
+- RDP logon to DC from non-admin account (Event ID 4624, logon type 10, source non-admin)
+- Interactive session on DC from workstation IP (Event ID 4778 / 4779 — session connect/disconnect)
+- Process creation under non-admin account on DC (Sysmon Event ID 1)
+
+---
+
 ## By Technology
 
 | Technology | Vectors |
