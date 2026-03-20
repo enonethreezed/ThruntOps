@@ -39,13 +39,37 @@
       }
       $Ansible.Changed = $false
 
-- name: (LAPS) Extend AD schema with msLAPS attributes
+- name: (LAPS) Add admin user to Schema Admins for schema extension
   ansible.windows.win_powershell:
     script: |
-      Update-LapsADSchema -Confirm:$false
+      Import-Module ActiveDirectory
+      $members = Get-ADGroupMember "Schema Admins" | Select-Object -ExpandProperty SamAccountName
+      if ("{{ ludus_laps_admin_user }}" -notin $members) {
+        Add-ADGroupMember -Identity "Schema Admins" -Members "{{ ludus_laps_admin_user }}"
+        $Ansible.Changed = $true
+      } else {
+        $Ansible.Changed = $false
+      }
+
+- name: (LAPS) Extend AD schema via fresh credential session (Schema Admins token)
+  ansible.windows.win_powershell:
+    script: |
+      $password = ConvertTo-SecureString "{{ ludus_laps_admin_password }}" -AsPlainText -Force
+      $domain = (Get-ADDomain).NetBIOSName
+      $cred = New-Object PSCredential("$domain\{{ ludus_laps_admin_user }}", $password)
+      Invoke-Command -ComputerName localhost -Credential $cred -ScriptBlock {
+        Update-LapsADSchema -Confirm:$false
+      }
       $Ansible.Changed = $true
   register: laps_schema
   failed_when: laps_schema.error | length > 0
+
+- name: (LAPS) Remove admin user from Schema Admins after schema extension
+  ansible.windows.win_powershell:
+    script: |
+      Import-Module ActiveDirectory
+      Remove-ADGroupMember -Identity "Schema Admins" -Members "{{ ludus_laps_admin_user }}" -Confirm:$false
+      $Ansible.Changed = $true
 
 - name: (LAPS) Grant computers self-write permission on domain root
   ansible.windows.win_powershell:

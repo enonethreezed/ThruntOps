@@ -33,6 +33,7 @@ ludus:
     role_vars:
       ludus_laps_configure_schema: true
       ludus_laps_read_principal: "thruntops\\primary_user03"
+      ludus_laps_admin_password: 'iFgu¿83¿'
       ludus_ad:
         groups:
           - name: Developers
@@ -160,6 +161,7 @@ ludus:
     role_vars:
       ludus_laps_configure_schema: true
       ludus_laps_read_principal: "secondary\\secondary_user03"
+      ludus_laps_admin_password: 'Ut2cf7%/'
       ludus_ad:
         users:
           - name: domainadmin
