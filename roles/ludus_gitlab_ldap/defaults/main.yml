@@ -3,6 +3,6 @@ ludus_gitlab_ldap_host: "10.2.50.11"
 ludus_gitlab_ldap_port: 389
 ludus_gitlab_ldap_base: "DC=thruntops,DC=domain"
 ludus_gitlab_ldap_bind_dn: "CN=domainadmin,CN=Users,DC=thruntops,DC=domain"
-ludus_gitlab_ldap_bind_password: "password"
+ludus_gitlab_ldap_bind_password: ""
 ludus_gitlab_ldap_group_base: "DC=thruntops,DC=domain"
 ludus_gitlab_ldap_admin_group: "Domain Admins"

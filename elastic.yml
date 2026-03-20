@@ -34,11 +34,21 @@ ludus:
         groups:
           - name: Developers
         users:
+          - name: domainadmin
+            password: 'iFgu¿83¿'
+            path: "CN=Users,DC=thruntops,DC=domain"
+            groups:
+              - Domain Admins
+          - name: domainuser
+            password: 'NV#8SL9#'
+            path: "CN=Users,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
           - name: basicdomainuser
             firstname: Basic
             surname: DomainUser
             display_name: Basic Domain User
-            password: password
+            password: 'Zz5)"8Gf'
             path: "DC=thruntops,DC=domain"
             description: Low privilege domain user
             groups:
@@ -47,7 +57,7 @@ ludus:
             firstname: Web
             surname: Developer
             display_name: Web Developer
-            password: password
+            password: 'n4&1Kj@K'
             path: "DC=thruntops,DC=domain"
             description: Web developer with GitLab access
             groups:
@@ -57,58 +67,58 @@ ludus:
             firstname: PKI
             surname: Admin
             display_name: PKI Admin
-            password: password
+            password: 'L4U8v!P¿'
             path: "DC=thruntops,DC=domain"
             description: PKI/ADCS administrator
             groups:
               - Domain Admins
           - name: primary_user01
-            password: password
+            password: 'iFgu¿83¿'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user02
-            password: password
+            password: 'iFgu¿83¿'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user03
-            password: password
+            password: 'iFgu¿83¿'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user04
-            password: password
+            password: 'iFgu¿83¿'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user05
-            password: password
+            password: 'iFgu¿83¿'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user06
-            password: password
+            password: 'iFgu¿83¿'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user07
-            password: password
+            password: 'iFgu¿83¿'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user08
-            password: password
+            password: 'iFgu¿83¿'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user09
-            password: password
+            password: 'iFgu¿83¿'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: primary_user10
-            password: password
+            password: 'iFgu¿83¿'
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
@@ -135,62 +145,72 @@ ludus:
     role_vars:
       ludus_ad:
         users:
+          - name: domainadmin
+            password: 'Ut2cf7%/'
+            path: "CN=Users,DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Admins
+          - name: domainuser
+            password: 'p0aAQ¿9)'
+            path: "CN=Users,DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
           - name: basicdomainuser
             firstname: Basic
             surname: DomainUser
             display_name: Basic Domain User
-            password: password
+            password: 'FrN1u/1?'
             path: "DC=secondary,DC=thruntops,DC=domain"
             description: Low privilege domain user
             groups:
               - Domain Users
           - name: secondary_user01
-            password: password
+            password: 'Ut2cf7%/'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user02
-            password: password
+            password: 'Ut2cf7%/'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user03
-            password: password
+            password: 'Ut2cf7%/'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user04
-            password: password
+            password: 'Ut2cf7%/'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user05
-            password: password
+            password: 'Ut2cf7%/'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user06
-            password: password
+            password: 'Ut2cf7%/'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user07
-            password: password
+            password: 'Ut2cf7%/'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user08
-            password: password
+            password: 'Ut2cf7%/'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user09
-            password: password
+            password: 'Ut2cf7%/'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
           - name: secondary_user10
-            password: password
+            password: 'Ut2cf7%/'
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
@@ -217,8 +237,10 @@ ludus:
       - ludus_local_users
     role_vars:
       ludus_local_users:
+        - login: localuser
+          password: 'ZT4q?%5x'
         - login: basicuser
-          password: password
+          password: 'H)2?H8vC'
       ludus_local_groups:
         - name: Remote Desktop Users
           members:
@@ -246,8 +268,10 @@ ludus:
       - ludus_local_users
     role_vars:
       ludus_local_users:
+        - login: localuser
+          password: 'ZT4q?%5x'
         - login: basicuser
-          password: password
+          password: 'H)2?H8vC'
       ludus_local_groups:
         - name: Remote Desktop Users
           members:
@@ -274,8 +298,10 @@ ludus:
       - ludus_local_users
     role_vars:
       ludus_local_users:
+        - login: localuser
+          password: 'ZT4q?%5x'
         - login: basicuser
-          password: password
+          password: 'H)2?H8vC'
       ludus_local_groups:
         - name: Remote Desktop Users
           members:
@@ -301,11 +327,25 @@ ludus:
       - badsectorlabs.ludus_elastic_agent
       - badsectorlabs.ludus_mssql
       - ludus_iis
+      - ludus_local_users
     role_vars:
       ludus_mssql_version: "2022"
       ludus_mssql_install_ssms: true
       ludus_iis_webadmin_user: webadmin
-      ludus_iis_webadmin_password: password
+      ludus_iis_webadmin_password: 'O5G=S(5q'
+      ludus_local_users:
+        - login: localuser
+          password: 'ZT4q?%5x'
+        - login: basicuser
+          password: 'H)2?H8vC'
+      ludus_local_groups:
+        - name: Remote Desktop Users
+          members:
+            - localuser
+            - basicuser
+            - "thruntops\\domainadmin"
+            - "thruntops\\domainuser"
+            - "thruntops\\basicdomainuser"
   - vm_name: "{{ range_id }}-gitlab"
     hostname: "{{ range_id }}-gitlab"
     template: ubuntu-24.04-x64-server-template
@@ -331,9 +371,10 @@ ludus:
         users:
           - name: webdev
             display_name: Web Developer
-            password: password
+            password: 'n4&1Kj@K'
             email: webdev@thruntops.domain
             access_level: maintainer
+      ludus_gitlab_ldap_bind_password: 'iFgu¿83¿'
   - vm_name: "{{ range_id }}-kali"
     hostname: "{{ range_id }}-kali"
     template: kali-x64-desktop-template
