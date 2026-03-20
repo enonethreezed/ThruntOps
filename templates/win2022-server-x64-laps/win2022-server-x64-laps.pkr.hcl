@@ -85,9 +85,9 @@ source "proxmox-iso" "win2022-server-x64-laps" {
     unmount          = true
     cd_label         = "PROVISION"
     cd_files = [
-      "../common/setup-for-ansible.ps1",
-      "../common/win-updates.ps1",
-      "../common/windows-common-setup.ps1",
+      "iso/setup-for-ansible.ps1",
+      "iso/win-updates.ps1",
+      "iso/windows-common-setup.ps1",
       "Autounattend.xml",
     ]
   }
@@ -146,7 +146,7 @@ build {
 
   # Install Security + Critical updates — gets KB5025230+ which includes Windows LAPS
   provisioner "ansible" {
-    playbook_file = "../ansible/windows_update_security_updates.yml"
+    playbook_file = "ansible/windows_update_security_updates.yml"
     use_proxy     = false
     user          = "${var.winrm_username}"
     extra_arguments = [
@@ -158,23 +158,23 @@ build {
   }
 
   provisioner "windows-shell" {
-    scripts = ["../scripts/disablewinupdate.bat"]
+    scripts = ["scripts/disablewinupdate.bat"]
   }
 
   provisioner "powershell" {
-    scripts = ["../scripts/disable-hibernate.ps1"]
+    scripts = ["scripts/disable-hibernate.ps1"]
   }
 
   provisioner "powershell" {
-    scripts = ["../scripts/install-virtio-drivers.ps1"]
+    scripts = ["scripts/install-virtio-drivers.ps1"]
   }
 
   provisioner "powershell" {
-    scripts = ["../scripts/optimize-assemblies.ps1"]
+    scripts = ["scripts/optimize-assemblies.ps1"]
   }
 
   provisioner "ansible" {
-    playbook_file = "../ansible/ngen.yml"
+    playbook_file = "ansible/ngen.yml"
     use_proxy     = false
     user          = "${var.winrm_username}"
     extra_arguments = [
