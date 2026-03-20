@@ -32,6 +32,7 @@ ludus:
       - ludus_laps
     role_vars:
       ludus_laps_configure_schema: true
+      ludus_laps_read_principal: "thruntops\\primary_user03"
       ludus_ad:
         groups:
           - name: Developers
@@ -145,7 +146,10 @@ ludus:
     roles:
       - badsectorlabs.ludus_elastic_agent
       - ludus_ad_content
+      - ludus_laps
     role_vars:
+      ludus_laps_configure_schema: true
+      ludus_laps_read_principal: "secondary\\secondary_user03"
       ludus_ad:
         users:
           - name: domainadmin

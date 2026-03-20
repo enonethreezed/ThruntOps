@@ -60,6 +60,32 @@ Compromise primary_user02 (low-priv)
 
 ---
 
+### LAPS Password Read — Low-Privilege Domain User
+
+| Field | Detail |
+|---|---|
+| **Accounts affected** | `primary_user03` (thruntops.domain), `secondary_user03` (secondary.thruntops.domain) |
+| **Condition** | `Set-LapsADReadPasswordPermission` granted on the domain root — these users can read `msLAPS-Password` on any workstation in their domain |
+| **Primitive** | Low-privilege domain user reads LAPS-managed local admin password → local admin on any workstation |
+| **MITRE ATT&CK** | [T1555 — Credentials from Password Stores](https://attack.mitre.org/techniques/T1555/) |
+| **Related techniques** | [T1078.002 — Valid Accounts: Domain Accounts](https://attack.mitre.org/techniques/T1078/002/), [T1021.001 — Remote Services: RDP](https://attack.mitre.org/techniques/T1021/001/) |
+
+**Attack path:**
+
+```
+Compromise primary_user03 (low-priv)
+  → Query LAPS: Get-LapsADPassword -Identity WIN11-22H2-1 (T1555)
+  → Recover localuser password for target workstation
+  → RDP / lateral movement as local admin (T1021.001)
+```
+
+**Detection opportunities:**
+
+- Read access to `msLAPS-Password` attribute by non-admin account (AD audit — Event ID 4662, object access on computer object)
+- `Get-LapsADPassword` or LDAP query for `msLAPS-Password` from non-privileged context
+
+---
+
 ## By Technology
 
 | Technology | Vectors |

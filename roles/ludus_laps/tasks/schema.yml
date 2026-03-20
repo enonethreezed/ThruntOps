@@ -16,3 +16,14 @@
       $Ansible.Changed = $true
   vars:
     laps_domain_dn: "DC={{ ansible_domain.split('.') | join(',DC=') }}"
+
+- name: (LAPS) Grant user03 read permission on LAPS passwords
+  ansible.windows.win_powershell:
+    script: |
+      Import-Module LAPS
+      Set-LapsADReadPasswordPermission -Identity "{{ laps_domain_dn }}" `
+        -AllowedPrincipals "{{ ludus_laps_read_principal }}" -Confirm:$false
+      $Ansible.Changed = $true
+  vars:
+    laps_domain_dn: "DC={{ ansible_domain.split('.') | join(',DC=') }}"
+  when: ludus_laps_read_principal is defined

@@ -1,5 +1,6 @@
 ---
 ludus_laps_configure_schema: false
+ludus_laps_read_principal: ""
 ludus_laps_managed_account: "localuser"
 ludus_laps_password_age_days: 30
 ludus_laps_password_length: 14
