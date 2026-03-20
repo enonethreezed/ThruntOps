@@ -319,6 +319,8 @@ ludus:
       - badsectorlabs.ludus_adcs
       - ludus_local_users
     role_vars:
+      ludus_adcs_domain_username: "thruntops\\domainadmin"
+      ludus_adcs_domain_password: 'iFgu¿83¿'
       ludus_local_users:
         - login: localuser
           password: 'ZT4q?%5x'
