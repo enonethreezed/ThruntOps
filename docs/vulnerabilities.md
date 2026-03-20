@@ -102,6 +102,34 @@ Compromise primary_user03 (low-priv)
 
 ---
 
+### RDP Access to ADCS — Low-Privilege Domain User
+
+| Field | Detail |
+|---|---|
+| **Accounts affected** | `primary_user04` (thruntops.domain) |
+| **Condition** | Low-privilege domain user is member of `Remote Desktop Users` on the Certificate Authority (ADCS VM) |
+| **Primitive** | Interactive session on the CA — enables certificate template enumeration, ESC abuse, and potential CA private key access |
+| **MITRE ATT&CK** | [T1021.001 — Remote Services: Remote Desktop Protocol](https://attack.mitre.org/techniques/T1021/001/) |
+| **Related techniques** | [T1649 — Steal or Forge Authentication Certificates](https://attack.mitre.org/techniques/T1649/), [T1078.002 — Valid Accounts: Domain Accounts](https://attack.mitre.org/techniques/T1078/002/) |
+
+**Attack path:**
+
+```
+Compromise primary_user04 (low-priv)
+  → RDP to ADCS (T1021.001)
+  → Enumerate certificate templates — identify ESC misconfigurations
+  → Request malicious certificate (T1649)
+  → Authenticate as Domain Admin using certificate
+```
+
+**Detection opportunities:**
+
+- RDP logon to ADCS from non-admin account (Event ID 4624, logon type 10)
+- Certificate enrollment from unexpected account (Event ID 4886 / 4887 — certificate issued)
+- Certify / Certipy tooling signatures in process creation logs (Sysmon Event ID 1)
+
+---
+
 ## By Technology
 
 | Technology | Vectors |

@@ -36,7 +36,7 @@ This reference is for a local lab environment. Never use these credentials in pr
 | `primary_user01` | `iFgu¿83¿` | Domain User — shares domain admin password ⚠️ |
 | `primary_user02` | `OS)O69H"` | Domain User — RDP on DC01-2022 ⚠️ |
 | `primary_user03` | `o)@9t7iq` | Domain User — LAPS read on workstations ⚠️ |
-| `primary_user04` | `ggA15$y!` | Domain User |
+| `primary_user04` | `ggA15$y!` | Domain User — RDP access to ADCS (intentional vulnerability) ⚠️ |
 | `primary_user05` | `X¿s\|m7C8` | Domain User |
 | `primary_user06` | `U34SO/p@` | Domain User |
 | `primary_user07` | `n9ro$8=M` | Domain User |
