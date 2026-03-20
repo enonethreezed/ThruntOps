@@ -106,8 +106,8 @@ Compromise primary_user03 (low-priv)
 
 | Field | Detail |
 |---|---|
-| **Accounts affected** | `primary_user04` (thruntops.domain) |
-| **Condition** | Low-privilege domain user is member of `Remote Desktop Users` on the Certificate Authority (ADCS VM) |
+| **Accounts affected** | `primary_user04` (thruntops.domain), `secondary_user04` (secondary.thruntops.domain) |
+| **Condition** | Low-privilege domain users from both domains are members of `Remote Desktop Users` on the Certificate Authority (ADCS VM) |
 | **Primitive** | Interactive session on the CA — enables certificate template enumeration, ESC abuse, and potential CA private key access |
 | **MITRE ATT&CK** | [T1021.001 — Remote Services: Remote Desktop Protocol](https://attack.mitre.org/techniques/T1021/001/) |
 | **Related techniques** | [T1649 — Steal or Forge Authentication Certificates](https://attack.mitre.org/techniques/T1649/), [T1078.002 — Valid Accounts: Domain Accounts](https://attack.mitre.org/techniques/T1078/002/) |

@@ -56,7 +56,7 @@ This reference is for a local lab environment. Never use these credentials in pr
 | `secondary_user01` | `Ut2cf7%/` | Domain User — shares domain admin password ⚠️ |
 | `secondary_user02` | `G4L4¿/Ff` | Domain User — RDP on DC01-SEC ⚠️ |
 | `secondary_user03` | `cqA(&P91` | Domain User — LAPS read on workstations ⚠️ |
-| `secondary_user04` | `Xz"c7e7?` | Domain User |
+| `secondary_user04` | `Xz"c7e7?` | Domain User — RDP access to ADCS (intentional vulnerability) ⚠️ |
 | `secondary_user05` | `B@80G(Va` | Domain User |
 | `secondary_user06` | `kN&(2V3T` | Domain User |
 | `secondary_user07` | `aV%u9¿u5` | Domain User |

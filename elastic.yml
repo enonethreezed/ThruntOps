@@ -325,8 +325,9 @@ ludus:
       ludus_local_groups:
         - name: Remote Desktop Users
           members:
-            - "thruntops\\domainadmin"
+            - "thruntops\\pkiadmin"
             - "thruntops\\primary_user04"
+            - "secondary\\secondary_user04"
   - vm_name: "{{ range_id }}-web"
     hostname: "{{ range_id }}-WEB"
     template: win2022-server-x64-template
