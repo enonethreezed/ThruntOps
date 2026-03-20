@@ -1,9 +1,17 @@
 ---
+- name: (LAPS) Verify Windows LAPS cmdlets are available
+  ansible.windows.win_powershell:
+    script: |
+      $cmd = Get-Command Update-LapsADSchema -ErrorAction SilentlyContinue
+      if (-not $cmd) {
+        throw "Windows LAPS cmdlets not available. Ensure KB5025230 or later is installed on this host."
+      }
+      $Ansible.Changed = $false
+
 - name: (LAPS) Extend AD schema with msLAPS attributes
   ansible.windows.win_powershell:
     script: |
-      Import-Module LAPS
-      $result = Update-LapsADSchema -Confirm:$false
+      Update-LapsADSchema -Confirm:$false
       $Ansible.Changed = $true
   register: laps_schema
   failed_when: laps_schema.error | length > 0
@@ -11,7 +19,6 @@
 - name: (LAPS) Grant computers self-write permission on domain root
   ansible.windows.win_powershell:
     script: |
-      Import-Module LAPS
       Set-LapsADComputerSelfPermission -Identity "{{ laps_domain_dn }}" -Confirm:$false
       $Ansible.Changed = $true
   vars:
@@ -20,10 +27,9 @@
 - name: (LAPS) Grant user03 read permission on LAPS passwords
   ansible.windows.win_powershell:
     script: |
-      Import-Module LAPS
       Set-LapsADReadPasswordPermission -Identity "{{ laps_domain_dn }}" `
         -AllowedPrincipals "{{ ludus_laps_read_principal }}" -Confirm:$false
       $Ansible.Changed = $true
   vars:
     laps_domain_dn: "DC={{ ansible_domain.split('.') | join(',DC=') }}"
-  when: ludus_laps_read_principal is defined
+  when: ludus_laps_read_principal is defined and ludus_laps_read_principal | length > 0

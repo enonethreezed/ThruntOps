@@ -56,6 +56,8 @@
 - name: (LAPS) Trigger immediate password rotation
   ansible.windows.win_powershell:
     script: |
-      Import-Module LAPS
-      Invoke-LapsPolicyProcessing
-      $Ansible.Changed = $true
+      $cmd = Get-Command Invoke-LapsPolicyProcessing -ErrorAction SilentlyContinue
+      if ($cmd) {
+        Invoke-LapsPolicyProcessing
+        $Ansible.Changed = $true
+      }
