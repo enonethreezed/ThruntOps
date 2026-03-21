@@ -1,7 +1,7 @@
 ---
 title: Sigma & Atomic Tests
 layout: default
-nav_order: 5
+nav_order: 7
 ---
 
 # Sigma Rules & Atomic Red Team

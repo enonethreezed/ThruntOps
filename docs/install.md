@@ -1,7 +1,7 @@
 ---
 title: Installation
 layout: default
-nav_order: 2
+nav_order: 4
 ---
 
 # Installation Guide
@@ -106,7 +106,9 @@ ludus templates list
 
 ## 4. Install Ansible Roles
 
-Install the required roles from Ansible Galaxy and GitHub:
+Install roles based on your chosen profile.
+
+### Elastic profile
 
 ```bash
 # Elastic Stack roles
@@ -141,6 +143,35 @@ ludus ansible roles add -d roles/ludus_ops
 ludus ansible roles add -d roles/ludus_atomic_red_team
 ```
 
+### Wazuh profile
+
+```bash
+# Wazuh server (all-in-one)
+ludus ansible roles add aleemladha.wazuh_server_install
+
+# Wazuh Windows agent
+ludus ansible roles add aleemladha.ludus_wazuh_agent
+
+# ADCS role
+ludus ansible roles add badsectorlabs.ludus_adcs
+
+# Local roles (included in this repo)
+ludus ansible roles add https://github.com/Cyblex-Consulting/ludus-local-users/archive/refs/heads/main.tar.gz
+ludus ansible roles add -d roles/ludus_ad_content
+ludus ansible roles add -d roles/ludus_laps
+ludus ansible roles add -d roles/ludus_ops
+ludus ansible roles add -d roles/ludus_atomic_red_team
+```
+
+{: .warning }
+The `aleemladha.ludus_wazuh_agent` role uses non-standard internal variable names. After installing the role, patch it to match the `role_vars` keys used in `wazuh.yml`:
+
+```bash
+ROLE="/opt/ludus/users/ludus-admin/.ansible/roles/aleemladha.ludus_wazuh_agent/tasks/windows.yml"
+sudo sed -i 's/wazuh_agent_install_package/ludus_wazuh_agent_install_package/g' "$ROLE"
+sudo sed -i 's/wazuh_manager_host/ludus_wazuh_siem_server/g' "$ROLE"
+```
+
 Verify all roles are installed:
 
 ```bash
@@ -164,10 +195,14 @@ sudo sed -i 's/USEMICROSOFTUPDATE="True"/USEMICROSOFTUPDATE="False"/' "$TMPL"
 
 ## 5. Deploy the Range
 
-Set the range configuration from this repository:
+Set the range configuration for your chosen profile:
 
 ```bash
+# Elastic profile
 ludus range config set -f elastic.yml
+
+# Wazuh profile
+ludus range config set -f wazuh.yml
 ```
 
 Verify the config was accepted without errors, then deploy:
@@ -194,6 +229,8 @@ All VMs should show `BUILT` and the deployment status should be `SUCCESS`.
 
 ## 6. Verify
 
+### Elastic profile
+
 Run the Fleet status check to confirm all Elastic agents are enrolled:
 
 ```bash
@@ -201,6 +238,18 @@ bash tests/fleet_status.sh
 ```
 
 All Windows VMs (`DC01-2022`, `DC01-SEC`, `ADCS`, `WEB`, `WIN11-22H2-1`, `WIN11-22H2-2`), the GitLab VM, and the `ops` VM should appear with status `online`.
+
+### Wazuh profile
+
+Run the Wazuh agent status check:
+
+```bash
+bash tests/wazuh_status.sh
+```
+
+All Windows VMs (`DC01-2022`, `DC01-SEC`, `ADCS`, `WIN11-22H2-1`, `WIN11-22H2-2`) should appear with status `active`.
+
+### Common
 
 Once deployed, the `ops` VM exposes:
 - **Guacamole** (remote access): `http://10.2.50.2:8080/guacamole/` — default credentials `guacadmin:guacadmin`
@@ -216,7 +265,7 @@ bash scripts/add-kali.sh
 
 ## Notes
 
-- The ADCS VM requires `sysprep: true` to generate a unique machine SID — already set in `elastic.yml`
+- The ADCS VM requires `sysprep: true` to generate a unique machine SID — already set in `elastic.yml` and `wazuh.yml`
 - DCs do not support local SAM accounts — local user provisioning only applies to member machines
 - Windows LAPS schema extension runs on DC01-2022 — requires the domain to be fully provisioned first
 - The `win2022-server-x64-laps-template` is used for both DCs. It includes all Windows updates applied at build time, so LAPS cmdlets are immediately available without running `win_updates` during deploy
