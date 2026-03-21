@@ -37,12 +37,12 @@ This reference is for a local lab environment. Never use these credentials in pr
 | `primary_user02` | `OS)O69H"` | Domain User — RDP on DC01-2022 ⚠️ |
 | `primary_user03` | `o)@9t7iq` | Domain User — LAPS read on workstations ⚠️ |
 | `primary_user04` | `ggA15$y!` | Domain User — RDP access to ADCS (intentional vulnerability) ⚠️ |
-| `primary_user05` | `X¿s\|m7C8` | Domain User — SSH access to GitLab VM |
-| `primary_user06` | `U34SO/p@` | Domain User |
+| `primary_user05` | `X¿s\|m7C8` | Domain User — SSH + sudo on gitlab VM |
+| `primary_user06` | `U34SO/p@` | Domain User — SSH on ops VM (no sudo) ⚠️ |
 | `primary_user07` | `n9ro$8=M` | Domain User |
 | `primary_user08` | `c7eX@/8N` | Domain User |
 | `primary_user09` | `bpR8#8t"` | Domain User |
-| `primary_user10` | `o6u8!PF=` | Domain User |
+| `primary_user10` | `o6u8!PF=` | Domain User — SSH + sudo on ops VM |
 
 ---
 
@@ -57,12 +57,29 @@ This reference is for a local lab environment. Never use these credentials in pr
 | `secondary_user02` | `G4L4¿/Ff` | Domain User — RDP on DC01-SEC ⚠️ |
 | `secondary_user03` | `cqA(&P91` | Domain User — LAPS read on workstations ⚠️ |
 | `secondary_user04` | `Xz"c7e7?` | Domain User — RDP access to ADCS (intentional vulnerability) ⚠️ |
-| `secondary_user05` | `B@80G(Va` | Domain User — SSH access to GitLab VM |
-| `secondary_user06` | `kN&(2V3T` | Domain User |
+| `secondary_user05` | `B@80G(Va` | Domain User — SSH + sudo on gitlab VM |
+| `secondary_user06` | `kN&(2V3T` | Domain User — SSH on gitlab VM (no sudo) ⚠️ |
 | `secondary_user07` | `aV%u9¿u5` | Domain User |
 | `secondary_user08` | `MV3(i)6F` | Domain User |
 | `secondary_user09` | `Ug1$m%b4` | Domain User |
-| `secondary_user10` | `snx0"¿C1` | Domain User |
+| `secondary_user10` | `snx0"¿C1` | Domain User — SSH + sudo on ops VM |
+
+---
+
+## Linux SSH Access
+
+Domain users with SSH access to Linux VMs, via SSSD + AD authentication.
+
+| VM | IP | User | Domain | Sudo |
+|---|---|---|---|---|
+| ops | 10.2.50.2 | `primary_user10` | thruntops | ✓ |
+| ops | 10.2.50.2 | `secondary_user10` | secondary | ✓ |
+| ops | 10.2.50.2 | `primary_user06` | thruntops | ✗ |
+| gitlab | 10.2.50.15 | `primary_user05` | thruntops | ✓ |
+| gitlab | 10.2.50.15 | `secondary_user05` | secondary | ✓ |
+| gitlab | 10.2.50.15 | `secondary_user06` | secondary | ✗ |
+
+> `primary_user06` (ops) and `secondary_user06` (gitlab) are unprivileged entry points for local privilege escalation scenarios.
 
 ---
 
