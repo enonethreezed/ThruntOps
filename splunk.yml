@@ -21,8 +21,7 @@ ludus:
         - linux
       # Optional: copy Splunk.License to the Ludus server and set the path here.
       # scp Splunk.License ludus-admin@<ludus-host>:~/
-      # ludus_splunk_license_src: "/home/ludus-admin/Splunk.License"
-        - linux
+      ludus_splunk_license_src: "/home/ludus-admin/Splunk.License"
   - vm_name: "{{ range_id }}-ad-dc-win2022-server-x64"
     hostname: "{{ range_id }}-DC01-2022"
     template: win2022-server-x64-laps-template
