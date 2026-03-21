@@ -57,7 +57,8 @@
       $password = ConvertTo-SecureString "{{ ludus_laps_admin_password }}" -AsPlainText -Force
       $domain = (Get-ADDomain).NetBIOSName
       $cred = New-Object PSCredential("$domain\{{ ludus_laps_admin_user }}", $password)
-      Invoke-Command -ComputerName localhost -Credential $cred -ScriptBlock {
+      $hostname = $env:COMPUTERNAME
+      Invoke-Command -ComputerName $hostname -Credential $cred -ScriptBlock {
         Update-LapsADSchema -Confirm:$false
       }
       $Ansible.Changed = $true
