@@ -2,7 +2,7 @@
 
 WAZUH_URL="https://10.2.50.1:55000"
 USER="wazuh"
-PASS="wazuh"
+PASS="W4zuh-4dMin!"
 
 # Obtain JWT token
 token=$(curl -sk \
