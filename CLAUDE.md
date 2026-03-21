@@ -119,6 +119,22 @@ bd automatically syncs via Dolt:
 - ❌ Do NOT use external issue trackers
 - ❌ Do NOT duplicate tracking systems
 
+### Deploy Failures
+
+When a deploy fails, ALWAYS do both:
+
+1. **Open a GitHub issue** — document the failure with VM, role, task, error output, and a fix direction
+   ```bash
+   gh issue create --title "bug: <vm> — <short description>" --body "..."
+   ```
+
+2. **Create a bd task** linked as reference to the GitHub issue
+   ```bash
+   bd create "Fix: <short description>" --description="GitHub issue #<N>: <url>" -t bug -p 1 --json
+   ```
+
+The GitHub issue is the authoritative failure record. The bd task tracks resolution progress.
+
 For more details, see README.md and docs/QUICKSTART.md.
 
 ## Landing the Plane (Session Completion)
