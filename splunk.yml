@@ -411,7 +411,7 @@ ludus:
       ludus_sssd_domain: "thruntops.domain"
       ludus_sssd_bind_user: "domainadmin"
       ludus_sssd_bind_password: 'iFgu¿83¿'
-      ludus_sssd_ssh_users: "primary_user05 secondary_user05"
+      ludus_sssd_ssh_users: "primary_user05 secondary_user05 secondary_user06"
       ludus_sssd_sudo_users:
         - primary_user05
         - secondary_user05
@@ -437,7 +437,7 @@ ludus:
       ludus_sssd_domain: "thruntops.domain"
       ludus_sssd_bind_user: "domainadmin"
       ludus_sssd_bind_password: 'iFgu¿83¿'
-      ludus_sssd_ssh_users: "primary_user10 secondary_user10"
+      ludus_sssd_ssh_users: "primary_user10 secondary_user10 primary_user06"
       ludus_sssd_sudo_users:
         - primary_user10
         - secondary_user10
