@@ -341,7 +341,7 @@ ludus:
       - ludus_iis
       - ludus_local_users
     role_vars:
-      ludus_mssql_version: "2022"
+      ludus_mssql_version: "2019"
       ludus_mssql_install_ssms: true
       ludus_iis_webadmin_user: webadmin
       ludus_iis_webadmin_password: 'O5G=S(5q'
