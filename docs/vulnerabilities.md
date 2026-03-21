@@ -7,7 +7,7 @@ nav_order: 6
 # Vulnerabilities
 {: .no_toc }
 
-Attack surface and known vulnerability classes present in the ThruntOps lab.
+Attack surface and intentional vulnerability classes present in the ThruntOps lab.
 {: .fs-6 .fw-300 }
 
 ---
@@ -20,7 +20,7 @@ Attack surface and known vulnerability classes present in the ThruntOps lab.
 
 ---
 
-## Intentional Vulnerabilities
+## Active Directory
 
 ### Credential Reuse — Domain User to Domain Admin
 
@@ -130,14 +130,53 @@ Compromise primary_user04 (low-priv)
 
 ---
 
+## Linux Privilege Escalation
+
+Entry points: `secondary_user06` → gitlab (10.2.50.15), `primary_user06` → ops (10.2.50.2).
+
+### SUID R — Shell Escape to Root (gitlab)
+
+| Field | Detail |
+|---|---|
+| **Host** | gitlab (10.2.50.15) |
+| **Entry point** | `secondary_user06` (SSH, no sudo) |
+| **Condition** | `/usr/bin/R` has SUID root bit set |
+| **Primitive** | R spawns a shell inheriting the SUID effective UID → root shell |
+| **GTFOBins** | [R — SUID](https://gtfobins.github.io/gtfobins/r/#suid) |
+| **MITRE ATT&CK** | [T1548.001 — Abuse Elevation Control Mechanism: Setuid and Setgid](https://attack.mitre.org/techniques/T1548/001/) |
+
+**Exploit:**
+
+```bash
+R --no-save -e 'system("/bin/sh")'
+```
+
+**Attack path:**
+
+```
+SSH as secondary_user06 (no sudo)
+  → Discover SUID binaries: find / -perm -4000 -type f 2>/dev/null
+  → Identify /usr/bin/R with SUID root
+  → R --no-save -e 'system("/bin/sh")' → root shell (T1548.001)
+```
+
+**Detection opportunities:**
+
+- `R` process spawned by a non-root user with effective UID 0 (Sysmon/auditd — process creation with euid=0)
+- `/bin/sh` child of `R` process owned by non-root user
+- SUID binary execution outside expected administrative context
+
+---
+
 ## By Technology
 
 | Technology | Vectors |
 |---|---|
-| Active Directory (dual domain) | Kerberoasting, AS-REP roasting, ACL abuse, lateral movement, trust abuse |
-| ADCS | ESC1–ESC16 certificate template misconfigurations |
+| Active Directory (dual domain) | Credential reuse, Kerberoasting, AS-REP roasting, ACL abuse, lateral movement, trust abuse |
+| ADCS | ESC1–ESC16 certificate template misconfigurations, RDP access to CA |
 | IIS + ASP.NET + MSSQL | Web application attacks, SQL injection, authentication bypass |
-| GitLab CE | Source code exposure, CI/CD pipeline abuse, secret leakage |
+| GitLab CE | Source code exposure, CI/CD pipeline abuse, secret leakage, SUID privesc |
+| Linux (gitlab, ops) | SUID binary abuse |
 | Elastic SIEM | Detection engineering, alert tuning, log analysis |
 
 ## Notes
@@ -147,3 +186,4 @@ Compromise primary_user04 (low-priv)
 - ADCS is configured with intentionally misconfigured templates to enable ESC attack paths
 - GitLab CI/CD pipeline deploys directly to IIS on push — pipeline poisoning surface
 - Domain trust between `thruntops.domain` and `secondary.thruntops.domain` enables cross-domain lateral movement
+- Linux privesc scenarios are only present on profiles that include the relevant VM (gitlab: elastic + splunk; ops: all profiles)
