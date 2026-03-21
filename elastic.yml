@@ -16,7 +16,7 @@ ludus:
       ludus_elastic_password: "thisisapassword"
   - vm_name: "{{ range_id }}-ad-dc-win2022-server-x64"
     hostname: "{{ range_id }}-DC01-2022"
-    template: win2022-server-x64-template
+    template: win2022-server-x64-laps-template
     vlan: 50
     ip_last_octet: 11
     ram_gb: 6
@@ -144,7 +144,7 @@ ludus:
           - "thruntops\\primary_user02"
   - vm_name: "{{ range_id }}-ad-dc-win2022-secondary"
     hostname: "{{ range_id }}-DC01-SEC"
-    template: win2022-server-x64-template
+    template: win2022-server-x64-laps-template
     vlan: 50
     ip_last_octet: 12
     ram_gb: 6

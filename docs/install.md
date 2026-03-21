@@ -77,13 +77,26 @@ ludus templates build -n win11-22h2-x64-enterprise-template
 ludus templates build -n kali-x64-desktop-template
 ```
 
+#### LAPS-ready Windows Server 2022 template
+
+ThruntOps requires a custom win2022 template with Security and Critical updates pre-installed. This ensures Windows built-in LAPS (KB5025230+) is available without running Windows Update during every lab deploy — saving 30–60 minutes per deployment.
+
+Build it once from the included Packer template:
+
+```bash
+ludus templates add -d templates/win2022-server-x64-laps
+ludus templates build -n win2022-server-x64-laps-template
+```
+
+> This build takes 2–3 hours (downloads ISO + installs all updates). It only needs to be done once.
+
 Monitor build progress:
 
 ```bash
 ludus templates logs -f
 ```
 
-Wait for all four templates to show `BUILT` before proceeding:
+Wait for all templates to show `BUILT` before proceeding:
 
 ```bash
 ludus templates list
@@ -148,7 +161,7 @@ Verify the config was accepted without errors, then deploy:
 ludus range deploy
 ```
 
-Monitor deployment (takes 60–90 minutes for a full deploy):
+Monitor deployment (takes 2–3 hours with the LAPS-ready template):
 
 ```bash
 ludus range logs -f
@@ -181,3 +194,5 @@ All Windows VMs (`DC01-2022`, `DC01-SEC`, `ADCS`, `WEB`, `WIN11-22H2-1`, `WIN11-
 - The ADCS VM requires `sysprep: true` to generate a unique machine SID — already set in `elastic.yml`
 - DCs do not support local SAM accounts — local user provisioning only applies to member machines
 - Windows LAPS schema extension runs on DC01-2022 — requires the domain to be fully provisioned first
+- The `win2022-server-x64-laps-template` is used for both DCs. It includes all Windows updates applied at build time, so LAPS cmdlets are immediately available without running `win_updates` during deploy
+- `ludus ansible roles add` does **not** overwrite an existing role — use `sudo cp -rf` to update installed roles
