@@ -138,6 +138,7 @@ ludus ansible roles add -d roles/ludus_ad_content
 ludus ansible roles add -d roles/ludus_gitlab_ldap
 ludus ansible roles add -d roles/ludus_laps
 ludus ansible roles add -d roles/ludus_ops
+ludus ansible roles add -d roles/ludus_atomic_red_team
 ```
 
 Verify all roles are installed:

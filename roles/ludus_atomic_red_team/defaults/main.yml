@@ -1,0 +1,9 @@
+---
+# Installation path on the target host
+ludus_art_install_path: "C:\\AtomicRedTeam"
+
+# Whether to download the full atomics library
+ludus_art_get_atomics: true
+
+# Whether to install per-test prerequisites (ExternalBlockList, NuGet packages, etc.)
+ludus_art_install_prereqs: true

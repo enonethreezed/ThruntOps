@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  role_name: ludus_atomic_red_team
+  author: enonethreezed
+  description: Install Invoke-AtomicRedTeam and Atomics on Windows workstations
+  license: MIT
+  min_ansible_version: "2.9"
+dependencies: []

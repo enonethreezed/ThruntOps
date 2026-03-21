@@ -256,6 +256,7 @@ ludus:
       - badsectorlabs.ludus_elastic_agent
       - ludus_local_users
       - ludus_laps
+      - ludus_atomic_red_team
     role_vars:
       ludus_local_users:
         - login: basicuser
@@ -285,6 +286,7 @@ ludus:
       - badsectorlabs.ludus_elastic_agent
       - ludus_local_users
       - ludus_laps
+      - ludus_atomic_red_team
     role_vars:
       ludus_local_users:
         - login: basicuser

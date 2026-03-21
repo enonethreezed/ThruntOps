@@ -92,6 +92,5 @@ See the [Installation guide](https://enonethreezed.github.io/ThruntOps/install) 
 
 - Vulnerable web application covering OWASP Top 10
 - GitLab CI/CD pipeline to WEB (automated deploy on push)
-- Sigma rules + Atomic Red Team detection pipeline — see [proposal](https://enonethreezed.github.io/ThruntOps/sigma)
-- Atomic Red Team on workstations (WIN11-22H2-1, WIN11-22H2-2)
+- Sigma rules + Atomic Red Team detection pipeline — see [docs](https://enonethreezed.github.io/ThruntOps/sigma)
 - Reduce resource requirements to support lower-spec hosts (target: 32 GB RAM)
