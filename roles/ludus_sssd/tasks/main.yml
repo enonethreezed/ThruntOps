@@ -14,12 +14,12 @@
     state: present
     update_cache: true
 
-- name: (SSSD) Check if already joined to domain
+- name: (SSSD) Check joined realms
   ansible.builtin.command: realm list
   register: realm_list
   changed_when: false
 
-- name: (SSSD) Join domain
+- name: (SSSD) Join primary domain
   ansible.builtin.expect:
     command: >
       realm join
@@ -31,29 +31,22 @@
     timeout: 60
   when: ludus_sssd_domain not in realm_list.stdout
 
-- name: (SSSD) Configure SSSD
-  ansible.builtin.blockinfile:
-    path: /etc/sssd/sssd.conf
-    marker: "# {mark} SSSD ANSIBLE CONFIGURATION"
-    block: |
-      [sssd]
-      domains = {{ ludus_sssd_domain }}
-      config_file_version = 2
-      services = nss, pam
+- name: (SSSD) Join extra domains
+  ansible.builtin.expect:
+    command: >
+      realm join
+      --user={{ item.bind_user }}
+      {{ item.domain }}
+    responses:
+      Password.*: "{{ item.bind_password }}"
+    timeout: 60
+  loop: "{{ ludus_sssd_extra_domains }}"
+  when: item.domain not in realm_list.stdout
 
-      [domain/{{ ludus_sssd_domain }}]
-      default_shell = /bin/bash
-      krb5_store_password_if_offline = True
-      cache_credentials = True
-      krb5_realm = {{ ludus_sssd_domain | upper }}
-      realmd_tags = manages-system joined-with-adcli
-      id_provider = ad
-      fallback_homedir = /home/%u@%d
-      ad_domain = {{ ludus_sssd_domain }}
-      use_fully_qualified_names = False
-      ldap_id_mapping = True
-      access_provider = ad
-    create: true
+- name: (SSSD) Deploy sssd.conf
+  ansible.builtin.template:
+    src: sssd.conf.j2
+    dest: /etc/sssd/sssd.conf
     mode: '0600'
   notify: Restart SSSD
 

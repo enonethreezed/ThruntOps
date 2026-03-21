@@ -404,4 +404,14 @@ ludus:
       block_internet: false
     roles:
       - badsectorlabs.ludus_elastic_agent
+      - ludus_sssd
       - ludus_ops
+    role_vars:
+      ludus_sssd_domain: "thruntops.domain"
+      ludus_sssd_bind_user: "domainadmin"
+      ludus_sssd_bind_password: 'iFgu¿83¿'
+      ludus_sssd_ssh_users: "primary_user10 secondary_user10"
+      ludus_sssd_extra_domains:
+        - domain: "secondary.thruntops.domain"
+          bind_user: "domainadmin"
+          bind_password: 'Ut2cf7%/'

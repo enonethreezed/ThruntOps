@@ -1,0 +1,32 @@
+[sssd]
+domains = {{ ([ludus_sssd_domain] + (ludus_sssd_extra_domains | map(attribute='domain') | list)) | join(', ') }}
+config_file_version = 2
+services = nss, pam
+
+[domain/{{ ludus_sssd_domain }}]
+default_shell = /bin/bash
+krb5_store_password_if_offline = True
+cache_credentials = True
+krb5_realm = {{ ludus_sssd_domain | upper }}
+realmd_tags = manages-system joined-with-adcli
+id_provider = ad
+fallback_homedir = /home/%u@%d
+ad_domain = {{ ludus_sssd_domain }}
+use_fully_qualified_names = False
+ldap_id_mapping = True
+access_provider = ad
+{% for extra in ludus_sssd_extra_domains %}
+
+[domain/{{ extra.domain }}]
+default_shell = /bin/bash
+krb5_store_password_if_offline = True
+cache_credentials = True
+krb5_realm = {{ extra.domain | upper }}
+realmd_tags = manages-system joined-with-adcli
+id_provider = ad
+fallback_homedir = /home/%u@%d
+ad_domain = {{ extra.domain }}
+use_fully_qualified_names = False
+ldap_id_mapping = True
+access_provider = ad
+{% endfor %}

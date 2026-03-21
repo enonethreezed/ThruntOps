@@ -7,3 +7,5 @@ ludus_sssd_ou: ""
 ludus_sssd_allowed_groups: ""
 # Comma-separated list of AD users allowed to SSH
 ludus_sssd_ssh_users: ""
+# Additional domains to join (list of {domain, bind_user, bind_password})
+ludus_sssd_extra_domains: []
