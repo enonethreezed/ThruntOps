@@ -1,0 +1,26 @@
+<Sysmon schemaversion="4.81">
+  <!--
+    ThruntOps Sysmon for Linux config
+    Capture-all baseline: exclude nothing, log everything.
+    Suitable for lab/detection engineering — not for production.
+  -->
+  <EventFiltering>
+    <RuleGroup name="" groupRelation="or">
+      <!-- Process events -->
+      <ProcessCreate onmatch="exclude"/>
+      <ProcessTerminate onmatch="exclude"/>
+      <ProcessAccess onmatch="exclude"/>
+
+      <!-- Network events -->
+      <NetworkConnect onmatch="exclude"/>
+
+      <!-- File events -->
+      <FileCreate onmatch="exclude"/>
+      <FileDelete onmatch="exclude"/>
+      <FileDeleteDetected onmatch="exclude"/>
+
+      <!-- DNS -->
+      <DnsQuery onmatch="exclude"/>
+    </RuleGroup>
+  </EventFiltering>
+</Sysmon>

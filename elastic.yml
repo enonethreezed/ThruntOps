@@ -370,6 +370,7 @@ ludus:
       block_internet: false
     roles:
       - badsectorlabs.ludus_elastic_agent
+      - ludus_sysmon_linux
       - ludus_privesc
       - ludus_gitlab_ce
       - ludus_gitlab_ldap
@@ -415,6 +416,7 @@ ludus:
       block_internet: false
     roles:
       - badsectorlabs.ludus_elastic_agent
+      - ludus_sysmon_linux
       - ludus_privesc
       - ludus_sssd
       - ludus_ops

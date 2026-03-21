@@ -1,0 +1,3 @@
+---
+ludus_sysmon_linux_config_src: ""  # Optional: path to custom sysmon config XML on controller
+                                   # Defaults to bundled config if empty
