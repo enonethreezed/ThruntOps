@@ -1,0 +1,7 @@
+---
+# List of privesc scenarios to enable on this host.
+# Each entry is a scenario name matching a file in tasks/scenarios/.
+# Example:
+#   ludus_privesc_scenarios:
+#     - suid_r
+ludus_privesc_scenarios: []

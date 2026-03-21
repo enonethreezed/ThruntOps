@@ -1,0 +1,4 @@
+---
+- name: (privesc) Apply scenario {{ item }}
+  ansible.builtin.include_tasks: "scenarios/{{ item }}.yml"
+  loop: "{{ ludus_privesc_scenarios }}"

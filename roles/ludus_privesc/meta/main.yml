@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  role_name: ludus_privesc
+  author: enonethreezed
+  description: Linux privilege escalation scenarios for TTP testing
+  license: MIT
+  min_ansible_version: "2.9"
+dependencies: []
