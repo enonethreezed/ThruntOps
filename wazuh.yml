@@ -1,0 +1,438 @@
+ludus:
+  - vm_name: "{{ range_id }}-wazuh"
+    hostname: "{{ range_id }}-wazuh"
+    template: ubuntu-24.04-x64-server-template
+    vlan: 50
+    ip_last_octet: 1
+    ram_gb: 8
+    cpus: 4
+    linux: true
+    testing:
+      snapshot: false
+      block_internet: false
+    roles:
+      - aleemladha.wazuh_server_install
+    role_vars:
+      wazuh_install_script_url: "https://packages.wazuh.com/4.14/wazuh-install.sh"
+      wazuh_admin_password: "thisisapassword"
+  - vm_name: "{{ range_id }}-ad-dc-win2022-server-x64"
+    hostname: "{{ range_id }}-DC01-2022"
+    template: win2022-server-x64-laps-template
+    vlan: 50
+    ip_last_octet: 11
+    ram_gb: 4
+    cpus: 4
+    windows:
+      sysprep: false
+    domain:
+      fqdn: thruntops.domain
+      role: primary-dc
+    roles:
+      - aleemladha.ludus_wazuh_agent
+      - ludus_ad_content
+      - ludus_laps
+    role_vars:
+      ludus_wazuh_siem_server: "10.2.50.1"
+      ludus_wazuh_agent_install_package: "https://packages.wazuh.com/4.x/windows/wazuh-agent-4.14.4-1.msi"
+      ludus_laps_configure_schema: true
+      ludus_laps_read_principal: "thruntops\\primary_user03"
+      ludus_laps_admin_password: 'iFgu¿83¿'
+      ludus_ad:
+        groups:
+          - name: Developers
+        users:
+          - name: domainadmin
+            password: 'iFgu¿83¿'
+            path: "CN=Users,DC=thruntops,DC=domain"
+            groups:
+              - Domain Admins
+          - name: domainuser
+            password: 'NV#8SL9#'
+            path: "CN=Users,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: basicdomainuser
+            firstname: Basic
+            surname: DomainUser
+            display_name: Basic Domain User
+            password: 'Zz5)"8Gf'
+            path: "DC=thruntops,DC=domain"
+            description: Low privilege domain user
+            groups:
+              - Domain Users
+          - name: webdev
+            firstname: Web
+            surname: Developer
+            display_name: Web Developer
+            password: 'n4&1Kj@K'
+            path: "DC=thruntops,DC=domain"
+            description: Web developer with GitLab access
+            groups:
+              - Domain Users
+              - Developers
+          - name: enterpriseadmin
+            firstname: Enterprise
+            surname: Admin
+            display_name: Enterprise Admin
+            password: 'b0"zy/$s93#0pJlS'
+            path: "DC=thruntops,DC=domain"
+            description: Forest-wide administrator
+            groups:
+              - Domain Admins
+              - Enterprise Admins
+          - name: pkiadmin
+            firstname: PKI
+            surname: Admin
+            display_name: PKI Admin
+            password: 'L4U8v!P¿'
+            path: "DC=thruntops,DC=domain"
+            description: PKI/ADCS administrator
+            groups:
+              - Domain Admins
+          - name: primary_user01
+            password: 'iFgu¿83¿'
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user02
+            password: 'OS)O69H"'
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user03
+            password: 'o)@9t7iq'
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user04
+            password: 'ggA15$y!'
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user05
+            password: 'X¿s|m7C8'
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user06
+            password: 'U34SO/p@'
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user07
+            password: 'n9ro$8=M'
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user08
+            password: 'c7eX@/8N'
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user09
+            password: 'bpR8#8t"'
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: primary_user10
+            password: 'o6u8!PF='
+            path: "DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+        rdp_members:
+          - "thruntops\\domainadmin"
+          - "thruntops\\domainuser"
+          - "thruntops\\basicdomainuser"
+          - "thruntops\\pkiadmin"
+          - "thruntops\\primary_user02"
+  - vm_name: "{{ range_id }}-ad-dc-win2022-secondary"
+    hostname: "{{ range_id }}-DC01-SEC"
+    template: win2022-server-x64-laps-template
+    vlan: 50
+    ip_last_octet: 12
+    ram_gb: 4
+    cpus: 4
+    windows:
+      sysprep: false
+    domain:
+      fqdn: secondary.thruntops.domain
+      role: primary-dc
+    roles:
+      - aleemladha.ludus_wazuh_agent
+      - ludus_ad_content
+      - ludus_laps
+    role_vars:
+      ludus_wazuh_siem_server: "10.2.50.1"
+      ludus_wazuh_agent_install_package: "https://packages.wazuh.com/4.x/windows/wazuh-agent-4.14.4-1.msi"
+      ludus_laps_configure_schema: true
+      ludus_laps_read_principal: "secondary\\secondary_user03"
+      ludus_laps_admin_password: 'Ut2cf7%/'
+      ludus_ad:
+        users:
+          - name: domainadmin
+            password: 'Ut2cf7%/'
+            path: "CN=Users,DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Admins
+          - name: domainuser
+            password: 'p0aAQ¿9)'
+            path: "CN=Users,DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: basicdomainuser
+            firstname: Basic
+            surname: DomainUser
+            display_name: Basic Domain User
+            password: 'FrN1u/1?'
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            description: Low privilege domain user
+            groups:
+              - Domain Users
+          - name: secondary_user01
+            password: 'Ut2cf7%/'
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user02
+            password: 'G4L4¿/Ff'
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user03
+            password: 'cqA(&P91'
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user04
+            password: 'Xz"c7e7?'
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user05
+            password: 'B@80G(Va'
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user06
+            password: 'kN&(2V3T'
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user07
+            password: 'aV%u9¿u5'
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user08
+            password: 'MV3(i)6F'
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user09
+            password: 'Ug1$m%b4'
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: secondary_user10
+            password: 'snx0"¿C1'
+            path: "DC=secondary,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+        rdp_members:
+          - "secondary\\domainadmin"
+          - "secondary\\domainuser"
+          - "secondary\\basicdomainuser"
+          - "secondary\\secondary_user02"
+  - vm_name: "{{ range_id }}-ad-win11-22h2-enterprise-x64-1"
+    hostname: "{{ range_id }}-WIN11-22H2-1"
+    template: win11-22h2-x64-enterprise-template
+    vlan: 50
+    ip_last_octet: 21
+    ram_gb: 4
+    cpus: 4
+    windows:
+      install_additional_tools: true
+      office_version: 2019
+      office_arch: 64bit
+    domain:
+      fqdn: thruntops.domain
+      role: member
+    roles:
+      - aleemladha.ludus_wazuh_agent
+      - ludus_local_users
+      - ludus_laps
+      - ludus_atomic_red_team
+    role_vars:
+      ludus_wazuh_siem_server: "10.2.50.1"
+      ludus_wazuh_agent_install_package: "https://packages.wazuh.com/4.x/windows/wazuh-agent-4.14.4-1.msi"
+      ludus_local_users:
+        - login: basicuser
+          password: 'H)2?H8vC'
+      ludus_local_groups:
+        - name: Remote Desktop Users
+          members:
+            - basicuser
+            - "thruntops\\domainadmin"
+            - "thruntops\\domainuser"
+            - "thruntops\\basicdomainuser"
+  - vm_name: "{{ range_id }}-ad-win11-22h2-enterprise-x64-2"
+    hostname: "{{ range_id }}-WIN11-22H2-2"
+    template: win11-22h2-x64-enterprise-template
+    vlan: 50
+    ip_last_octet: 22
+    ram_gb: 4
+    cpus: 4
+    windows:
+      install_additional_tools: true
+      office_version: 2019
+      office_arch: 64bit
+    domain:
+      fqdn: secondary.thruntops.domain
+      role: member
+    roles:
+      - aleemladha.ludus_wazuh_agent
+      - ludus_local_users
+      - ludus_laps
+      - ludus_atomic_red_team
+    role_vars:
+      ludus_wazuh_siem_server: "10.2.50.1"
+      ludus_wazuh_agent_install_package: "https://packages.wazuh.com/4.x/windows/wazuh-agent-4.14.4-1.msi"
+      ludus_local_users:
+        - login: basicuser
+          password: 'H)2?H8vC'
+      ludus_local_groups:
+        - name: Remote Desktop Users
+          members:
+            - basicuser
+            - "secondary\\domainadmin"
+            - "secondary\\domainuser"
+            - "secondary\\basicdomainuser"
+  - vm_name: "{{ range_id }}-adcs"
+    hostname: "{{ range_id }}-ADCS"
+    template: win2022-server-x64-template
+    vlan: 50
+    ip_last_octet: 13
+    ram_gb: 4
+    cpus: 2
+    windows:
+      sysprep: true
+    domain:
+      fqdn: thruntops.domain
+      role: member
+    roles:
+      - aleemladha.ludus_wazuh_agent
+      - badsectorlabs.ludus_adcs
+      - ludus_local_users
+    role_vars:
+      ludus_wazuh_siem_server: "10.2.50.1"
+      ludus_wazuh_agent_install_package: "https://packages.wazuh.com/4.x/windows/wazuh-agent-4.14.4-1.msi"
+      ludus_adcs_domain_username: "thruntops\\domainadmin"
+      ludus_adcs_domain_password: 'iFgu¿83¿'
+      ludus_local_users:
+        - login: basicuser
+          password: 'H)2?H8vC'
+      ludus_local_groups:
+        - name: Remote Desktop Users
+          members:
+            - "thruntops\\pkiadmin"
+            - "thruntops\\primary_user04"
+  - vm_name: "{{ range_id }}-web"
+    hostname: "{{ range_id }}-WEB"
+    template: win2022-server-x64-template
+    vlan: 50
+    ip_last_octet: 14
+    ram_gb: 4
+    cpus: 4
+    windows:
+      sysprep: true
+    domain:
+      fqdn: thruntops.domain
+      role: member
+    roles:
+      - aleemladha.ludus_wazuh_agent
+      - badsectorlabs.ludus_mssql
+      - ludus_iis
+      - ludus_local_users
+    role_vars:
+      ludus_wazuh_siem_server: "10.2.50.1"
+      ludus_wazuh_agent_install_package: "https://packages.wazuh.com/4.x/windows/wazuh-agent-4.14.4-1.msi"
+      ludus_mssql_version: "2019"
+      ludus_mssql_install_ssms: true
+      ludus_iis_webadmin_user: webadmin
+      ludus_iis_webadmin_password: 'O5G=S(5q'
+      ludus_local_users:
+        - login: basicuser
+          password: 'H)2?H8vC'
+      ludus_local_groups:
+        - name: Remote Desktop Users
+          members:
+            - basicuser
+            - "thruntops\\domainadmin"
+            - "thruntops\\domainuser"
+            - "thruntops\\basicdomainuser"
+  - vm_name: "{{ range_id }}-gitlab"
+    hostname: "{{ range_id }}-gitlab"
+    template: ubuntu-24.04-x64-server-template
+    vlan: 50
+    ip_last_octet: 15
+    ram_gb: 4
+    cpus: 4
+    linux: true
+    testing:
+      snapshot: false
+      block_internet: false
+    roles:
+      - aleemladha.ludus_wazuh_agent
+      - ludus_gitlab_ce
+      - ludus_gitlab_ldap
+      - ludus_sssd
+    role_vars:
+      ludus_wazuh_siem_server: "10.2.50.1"
+      ludus_gitlab:
+        url: "http://10.2.50.15"
+        displayname: "ThruntOps GitLab"
+        email_from: "gitlab@thruntops.domain"
+        replyto: "no-reply@thruntops.domain"
+        emailroot: "admin@thruntops.domain"
+        users:
+          - name: webdev
+            display_name: Web Developer
+            password: 'n4&1Kj@K'
+            email: webdev@thruntops.domain
+            access_level: maintainer
+      ludus_gitlab_ldap_bind_password: 'iFgu¿83¿'
+      ludus_sssd_domain: "thruntops.domain"
+      ludus_sssd_bind_user: "domainadmin"
+      ludus_sssd_bind_password: 'iFgu¿83¿'
+      ludus_sssd_ssh_users: "primary_user05 secondary_user05"
+      ludus_sssd_dns_servers:
+        - "10.2.50.11"
+  - vm_name: "{{ range_id }}-ops"
+    hostname: "{{ range_id }}-ops"
+    template: ubuntu-24.04-x64-server-template
+    vlan: 50
+    ip_last_octet: 2
+    ram_gb: 4
+    cpus: 2
+    linux: true
+    testing:
+      snapshot: false
+      block_internet: false
+    roles:
+      - aleemladha.ludus_wazuh_agent
+      - ludus_sssd
+      - ludus_ops
+    role_vars:
+      ludus_wazuh_siem_server: "10.2.50.1"
+      ludus_sssd_domain: "thruntops.domain"
+      ludus_sssd_bind_user: "domainadmin"
+      ludus_sssd_bind_password: 'iFgu¿83¿'
+      ludus_sssd_ssh_users: "primary_user10 secondary_user10"
+      ludus_sssd_extra_domains:
+        - domain: "secondary.thruntops.domain"
+          bind_user: "domainadmin"
+          bind_password: 'Ut2cf7%/'
+          dc_ip: "10.2.50.12"
+      ludus_sssd_dns_servers:
+        - "10.2.50.11"
+        - "10.2.50.12"
