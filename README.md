@@ -18,7 +18,7 @@ Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). All VMs run on VLAN 5
 | 10.2.50.11 | DC01-2022 | Windows Server 2022 | Primary DC — `thruntops.domain` |
 | 10.2.50.12 | DC01-SEC | Windows Server 2022 | Primary DC — `secondary.thruntops.domain` |
 | 10.2.50.13 | ADCS | Windows Server 2022 | Certificate Authority — `thruntops.domain` |
-| 10.2.50.14 | WEB | Windows Server 2022 | IIS + ASP.NET + MSSQL 2022 |
+| 10.2.50.14 | WEB | Windows Server 2022 | IIS + ASP.NET + MSSQL 2019 |
 | 10.2.50.15 | gitlab | Ubuntu 24.04 | GitLab CE — source control + CI/CD |
 | 10.2.50.21 | WIN11-22H2-1 | Windows 11 22H2 | Workstation — `thruntops.domain` |
 | 10.2.50.22 | WIN11-22H2-2 | Windows 11 22H2 | Workstation — `secondary.thruntops.domain` |
@@ -89,3 +89,6 @@ See the [Installation guide](https://enonethreezed.github.io/ThruntOps/install) 
 - Vulnerable web application covering OWASP Top 10
 - GitLab CI/CD pipeline to WEB (automated deploy on push)
 - Sigma rules + Atomic Red Team detection pipeline — see [proposal](https://enonethreezed.github.io/ThruntOps/sigma)
+- Atomic Red Team on workstations (WIN11-22H2-1, WIN11-22H2-2)
+- BAS (Breach and Attack Simulation) integration — cross-platform Linux + Windows coverage
+- Reduce resource requirements to support lower-spec hosts (target: 32 GB RAM)
