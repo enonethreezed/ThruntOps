@@ -1,0 +1,59 @@
+---
+# Guacamole
+ludus_ops_guacamole_port: 8080
+ludus_ops_guacamole_db_password: "guacamole"
+ludus_ops_guacamole_admin_password: "guacadmin"
+
+# Infection Monkey
+ludus_ops_monkey_port: 5000
+
+# Lab connections pre-loaded into Guacamole
+ludus_ops_guacamole_connections:
+  - name: "DC01-2022 (RDP)"
+    protocol: rdp
+    hostname: "10.2.50.11"
+    port: 3389
+    username: "thruntops\\domainadmin"
+    password: ""
+  - name: "DC01-SEC (RDP)"
+    protocol: rdp
+    hostname: "10.2.50.12"
+    port: 3389
+    username: "secondary\\domainadmin"
+    password: ""
+  - name: "ADCS (RDP)"
+    protocol: rdp
+    hostname: "10.2.50.13"
+    port: 3389
+    username: "thruntops\\pkiadmin"
+    password: ""
+  - name: "WEB (RDP)"
+    protocol: rdp
+    hostname: "10.2.50.14"
+    port: 3389
+    username: "thruntops\\domainadmin"
+    password: ""
+  - name: "WIN11-22H2-1 (RDP)"
+    protocol: rdp
+    hostname: "10.2.50.21"
+    port: 3389
+    username: "basicuser"
+    password: ""
+  - name: "WIN11-22H2-2 (RDP)"
+    protocol: rdp
+    hostname: "10.2.50.22"
+    port: 3389
+    username: "basicuser"
+    password: ""
+  - name: "gitlab (SSH)"
+    protocol: ssh
+    hostname: "10.2.50.15"
+    port: 22
+    username: "primary_user05"
+    password: ""
+  - name: "elastic (SSH)"
+    protocol: ssh
+    hostname: "10.2.50.1"
+    port: 22
+    username: "localuser"
+    password: ""

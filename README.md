@@ -15,6 +15,7 @@ Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). All VMs run on VLAN 5
 | IP | Hostname | OS | Role |
 |---|---|---|---|
 | 10.2.50.1 | elastic | Debian 12 | SIEM — Elastic Stack + Fleet |
+| 10.2.50.2 | ops | Ubuntu 24.04 | Operations — Guacamole + Infection Monkey |
 | 10.2.50.11 | DC01-2022 | Windows Server 2022 | Primary DC — `thruntops.domain` |
 | 10.2.50.12 | DC01-SEC | Windows Server 2022 | Primary DC — `secondary.thruntops.domain` |
 | 10.2.50.13 | ADCS | Windows Server 2022 | Certificate Authority — `thruntops.domain` |
@@ -22,8 +23,9 @@ Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). All VMs run on VLAN 5
 | 10.2.50.15 | gitlab | Ubuntu 24.04 | GitLab CE — source control + CI/CD |
 | 10.2.50.21 | WIN11-22H2-1 | Windows 11 22H2 | Workstation — `thruntops.domain` |
 | 10.2.50.22 | WIN11-22H2-2 | Windows 11 22H2 | Workstation — `secondary.thruntops.domain` |
-| 10.2.50.250 | kali | Kali Linux | Attacker |
 | 10.2.50.254 | router | Debian 11 | Router / DNS |
+
+> Kali is not deployed by default. Run `bash scripts/add-kali.sh` to add it at `10.2.50.250`.
 
 ## Network Diagram
 
@@ -44,8 +46,8 @@ graph TB
         end
 
         ELASTIC["🐧 elastic\n10.2.50.1\nElastic SIEM"]
+        OPS["🐧 ops\n10.2.50.2\nGuacamole + Monkey"]
         GITLAB["🐧 gitlab\n10.2.50.15\nGitLab CE"]
-        KALI["🐧 kali\n10.2.50.250\nAttacker"]
         ROUTER["🔀 router\n10.2.50.254\nRouter / DNS"]
     end
 
@@ -63,8 +65,10 @@ graph TB
     ELASTIC -.->|"Fleet agent"| WEB
     ELASTIC -.->|"Fleet agent"| W1
     ELASTIC -.->|"Fleet agent"| W2
+    ELASTIC -.->|"Fleet agent"| OPS
 
-    KALI -->|"attacks"| VLAN50
+    OPS -->|"RDP/SSH"| VLAN50
+    OPS -->|"BAS simulation"| VLAN50
     ROUTER -->|"DNS / GW"| VLAN50
 ```
 
@@ -90,5 +94,4 @@ See the [Installation guide](https://enonethreezed.github.io/ThruntOps/install) 
 - GitLab CI/CD pipeline to WEB (automated deploy on push)
 - Sigma rules + Atomic Red Team detection pipeline — see [proposal](https://enonethreezed.github.io/ThruntOps/sigma)
 - Atomic Red Team on workstations (WIN11-22H2-1, WIN11-22H2-2)
-- BAS (Breach and Attack Simulation) integration — cross-platform Linux + Windows coverage
 - Reduce resource requirements to support lower-spec hosts (target: 32 GB RAM)

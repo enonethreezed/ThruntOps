@@ -137,6 +137,7 @@ ludus ansible roles add -d /tmp/ludus_gitlab_ce
 ludus ansible roles add -d roles/ludus_ad_content
 ludus ansible roles add -d roles/ludus_gitlab_ldap
 ludus ansible roles add -d roles/ludus_laps
+ludus ansible roles add -d roles/ludus_ops
 ```
 
 Verify all roles are installed:
@@ -198,7 +199,17 @@ Run the Fleet status check to confirm all Elastic agents are enrolled:
 bash tests/fleet_status.sh
 ```
 
-All Windows VMs (`DC01-2022`, `DC01-SEC`, `ADCS`, `WEB`, `WIN11-22H2-1`, `WIN11-22H2-2`) and the GitLab VM should appear with status `online`.
+All Windows VMs (`DC01-2022`, `DC01-SEC`, `ADCS`, `WEB`, `WIN11-22H2-1`, `WIN11-22H2-2`), the GitLab VM, and the `ops` VM should appear with status `online`.
+
+Once deployed, the `ops` VM exposes:
+- **Guacamole** (remote access): `http://10.2.50.2:8080/guacamole/` — default credentials `guacadmin:guacadmin`
+- **Infection Monkey** (BAS): `https://10.2.50.2:5000`
+
+To add a Kali attacker VM (optional):
+
+```bash
+bash scripts/add-kali.sh
+```
 
 ---
 

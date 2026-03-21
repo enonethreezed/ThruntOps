@@ -389,14 +389,17 @@ ludus:
       ludus_sssd_bind_user: "domainadmin"
       ludus_sssd_bind_password: 'iFgu¿83¿'
       ludus_sssd_ssh_users: "primary_user05 secondary_user05"
-  - vm_name: "{{ range_id }}-kali"
-    hostname: "{{ range_id }}-kali"
-    template: kali-x64-desktop-template
+  - vm_name: "{{ range_id }}-ops"
+    hostname: "{{ range_id }}-ops"
+    template: ubuntu-24.04-x64-server-template
     vlan: 50
-    ip_last_octet: 250
-    ram_gb: 2
-    cpus: 4
+    ip_last_octet: 2
+    ram_gb: 4
+    cpus: 2
     linux: true
     testing:
       snapshot: false
       block_internet: false
+    roles:
+      - badsectorlabs.ludus_elastic_agent
+      - ludus_ops
