@@ -14,6 +14,33 @@
     state: present
     update_cache: true
 
+- name: (SSSD) Detect default network interface
+  ansible.builtin.shell: |
+    ip route show default | awk '/default/ {print $5}' | head -1
+  register: sssd_default_iface
+  changed_when: false
+  when: ludus_sssd_dns_servers | length > 0
+
+- name: (SSSD) Configure DNS servers on default interface for AD domain resolution
+  ansible.builtin.command: >
+    resolvectl dns {{ sssd_default_iface.stdout }} {{ ludus_sssd_dns_servers | join(' ') }}
+  when: ludus_sssd_dns_servers | length > 0 and sssd_default_iface.stdout | length > 0
+  changed_when: true
+
+- name: (SSSD) Configure domain search list on default interface
+  ansible.builtin.command: >
+    resolvectl domain {{ sssd_default_iface.stdout }}
+    {{ ([ludus_sssd_domain] + (ludus_sssd_extra_domains | map(attribute='domain') | list)) | join(' ') }}
+  when: ludus_sssd_dns_servers | length > 0 and sssd_default_iface.stdout | length > 0
+  changed_when: true
+
+- name: (SSSD) Persist DNS servers in /etc/network/interfaces
+  ansible.builtin.replace:
+    path: /etc/network/interfaces
+    regexp: '(\s*dns-nameservers\s+)(.+)$'
+    replace: '\g<1>\g<2> {{ ludus_sssd_dns_servers | join(" ") }}'
+  when: ludus_sssd_dns_servers | length > 0
+
 - name: (SSSD) Check joined realms
   ansible.builtin.command: realm list
   register: realm_list
@@ -31,7 +58,7 @@
     timeout: 60
   when: ludus_sssd_domain not in realm_list.stdout
 
-- name: (SSSD) Join extra domains
+- name: (SSSD) Join extra domains via realm (when no dc_ip specified)
   ansible.builtin.expect:
     command: >
       realm join
@@ -41,7 +68,17 @@
       Password.*: "{{ item.bind_password }}"
     timeout: 60
   loop: "{{ ludus_sssd_extra_domains }}"
-  when: item.domain not in realm_list.stdout
+  when: item.domain not in realm_list.stdout and item.dc_ip is not defined
+
+- name: (SSSD) Join extra domains via adcli (when dc_ip specified, for split-DNS environments)
+  ansible.builtin.shell: |
+    echo '{{ item.bind_password }}' | adcli join {{ item.domain }} \
+      --login-user={{ item.bind_user }} \
+      --domain-controller={{ item.dc_ip }} \
+      --stdin-password
+  loop: "{{ ludus_sssd_extra_domains }}"
+  when: item.domain not in realm_list.stdout and item.dc_ip is defined
+  no_log: true
 
 - name: (SSSD) Deploy sssd.conf
   ansible.builtin.template:
@@ -68,14 +105,3 @@
     name: sssd
     state: started
     enabled: true
-
-handlers:
-  - name: Restart SSSD
-    ansible.builtin.service:
-      name: sssd
-      state: restarted
-
-  - name: Restart SSH
-    ansible.builtin.service:
-      name: ssh
-      state: restarted

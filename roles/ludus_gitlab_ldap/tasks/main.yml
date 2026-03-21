@@ -1,14 +1,9 @@
 ---
-- name: (GITLAB-LDAP) Render LDAP configuration fragment
-  ansible.builtin.template:
-    src: gitlab_ldap.rb.j2
-    dest: /tmp/gitlab_ldap.rb
-
 - name: (GITLAB-LDAP) Append LDAP config to gitlab.rb
   ansible.builtin.blockinfile:
     path: /etc/gitlab/gitlab.rb
     marker: "# {mark} LDAP CONFIGURATION"
-    block: "{{ lookup('file', '/tmp/gitlab_ldap.rb') }}"
+    block: "{{ lookup('template', 'gitlab_ldap.rb.j2') }}"
 
 - name: (GITLAB-LDAP) Reconfigure GitLab
   ansible.builtin.command: gitlab-ctl reconfigure

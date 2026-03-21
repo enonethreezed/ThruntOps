@@ -29,4 +29,8 @@ ad_domain = {{ extra.domain }}
 use_fully_qualified_names = False
 ldap_id_mapping = True
 access_provider = ad
+{% if extra.dc_ip is defined %}
+ad_server = {{ extra.dc_ip }}
+krb5_server = {{ extra.dc_ip }}
+{% endif %}
 {% endfor %}

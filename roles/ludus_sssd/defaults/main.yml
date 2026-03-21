@@ -9,3 +9,6 @@ ludus_sssd_allowed_groups: ""
 ludus_sssd_ssh_users: ""
 # Additional domains to join (list of {domain, bind_user, bind_password})
 ludus_sssd_extra_domains: []
+# DNS servers to configure before realm join (list of IPs, e.g. DC IPs)
+# Required when the host's default DNS does not resolve the AD domain
+ludus_sssd_dns_servers: []
