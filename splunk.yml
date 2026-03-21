@@ -412,6 +412,9 @@ ludus:
       ludus_sssd_bind_user: "domainadmin"
       ludus_sssd_bind_password: 'iFgu¿83¿'
       ludus_sssd_ssh_users: "primary_user05 secondary_user05"
+      ludus_sssd_sudo_users:
+        - primary_user05
+        - secondary_user05
       ludus_sssd_dns_servers:
         - "10.2.50.11"
   - vm_name: "{{ range_id }}-ops"
