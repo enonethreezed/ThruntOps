@@ -29,7 +29,7 @@ Full Ludus documentation at [docs.ludus.cloud](https://docs.ludus.cloud). Projec
 
 - x86_64 CPU with VMX/SVM (hardware virtualization enabled in BIOS)
 - Debian 12/13 or Proxmox 8/9
-- Minimum 32 GB RAM, 200 GB storage (NVMe recommended)
+- Minimum 48 GB RAM, 200 GB storage (NVMe recommended)
 - Wired ethernet (WiFi not supported)
 - Root access + internet connectivity
 - Docker must NOT be installed on the host

@@ -4,7 +4,7 @@ ludus:
     template: debian-12-x64-server-template
     vlan: 50
     ip_last_octet: 1
-    ram_gb: 8
+    ram_gb: 6
     cpus: 4
     linux: true
     testing:
@@ -19,7 +19,7 @@ ludus:
     template: win2022-server-x64-laps-template
     vlan: 50
     ip_last_octet: 11
-    ram_gb: 6
+    ram_gb: 4
     cpus: 4
     windows:
       sysprep: false
@@ -147,7 +147,7 @@ ludus:
     template: win2022-server-x64-laps-template
     vlan: 50
     ip_last_octet: 12
-    ram_gb: 6
+    ram_gb: 4
     cpus: 4
     windows:
       sysprep: false
@@ -328,7 +328,7 @@ ludus:
     template: win2022-server-x64-template
     vlan: 50
     ip_last_octet: 14
-    ram_gb: 6
+    ram_gb: 4
     cpus: 4
     windows:
       sysprep: true
@@ -360,7 +360,7 @@ ludus:
     template: ubuntu-24.04-x64-server-template
     vlan: 50
     ip_last_octet: 15
-    ram_gb: 6
+    ram_gb: 4
     cpus: 4
     linux: true
     testing:
