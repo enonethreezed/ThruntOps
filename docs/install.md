@@ -180,8 +180,9 @@ ludus ansible roles list
 
 #### Patch badsectorlabs.ludus_mssql template
 
-The `win_template` module in the Ludus Ansible environment does not evaluate Jinja2 block tags (`{% %}`). After installing the role, patch the SQL Server 2019 config template to remove unrendered blocks and hardcode the instance name:
+The `win_template` module in the Ludus Ansible environment does not evaluate Jinja2 block tags. After installing the role, patch the SQL Server 2019 config template to remove unrendered blocks and hardcode the instance name:
 
+{% raw %}
 ```bash
 TMPL="/opt/ludus/users/ludus-admin/.ansible/roles/badsectorlabs.ludus_mssql/templates/sqlsrv_2019_config.ini.j2"
 sudo sed -i '/^{%/d' "$TMPL"
@@ -190,6 +191,7 @@ sudo sed -i 's/INSTANCEID="{{ ludus_mssql_instance_name }}"/INSTANCEID="MSSQLSER
 sudo sed -i 's/UpdateEnabled="True"/UpdateEnabled="False"/' "$TMPL"
 sudo sed -i 's/USEMICROSOFTUPDATE="True"/USEMICROSOFTUPDATE="False"/' "$TMPL"
 ```
+{% endraw %}
 
 ---
 
@@ -270,5 +272,5 @@ bash scripts/add-kali.sh
 - Windows LAPS schema extension runs on DC01-2022 — requires the domain to be fully provisioned first
 - The `win2022-server-x64-laps-template` is used for both DCs. It includes all Windows updates applied at build time, so LAPS cmdlets are immediately available without running `win_updates` during deploy
 - `ludus ansible roles add` does **not** overwrite an existing role — use `sudo cp -rf` to update installed roles
-- `badsectorlabs.ludus_mssql` requires a manual template patch after install (see step 4) — `win_template` in the Ludus Ansible env does not evaluate Jinja2 block tags, leaving literal `{%` in rendered configs which causes `setup.exe` to fail
+- `badsectorlabs.ludus_mssql` requires a manual template patch after install (see step 4) — `win_template` in the Ludus Ansible env does not evaluate Jinja2 block tags, leaving literal Jinja2 syntax in rendered configs which causes `setup.exe` to fail
 - The cached MSSQL ISO at `/opt/ludus/resources/iso/` is SQL Server 2019; `ludus_mssql_version` in `elastic.yml` is set to `"2019"` accordingly
