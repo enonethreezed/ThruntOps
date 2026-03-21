@@ -1,0 +1,35 @@
+---
+- name: (wazuh_agent/win) Check if agent is already installed
+  ansible.windows.win_service:
+    name: WazuhSvc
+  register: wazuh_svc
+  ignore_errors: true
+
+- name: (wazuh_agent/win) Download Wazuh agent MSI
+  ansible.windows.win_get_url:
+    url: "{{ wazuh_agent_msi_url }}"
+    dest: 'C:\Windows\Temp\wazuh-agent.msi'
+  when: wazuh_svc.state is not defined or wazuh_svc.state == "absent"
+
+- name: (wazuh_agent/win) Install Wazuh agent
+  ansible.windows.win_package:
+    path: 'C:\Windows\Temp\wazuh-agent.msi'
+    arguments:
+      - "WAZUH_MANAGER={{ wazuh_manager_ip }}"
+      - "WAZUH_REGISTRATION_SERVER={{ wazuh_manager_ip }}"
+    state: present
+  when: wazuh_svc.state is not defined or wazuh_svc.state == "absent"
+
+- name: (wazuh_agent/win) Configure manager IP in ossec.conf
+  ansible.windows.win_lineinfile:
+    path: 'C:\Program Files (x86)\ossec-agent\ossec.conf'
+    regexp: '<address>.*</address>'
+    line: '      <address>{{ wazuh_manager_ip }}</address>'
+    backrefs: true
+  notify: restart wazuh agent windows
+
+- name: (wazuh_agent/win) Ensure WazuhSvc is started and enabled
+  ansible.windows.win_service:
+    name: WazuhSvc
+    state: started
+    start_mode: auto

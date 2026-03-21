@@ -1,0 +1,88 @@
+---
+- name: (wazuh_server) Check if Wazuh is already installed
+  ansible.builtin.stat:
+    path: /var/ossec/bin/wazuh-control
+  register: wazuh_installed
+
+- name: (wazuh_server) Install prerequisites
+  ansible.builtin.apt:
+    name:
+      - curl
+      - apt-transport-https
+      - gnupg
+      - ca-certificates
+      - lsb-release
+      - unzip
+    state: present
+    update_cache: true
+  when: not wazuh_installed.stat.exists
+
+- name: (wazuh_server) Download Wazuh install script
+  ansible.builtin.get_url:
+    url: "{{ wazuh_install_script_url }}"
+    dest: /tmp/wazuh-install.sh
+    mode: "0755"
+  when: not wazuh_installed.stat.exists
+
+- name: (wazuh_server) Run all-in-one install (this takes 5-10 minutes)
+  ansible.builtin.command: bash /tmp/wazuh-install.sh -a --ignore-check
+  args:
+    creates: /var/ossec/bin/wazuh-control
+  when: not wazuh_installed.stat.exists
+
+- name: (wazuh_server) Set dashboard/indexer admin password
+  ansible.builtin.command: >
+    /usr/share/wazuh-indexer/plugins/opensearch-security/tools/wazuh-passwords-tool.sh
+    -u admin -p '{{ wazuh_admin_password }}'
+  register: pwd_result
+  changed_when: pwd_result.rc == 0
+  failed_when: pwd_result.rc != 0
+
+- name: (wazuh_server) Set Wazuh API user passwords (wazuh + wazuh-wui)
+  ansible.builtin.command: >
+    /var/ossec/framework/python/bin/python3 -c "
+    import sqlite3
+    from werkzeug.security import generate_password_hash
+    hashed = generate_password_hash('{{ wazuh_api_password }}')
+    db = '/var/ossec/api/configuration/security/rbac.db'
+    c = sqlite3.connect(db)
+    c.execute(\"UPDATE users SET password=? WHERE username='wazuh'\", (hashed,))
+    c.execute(\"UPDATE users SET password=? WHERE username='wazuh-wui'\", (hashed,))
+    c.commit()
+    print('API passwords updated')
+    "
+  register: api_pwd_result
+  changed_when: "'updated' in api_pwd_result.stdout"
+  notify: restart wazuh
+
+- name: (wazuh_server) Set indexer password in wazuh-manager keystore
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo '{{ wazuh_admin_password }}' | /var/ossec/bin/wazuh-manager-keystore -f indexer -k password
+  args:
+    executable: /bin/bash
+  changed_when: true
+  notify: restart wazuh
+
+- name: (wazuh_server) Flush handlers to restart before health check
+  ansible.builtin.meta: flush_handlers
+
+- name: (wazuh_server) Wait for API to be ready
+  ansible.builtin.wait_for:
+    port: 55000
+    delay: 5
+    timeout: 60
+
+- name: (wazuh_server) Verify API authentication
+  ansible.builtin.uri:
+    url: "https://localhost:55000/security/user/authenticate"
+    method: POST
+    user: wazuh
+    password: "{{ wazuh_api_password }}"
+    force_basic_auth: true
+    validate_certs: false
+    status_code: 200
+  register: api_check
+  retries: 5
+  delay: 10
+  until: api_check.status == 200

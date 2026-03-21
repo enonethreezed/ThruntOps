@@ -1,0 +1,5 @@
+---
+wazuh_version: "4.14"
+wazuh_install_script_url: "https://packages.wazuh.com/4.14/wazuh-install.sh"
+wazuh_admin_password: "W4zuh-4dMin!"    # Dashboard + indexer admin
+wazuh_api_password: "W4zuh-4dMin!"     # API port 55000 wazuh/wazuh-wui users
