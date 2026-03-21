@@ -382,12 +382,10 @@ ludus:
       snapshot: false
       block_internet: false
     roles:
-      - aleemladha.ludus_wazuh_agent
       - ludus_gitlab_ce
       - ludus_gitlab_ldap
       - ludus_sssd
     role_vars:
-      ludus_wazuh_siem_server: "10.2.50.1"
       ludus_gitlab:
         url: "http://10.2.50.15"
         displayname: "ThruntOps GitLab"
@@ -419,11 +417,9 @@ ludus:
       snapshot: false
       block_internet: false
     roles:
-      - aleemladha.ludus_wazuh_agent
       - ludus_sssd
       - ludus_ops
     role_vars:
-      ludus_wazuh_siem_server: "10.2.50.1"
       ludus_sssd_domain: "thruntops.domain"
       ludus_sssd_bind_user: "domainadmin"
       ludus_sssd_bind_password: 'iFgu¿83¿'
