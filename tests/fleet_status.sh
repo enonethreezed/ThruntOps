@@ -19,25 +19,28 @@ echo "=== Fleet Agent Status - $(date) ==="
 echo ""
 
 echo "$response" | jq -r '
-  .items[] |
+  [ .items[] | select(.active == true and .status != "uninstalled") ] |
+  group_by(.local_metadata.host.hostname // .id) |
+  .[] | sort_by(.last_checkin) | last |
   [
     .local_metadata.host.hostname // .id,
-    .last_checkin_status // "unknown",
+    .status // "unknown",
     (.last_checkin // "never"),
     (.agent.version // "unknown")
   ] | @tsv
 ' | while IFS=$'\t' read -r hostname status last_checkin version; do
   case "$status" in
-    online)   icon="✓" ;;
-    offline)  icon="✗" ;;
-    error)    icon="!" ;;
-    *)        icon="?" ;;
+    online)    icon="✓" ;;
+    offline)   icon="✗" ;;
+    error)     icon="!" ;;
+    degraded)  icon="~" ;;
+    *)         icon="?" ;;
   esac
   printf "%s %-35s %-10s %-30s %s\n" "$icon" "$hostname" "$status" "$last_checkin" "$version"
 done
 
 echo ""
 echo "--- Resumen ---"
-echo "$response" | jq -r '.items[].last_checkin_status // "unknown"' | sort | uniq -c | while read -r count status; do
+echo "$response" | jq -r '[ .items[] | select(.active == true and .status != "uninstalled") ] | group_by(.local_metadata.host.hostname // .id) | .[] | sort_by(.last_checkin) | last | .status // "unknown"' | sort | uniq -c | while read -r count status; do
   echo "  $status: $count"
 done
