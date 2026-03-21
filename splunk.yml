@@ -14,7 +14,7 @@ ludus:
       - ludus_splunk
     role_vars:
       ludus_splunk_admin_password: "thisisapassword"
-      ludus_splunk_version: "9.4.1"
+      ludus_splunk_version: "10.2.1"
       ludus_splunk_indexes:
         - windows
         - sysmon
@@ -40,7 +40,7 @@ ludus:
       - ludus_laps
     role_vars:
       ludus_splunk_server_ip: "10.2.50.1"
-      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/9.4.1/windows/splunkforwarder-9.4.1-windows-x64.msi"
+      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi"
       ludus_laps_configure_schema: true
       ludus_laps_read_principal: "thruntops\\primary_user03"
       ludus_laps_admin_password: 'iFgu¿83¿'
@@ -170,7 +170,7 @@ ludus:
       - ludus_laps
     role_vars:
       ludus_splunk_server_ip: "10.2.50.1"
-      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/9.4.1/windows/splunkforwarder-9.4.1-windows-x64.msi"
+      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi"
       ludus_laps_configure_schema: true
       ludus_laps_read_principal: "secondary\\secondary_user03"
       ludus_laps_admin_password: 'Ut2cf7%/'
@@ -271,7 +271,7 @@ ludus:
       - ludus_atomic_red_team
     role_vars:
       ludus_splunk_server_ip: "10.2.50.1"
-      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/9.4.1/windows/splunkforwarder-9.4.1-windows-x64.msi"
+      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi"
       ludus_local_users:
         - login: basicuser
           password: 'H)2?H8vC'
@@ -303,7 +303,7 @@ ludus:
       - ludus_atomic_red_team
     role_vars:
       ludus_splunk_server_ip: "10.2.50.1"
-      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/9.4.1/windows/splunkforwarder-9.4.1-windows-x64.msi"
+      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi"
       ludus_local_users:
         - login: basicuser
           password: 'H)2?H8vC'
@@ -332,7 +332,7 @@ ludus:
       - ludus_local_users
     role_vars:
       ludus_splunk_server_ip: "10.2.50.1"
-      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/9.4.1/windows/splunkforwarder-9.4.1-windows-x64.msi"
+      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi"
       ludus_adcs_domain_username: "thruntops\\domainadmin"
       ludus_adcs_domain_password: 'iFgu¿83¿'
       ludus_local_users:
@@ -362,7 +362,7 @@ ludus:
       - ludus_local_users
     role_vars:
       ludus_splunk_server_ip: "10.2.50.1"
-      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/9.4.1/windows/splunkforwarder-9.4.1-windows-x64.msi"
+      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi"
       ludus_mssql_version: "2019"
       ludus_mssql_install_ssms: true
       ludus_iis_webadmin_user: webadmin
