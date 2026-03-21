@@ -1,6 +1,6 @@
 ---
-ludus_splunk_version: "9.4.1"
-ludus_splunk_deb_url: "https://download.splunk.com/products/splunk/releases/{{ ludus_splunk_version }}/linux/splunk-{{ ludus_splunk_version }}-linux-amd64.deb"
+ludus_splunk_version: "10.2.1"
+ludus_splunk_deb_url: "https://download.splunk.com/products/splunk/releases/{{ ludus_splunk_version }}/linux/splunk-{{ ludus_splunk_version }}-c892b66d163d-linux-amd64.deb"
 ludus_splunk_admin_password: "changeme"
 ludus_splunk_indexes: []
 # Optional: absolute path to Splunk.License on the Ansible controller (Ludus server).
