@@ -14,7 +14,7 @@ ludus:
       - aleemladha.wazuh_server_install
     role_vars:
       wazuh_install_script_url: "https://packages.wazuh.com/4.14/wazuh-install.sh"
-      wazuh_admin_password: "thisisapassword"
+      wazuh_admin_password: "W4zuh-4dMin!"
   - vm_name: "{{ range_id }}-ad-dc-win2022-server-x64"
     hostname: "{{ range_id }}-DC01-2022"
     template: win2022-server-x64-laps-template
