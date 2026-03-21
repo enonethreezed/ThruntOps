@@ -1,0 +1,14 @@
+---
+# GTFOBins: https://gtfobins.github.io/gtfobins/watch/#sudo
+# Exploit: sudo watch 'reset; exec /bin/sh 1>&0 2>&0'
+- name: (privesc/sudo_watch) Install procps (provides watch)
+  ansible.builtin.apt:
+    name: procps
+    state: present
+
+- name: (privesc/sudo_watch) Grant sudo on watch to privesc user
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/privesc_watch"
+    content: "{{ ludus_privesc_sudo_user }}@{{ ludus_privesc_sssd_domain }} ALL=(root) NOPASSWD: /usr/bin/watch *\n"
+    mode: "0440"
+    validate: "visudo -cf %s"

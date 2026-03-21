@@ -415,9 +415,17 @@ ludus:
       block_internet: false
     roles:
       - badsectorlabs.ludus_elastic_agent
+      - ludus_privesc
       - ludus_sssd
       - ludus_ops
     role_vars:
+      ludus_privesc_scenarios:
+        - sudo_ansible_playbook
+        - sudo_ansible_test
+        - sudo_certbot
+        - sudo_watch
+      ludus_privesc_sudo_user: "primary_user06"
+      ludus_privesc_sssd_domain: "thruntops.domain"
       ludus_sssd_domain: "thruntops.domain"
       ludus_sssd_bind_user: "domainadmin"
       ludus_sssd_bind_password: 'iFgu¿83¿'

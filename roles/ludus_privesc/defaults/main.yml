@@ -5,3 +5,6 @@
 #   ludus_privesc_scenarios:
 #     - suid_r
 ludus_privesc_scenarios: []
+# Required for sudo-based scenarios: AD user and domain
+ludus_privesc_sudo_user: ""
+ludus_privesc_sssd_domain: ""

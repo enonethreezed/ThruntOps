@@ -1,0 +1,15 @@
+---
+# GTFOBins: https://gtfobins.github.io/gtfobins/ansible-test/#sudo
+# Exploit: sudo ansible-test shell
+- name: (privesc/sudo_ansible_test) Install ansible-core (provides ansible-test)
+  ansible.builtin.apt:
+    name: ansible-core
+    state: present
+    update_cache: true
+
+- name: (privesc/sudo_ansible_test) Grant sudo on ansible-test to privesc user
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/privesc_ansible_test"
+    content: "{{ ludus_privesc_sudo_user }}@{{ ludus_privesc_sssd_domain }} ALL=(root) NOPASSWD: /usr/bin/ansible-test *\n"
+    mode: "0440"
+    validate: "visudo -cf %s"

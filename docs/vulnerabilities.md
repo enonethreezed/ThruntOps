@@ -274,6 +274,105 @@ SSH as secondary_user06 (no sudo)
 
 ---
 
+### sudo ansible-playbook — Shell Escape to Root (ops)
+
+| Field | Detail |
+|---|---|
+| **Host** | ops (10.2.50.2) |
+| **Entry point** | `primary_user06` (SSH, restricted sudo) |
+| **Condition** | `primary_user06` can run `/usr/bin/ansible-playbook` with sudo (NOPASSWD) |
+| **Primitive** | ansible-playbook executes an arbitrary playbook as root — task with `shell` module spawns a root shell |
+| **GTFOBins** | [ansible-playbook — sudo](https://gtfobins.github.io/gtfobins/ansible-playbook/#sudo) |
+| **MITRE ATT&CK** | [T1548.003 — Abuse Elevation Control Mechanism: Sudo and Sudo Caching](https://attack.mitre.org/techniques/T1548/003/) |
+
+**Exploit:**
+
+```bash
+echo '[{hosts: localhost, tasks: [shell: /bin/sh </dev/tty >/dev/tty 2>/dev/tty]}]' > /tmp/x
+sudo ansible-playbook /tmp/x
+```
+
+**Detection opportunities:**
+
+- `ansible-playbook` executed via sudo by non-admin user (auditd syscall execve, euid=0)
+- Playbook path in `/tmp` or user-writable directory
+
+---
+
+### sudo ansible-test — Shell Escape to Root (ops)
+
+| Field | Detail |
+|---|---|
+| **Host** | ops (10.2.50.2) |
+| **Entry point** | `primary_user06` (SSH, restricted sudo) |
+| **Condition** | `primary_user06` can run `/usr/bin/ansible-test` with sudo (NOPASSWD) |
+| **Primitive** | `ansible-test shell` drops to an interactive shell as root |
+| **GTFOBins** | [ansible-test — sudo](https://gtfobins.github.io/gtfobins/ansible-test/#sudo) |
+| **MITRE ATT&CK** | [T1548.003 — Abuse Elevation Control Mechanism: Sudo and Sudo Caching](https://attack.mitre.org/techniques/T1548/003/) |
+
+**Exploit:**
+
+```bash
+sudo ansible-test shell
+```
+
+**Detection opportunities:**
+
+- `ansible-test shell` executed via sudo (auditd)
+- Interactive shell spawned from ansible-test with euid=0
+
+---
+
+### sudo certbot — Shell Escape to Root (ops)
+
+| Field | Detail |
+|---|---|
+| **Host** | ops (10.2.50.2) |
+| **Entry point** | `primary_user06` (SSH, restricted sudo) |
+| **Condition** | `primary_user06` can run `/usr/bin/certbot` with sudo (NOPASSWD) |
+| **Primitive** | certbot `--pre-hook` flag executes an arbitrary command as root before the certificate operation |
+| **GTFOBins** | [certbot — sudo](https://gtfobins.github.io/gtfobins/certbot/#sudo) |
+| **MITRE ATT&CK** | [T1548.003 — Abuse Elevation Control Mechanism: Sudo and Sudo Caching](https://attack.mitre.org/techniques/T1548/003/) |
+
+**Exploit:**
+
+```bash
+sudo certbot certonly -n -d x --standalone --dry-run --agree-tos --email x \
+  --logs-dir /tmp --work-dir /tmp --config-dir /tmp \
+  --pre-hook '/bin/sh 1>&0 2>&0'
+```
+
+**Detection opportunities:**
+
+- `certbot` executed via sudo with `--pre-hook` argument (auditd process arguments)
+- `/bin/sh` child of certbot with euid=0
+
+---
+
+### sudo watch — Shell Escape to Root (ops)
+
+| Field | Detail |
+|---|---|
+| **Host** | ops (10.2.50.2) |
+| **Entry point** | `primary_user06` (SSH, restricted sudo) |
+| **Condition** | `primary_user06` can run `/usr/bin/watch` with sudo (NOPASSWD) |
+| **Primitive** | watch executes the given command — passing a shell reset sequence drops to a root shell |
+| **GTFOBins** | [watch — sudo](https://gtfobins.github.io/gtfobins/watch/#sudo) |
+| **MITRE ATT&CK** | [T1548.003 — Abuse Elevation Control Mechanism: Sudo and Sudo Caching](https://attack.mitre.org/techniques/T1548/003/) |
+
+**Exploit:**
+
+```bash
+sudo watch 'reset; exec /bin/sh 1>&0 2>&0'
+```
+
+**Detection opportunities:**
+
+- `watch` executed via sudo with shell payload in command argument (auditd)
+- `/bin/sh` child of watch with euid=0
+
+---
+
 ## By Technology
 
 | Technology | Vectors |
@@ -282,7 +381,8 @@ SSH as secondary_user06 (no sudo)
 | ADCS | ESC1–ESC16 certificate template misconfigurations, RDP access to CA |
 | IIS + ASP.NET + MSSQL | Web application attacks, SQL injection, authentication bypass |
 | GitLab CE | Source code exposure, CI/CD pipeline abuse, secret leakage, SUID privesc |
-| Linux (gitlab, ops) | SUID binary abuse (R, apt-get, less, rsync) |
+| Linux — gitlab | SUID binary abuse (R, apt-get, less, rsync) |
+| Linux — ops | Restricted sudo escape (ansible-playbook, ansible-test, certbot, watch) |
 | Elastic SIEM | Detection engineering, alert tuning, log analysis |
 
 ## Notes

