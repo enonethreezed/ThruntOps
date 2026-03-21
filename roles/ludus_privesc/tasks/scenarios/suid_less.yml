@@ -1,0 +1,8 @@
+---
+# GTFOBins: https://gtfobins.github.io/gtfobins/less/#suid
+# Exploit: less /etc/hosts  →  !/bin/sh
+- name: (privesc/suid_less) Set SUID bit on /usr/bin/less
+  ansible.builtin.file:
+    path: /usr/bin/less
+    owner: root
+    mode: "4755"
