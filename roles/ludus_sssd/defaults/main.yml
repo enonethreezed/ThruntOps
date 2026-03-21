@@ -7,6 +7,8 @@ ludus_sssd_ou: ""
 ludus_sssd_allowed_groups: ""
 # Comma-separated list of AD users allowed to SSH
 ludus_sssd_ssh_users: ""
+# List of AD users to grant passwordless sudo (e.g. ["primary_user10", "secondary_user10"])
+ludus_sssd_sudo_users: []
 # Additional domains to join (list of {domain, bind_user, bind_password})
 ludus_sssd_extra_domains: []
 # DNS servers to configure before realm join (list of IPs, e.g. DC IPs)

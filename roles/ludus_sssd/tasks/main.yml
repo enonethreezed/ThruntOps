@@ -100,6 +100,14 @@
   when: ludus_sssd_ssh_users | length > 0
   notify: Restart SSH
 
+- name: (SSSD) Grant sudo to AD users
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ item | replace('\\', '_') | replace('@', '_') }}"
+    content: "{{ item }}@{{ ludus_sssd_domain }} ALL=(ALL) NOPASSWD:ALL\n"
+    mode: "0440"
+    validate: "visudo -cf %s"
+  loop: "{{ ludus_sssd_sudo_users }}"
+
 - name: (SSSD) Start and enable SSSD
   ansible.builtin.service:
     name: sssd
