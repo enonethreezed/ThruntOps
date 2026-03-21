@@ -51,9 +51,15 @@ ludus_ops_guacamole_connections:
     port: 22
     username: "primary_user05"
     password: ""
-  - name: "elastic (SSH)"
+  - name: "SIEM (SSH)"
     protocol: ssh
     hostname: "10.2.50.1"
+    port: 22
+    username: "localuser"
+    password: ""
+  - name: "ops (SSH)"
+    protocol: ssh
+    hostname: "10.2.50.2"
     port: 22
     username: "localuser"
     password: ""
