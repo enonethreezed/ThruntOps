@@ -1,0 +1,12 @@
+---
+- name: restart splunkforwarder
+  ansible.windows.win_service:
+    name: SplunkForwarder
+    state: restarted
+  listen: restart splunkforwarder
+
+- name: restart splunkforwarder linux
+  ansible.builtin.service:
+    name: SplunkForwarder
+    state: restarted
+  listen: restart splunkforwarder linux

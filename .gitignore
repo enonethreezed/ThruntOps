@@ -3,3 +3,6 @@
 .dolt/
 *.db
 .beads/.beads-credential-key
+
+# Splunk developer license — obtain from dev.splunk.com
+Splunk.License

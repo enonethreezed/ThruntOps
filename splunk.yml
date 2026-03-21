@@ -19,6 +19,10 @@ ludus:
         - windows
         - sysmon
         - linux
+      # Optional: copy Splunk.License to the Ludus server and set the path here.
+      # scp Splunk.License ludus-admin@<ludus-host>:~/
+      # ludus_splunk_license_src: "/home/ludus-admin/Splunk.License"
+        - linux
   - vm_name: "{{ range_id }}-ad-dc-win2022-server-x64"
     hostname: "{{ range_id }}-DC01-2022"
     template: win2022-server-x64-laps-template
@@ -386,10 +390,12 @@ ludus:
       snapshot: false
       block_internet: false
     roles:
+      - ludus_splunk_uf
       - ludus_gitlab_ce
       - ludus_gitlab_ldap
       - ludus_sssd
     role_vars:
+      ludus_splunk_server_ip: "10.2.50.1"
       ludus_gitlab:
         url: "http://10.2.50.15"
         displayname: "ThruntOps GitLab"
@@ -421,9 +427,11 @@ ludus:
       snapshot: false
       block_internet: false
     roles:
+      - ludus_splunk_uf
       - ludus_sssd
       - ludus_ops
     role_vars:
+      ludus_splunk_server_ip: "10.2.50.1"
       ludus_sssd_domain: "thruntops.domain"
       ludus_sssd_bind_user: "domainadmin"
       ludus_sssd_bind_password: 'iFgu¿83¿'

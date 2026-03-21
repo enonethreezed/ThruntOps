@@ -1,0 +1,87 @@
+---
+- name: (splunk) Check if Splunk is already installed
+  ansible.builtin.stat:
+    path: /opt/splunk/bin/splunk
+  register: splunk_bin
+
+- name: (splunk) Install apt prerequisites
+  ansible.builtin.apt:
+    name:
+      - wget
+      - acl
+    state: present
+    update_cache: true
+
+- name: (splunk) Download Splunk Enterprise .deb
+  ansible.builtin.get_url:
+    url: "{{ ludus_splunk_deb_url }}"
+    dest: /tmp/splunk.deb
+    mode: "0644"
+  when: not splunk_bin.stat.exists
+
+- name: (splunk) Install Splunk Enterprise
+  ansible.builtin.apt:
+    deb: /tmp/splunk.deb
+  when: not splunk_bin.stat.exists
+
+- name: (splunk) Accept license and set admin password on first run
+  ansible.builtin.command: >
+    /opt/splunk/bin/splunk start
+    --accept-license --answer-yes --no-prompt
+    --seed-passwd "{{ ludus_splunk_admin_password }}"
+  args:
+    creates: /opt/splunk/etc/passwd
+  when: not splunk_bin.stat.exists
+
+- name: (splunk) Enable boot-start via systemd
+  ansible.builtin.command: >
+    /opt/splunk/bin/splunk enable boot-start
+    -systemd-managed 1
+    --accept-license --answer-yes --no-prompt
+  args:
+    creates: /etc/systemd/system/Splunkd.service
+
+- name: (splunk) Ensure Splunkd service is started and enabled
+  ansible.builtin.service:
+    name: Splunkd
+    state: started
+    enabled: true
+
+- name: (splunk) Wait for Splunk web UI to be ready
+  ansible.builtin.wait_for:
+    port: 8000
+    delay: 5
+    timeout: 120
+
+- name: (splunk) Create custom indexes
+  ansible.builtin.command: >
+    /opt/splunk/bin/splunk add index {{ item }}
+    -auth "admin:{{ ludus_splunk_admin_password }}"
+  loop: "{{ ludus_splunk_indexes }}"
+  register: idx_result
+  changed_when: "'index' in idx_result.stdout | lower"
+  failed_when: idx_result.rc != 0 and 'already exists' not in idx_result.stderr | lower
+
+- name: (splunk) Copy Splunk license to remote
+  ansible.builtin.copy:
+    src: "{{ ludus_splunk_license_src }}"
+    dest: /tmp/Splunk.License
+    mode: "0600"
+  when: ludus_splunk_license_src | length > 0
+
+- name: (splunk) Apply Splunk developer license
+  ansible.builtin.command: >
+    /opt/splunk/bin/splunk add licenses /tmp/Splunk.License
+    -auth "admin:{{ ludus_splunk_admin_password }}"
+  when: ludus_splunk_license_src | length > 0
+  register: lic_result
+  changed_when: lic_result.rc == 0
+  failed_when: lic_result.rc != 0 and 'already applied' not in lic_result.stderr | lower
+
+- name: (splunk) Restart Splunk after license change
+  ansible.builtin.service:
+    name: Splunkd
+    state: restarted
+  when:
+    - ludus_splunk_license_src | length > 0
+    - lic_result.changed

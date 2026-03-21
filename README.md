@@ -16,6 +16,7 @@ Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). All VMs run on VLAN 5
 |---|---|---|---|
 | [Elastic](https://enonethreezed.github.io/ThruntOps/elastic) | `elastic.yml` | Elastic Stack + Fleet | 9 — full lab with IIS, MSSQL, GitLab CE |
 | [Wazuh](https://enonethreezed.github.io/ThruntOps/wazuh) | `wazuh.yml` | Wazuh all-in-one | 7 — lightweight, Windows-only agents |
+| [Splunk](https://enonethreezed.github.io/ThruntOps/splunk) | `splunk.yml` | Splunk Enterprise | 9 — full lab with IIS, MSSQL, GitLab CE |
 
 All profiles share the same dual AD forest (`thruntops.domain` + `secondary.thruntops.domain`), ADCS, dual Windows 11 workstations, and an ops VM with Guacamole and Infection Monkey.
 

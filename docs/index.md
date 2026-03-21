@@ -18,5 +18,6 @@ Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). Dual Active Directory
 |---|---|---|---|
 | [Elastic](elastic.md) | `elastic.yml` | Elastic Stack + Fleet | 9 — full lab with IIS, MSSQL, GitLab CE |
 | [Wazuh](wazuh.md) | `wazuh.yml` | Wazuh all-in-one | 7 — lightweight, Windows-only agents |
+| [Splunk](splunk.md) | `splunk.yml` | Splunk Enterprise | 9 — full lab with IIS, MSSQL, GitLab CE |
 
 → [Vulnerabilities](vulnerabilities.md)

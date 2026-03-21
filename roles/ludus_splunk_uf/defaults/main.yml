@@ -1,0 +1,7 @@
+---
+ludus_splunk_server_ip: ""
+ludus_splunk_server_port: 9997
+ludus_splunk_uf_version: "9.4.1"
+ludus_splunk_uf_password: "SplunkUF1!"
+ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/{{ ludus_splunk_uf_version }}/windows/splunkforwarder-{{ ludus_splunk_uf_version }}-windows-x64.msi"
+ludus_splunk_uf_package_linux: "https://download.splunk.com/products/universalforwarder/releases/{{ ludus_splunk_uf_version }}/linux/splunkforwarder-{{ ludus_splunk_uf_version }}-linux-amd64.deb"

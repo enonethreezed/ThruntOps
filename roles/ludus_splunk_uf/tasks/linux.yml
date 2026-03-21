@@ -1,0 +1,81 @@
+---
+- name: (splunk_uf/linux) Check if Splunk UF is already installed
+  ansible.builtin.stat:
+    path: /opt/splunkforwarder/bin/splunk
+  register: splunk_uf_bin
+
+- name: (splunk_uf/linux) Install apt prerequisites
+  ansible.builtin.apt:
+    name: wget
+    state: present
+    update_cache: true
+
+- name: (splunk_uf/linux) Download Splunk Universal Forwarder .deb
+  ansible.builtin.get_url:
+    url: "{{ ludus_splunk_uf_package_linux }}"
+    dest: /tmp/splunkforwarder.deb
+    mode: "0644"
+  when: not splunk_uf_bin.stat.exists
+
+- name: (splunk_uf/linux) Install Splunk Universal Forwarder
+  ansible.builtin.apt:
+    deb: /tmp/splunkforwarder.deb
+  when: not splunk_uf_bin.stat.exists
+
+- name: (splunk_uf/linux) Accept license and set password on first run
+  ansible.builtin.command: >
+    /opt/splunkforwarder/bin/splunk start
+    --accept-license --answer-yes --no-prompt
+    --seed-passwd "{{ ludus_splunk_uf_password }}"
+  args:
+    creates: /opt/splunkforwarder/etc/passwd
+  when: not splunk_uf_bin.stat.exists
+
+- name: (splunk_uf/linux) Enable boot-start via systemd
+  ansible.builtin.command: >
+    /opt/splunkforwarder/bin/splunk enable boot-start
+    -systemd-managed 1
+    --accept-license --answer-yes --no-prompt
+  args:
+    creates: /etc/systemd/system/SplunkForwarder.service
+
+- name: (splunk_uf/linux) Configure outputs.conf
+  ansible.builtin.copy:
+    dest: /opt/splunkforwarder/etc/system/local/outputs.conf
+    mode: "0644"
+    content: |
+      [tcpout]
+      defaultGroup = default-autolb-group
+
+      [tcpout:default-autolb-group]
+      server = {{ ludus_splunk_server_ip }}:{{ ludus_splunk_server_port }}
+
+      [tcpout-server://{{ ludus_splunk_server_ip }}:{{ ludus_splunk_server_port }}]
+  notify: restart splunkforwarder linux
+
+- name: (splunk_uf/linux) Configure inputs.conf
+  ansible.builtin.copy:
+    dest: /opt/splunkforwarder/etc/system/local/inputs.conf
+    mode: "0644"
+    content: |
+      [monitor:///var/log/syslog]
+      index = linux
+      sourcetype = syslog
+      disabled = false
+
+      [monitor:///var/log/auth.log]
+      index = linux
+      sourcetype = linux_secure
+      disabled = false
+
+      [monitor:///var/log/dpkg.log]
+      index = linux
+      sourcetype = dpkg
+      disabled = false
+  notify: restart splunkforwarder linux
+
+- name: (splunk_uf/linux) Ensure SplunkForwarder service is started and enabled
+  ansible.builtin.service:
+    name: SplunkForwarder
+    state: started
+    enabled: true
