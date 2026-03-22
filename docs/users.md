@@ -39,7 +39,7 @@ This reference is for a local lab environment. Never use these credentials in pr
 | `primary_user04` | `ggA15$y!` | Domain User — RDP access to ADCS (intentional vulnerability) ⚠️ |
 | `primary_user05` | `X¿s\|m7C8` | Domain User — SSH + sudo on gitlab VM |
 | `primary_user06` | `U34SO/p@` | Domain User — SSH on ops VM (no sudo) ⚠️ |
-| `primary_user07` | `n9ro$8=M` | Domain User |
+| `primary_user07` | `n9ro$8=M` | Domain User — DBA group, sysadmin on MSSQL ⚠️ |
 | `primary_user08` | `c7eX@/8N` | Domain User |
 | `primary_user09` | `bpR8#8t"` | Domain User |
 | `primary_user10` | `o6u8!PF=` | Domain User — SSH + sudo on ops VM |
@@ -59,7 +59,7 @@ This reference is for a local lab environment. Never use these credentials in pr
 | `secondary_user04` | `Xz"c7e7?` | Domain User — RDP access to ADCS (intentional vulnerability) ⚠️ |
 | `secondary_user05` | `B@80G(Va` | Domain User — SSH + sudo on gitlab VM |
 | `secondary_user06` | `kN&(2V3T` | Domain User — SSH on gitlab VM (no sudo) ⚠️ |
-| `secondary_user07` | `aV%u9¿u5` | Domain User |
+| `secondary_user07` | `aV%u9¿u5` | Domain User — DBA group, read-only on MSSQL |
 | `secondary_user08` | `MV3(i)6F` | Domain User |
 | `secondary_user09` | `Ug1$m%b4` | Domain User |
 | `secondary_user10` | `snx0"¿C1` | Domain User — SSH + sudo on ops VM |
