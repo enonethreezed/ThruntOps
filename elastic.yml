@@ -393,6 +393,7 @@ ludus:
         - suid_apt_get
         - suid_less
         - suid_rsync
+        - cap_gzip
       ludus_gitlab_ldap_bind_password: 'iFgu¿83¿'
       ludus_sssd_domain: "thruntops.domain"
       ludus_sssd_bind_user: "domainadmin"
@@ -426,6 +427,7 @@ ludus:
         - sudo_ansible_test
         - sudo_certbot
         - sudo_watch
+        - cap_gdb
       ludus_privesc_sudo_user: "primary_user06"
       ludus_privesc_sssd_domain: "thruntops.domain"
       ludus_sssd_domain: "thruntops.domain"
