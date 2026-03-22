@@ -9,7 +9,6 @@ bd ready              # Find available work
 bd show <id>          # View issue details
 bd update <id> --claim  # Claim work atomically
 bd close <id>         # Complete work
-bd dolt push          # Push beads data to remote
 ```
 
 ## Non-Interactive Shell Commands
@@ -36,7 +35,6 @@ cp -rf source dest          # NOT: cp -r source dest
 - `apt-get` - use `-y` flag
 - `brew` - use `HOMEBREW_NO_AUTO_UPDATE=1` env var
 
-<!-- BEGIN BEADS INTEGRATION profile:full hash:d4f96305 -->
 ## Issue Tracking with bd (beads)
 
 **IMPORTANT**: This project uses **bd (beads)** for ALL issue tracking. Do NOT use markdown TODOs, task lists, or other tracking methods.
@@ -44,7 +42,6 @@ cp -rf source dest          # NOT: cp -r source dest
 ### Why bd?
 
 - Dependency-aware: Track blockers and relationships between issues
-- Git-friendly: Dolt-powered version control with native sync
 - Agent-optimized: JSON output, ready work detection, discovered-from links
 - Prevents duplicate tracking systems and confusion
 
@@ -101,14 +98,6 @@ bd close bd-42 --reason "Completed" --json
    - `bd create "Found bug" --description="Details about what was found" -p 1 --deps discovered-from:<parent-id>`
 5. **Complete**: `bd close <id> --reason "Done"`
 
-### Auto-Sync
-
-bd automatically syncs via Dolt:
-
-- Each write auto-commits to Dolt history
-- Use `bd dolt push`/`bd dolt pull` for remote sync
-- No manual export/import needed!
-
 ### Important Rules
 
 - ✅ Use bd for ALL task tracking
@@ -149,7 +138,6 @@ For more details, see README.md and docs/QUICKSTART.md.
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
    git pull --rebase
-   bd dolt push
    git push
    git status  # MUST show "up to date with origin"
    ```
@@ -163,8 +151,6 @@ For more details, see README.md and docs/QUICKSTART.md.
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
 
-<!-- END BEADS INTEGRATION -->
-
 ## Agent Instructions
 
 **MANDATORY WORKFLOW**
@@ -174,7 +160,6 @@ For more details, see README.md and docs/QUICKSTART.md.
     PUSH TO REMOTE - This is MANDATORY:
 
     git pull --rebase
-    bd sync
     git push
     git status  # MUST show "up to date with origin"
 
@@ -198,14 +183,14 @@ For more details, see README.md and docs/QUICKSTART.md.
 
 **Agent Response Contract (Mandatory)**
 
-This defines the relationship model between the user and the agent’s responses. It is mandatory for work in this repository.
+This defines the relationship model between the user and the agent's responses. It is mandatory for work in this repository.
 
 **Contract**
 
     The user provides intent and decisions; the agent executes precisely.
     The agent is terse, direct, and information-dense.
-    The agent does not mirror the user’s mood, diction, or affect.
-    The agent does not add unsolicited ideas, alternatives, or “next steps”.
+    The agent does not mirror the user's mood, diction, or affect.
+    The agent does not add unsolicited ideas, alternatives, or "next steps".
     The agent ends immediately after delivering the requested info/work.
     The agent answers in English.
 
