@@ -1,3 +1,16 @@
+defaults:
+  ad_domain_admin: domainadmin
+  ad_domain_admin_password: 'iFgu¿83¿'
+  ad_domain_user: domainuser
+  ad_domain_user_password: 'NV#8SL9#'
+  ad_domain_safe_mode_password: password
+  ad_domain_functional_level: Win2012R2
+  ad_forest_functional_level: Win2012R2
+  snapshot_with_RAM: true
+  stale_hours: 0
+  timezone: "Europe/Madrid"
+  enable_dynamic_wallpaper: true
+
 ludus:
   - vm_name: "{{ range_id }}-elastic"
     hostname: "{{ range_id }}-elastic"
@@ -258,6 +271,7 @@ ludus:
       fqdn: thruntops.domain
       role: member
     roles:
+      - ludus_elastic_preuninstall
       - badsectorlabs.ludus_elastic_agent
       - ludus_local_users
       - ludus_laps
@@ -291,6 +305,7 @@ ludus:
       fqdn: secondary.thruntops.domain
       role: member
     roles:
+      - ludus_elastic_preuninstall
       - badsectorlabs.ludus_elastic_agent
       - ludus_local_users
       - ludus_laps

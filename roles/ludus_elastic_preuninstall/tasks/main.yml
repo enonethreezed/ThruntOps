@@ -1,0 +1,65 @@
+---
+- name: (elastic_preuninstall) Check if Elastic agent is installed
+  ansible.windows.win_stat:
+    path: "C:\\Program Files\\Elastic\\Agent\\elastic-agent.exe"
+  register: ea_installed
+
+- name: (elastic_preuninstall) Force-kill all elastic-agent processes
+  ansible.windows.win_powershell:
+    script: |
+      Get-Process -Name "elastic-agent" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+      Get-Process -Name "elastic-endpoint" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+      $Ansible.Changed = $true
+  ignore_errors: true
+  when: ea_installed.stat.exists
+
+- name: (elastic_preuninstall) Stop and delete Elastic services
+  ansible.windows.win_powershell:
+    script: |
+      $services = @('ElasticEndpoint', 'Elastic Agent')
+      foreach ($svc in $services) {
+        $s = Get-Service -Name $svc -ErrorAction SilentlyContinue
+        if ($s) {
+          Stop-Service -Name $svc -Force -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 2
+          & sc.exe delete $svc | Out-Null
+          $Ansible.Changed = $true
+        }
+      }
+  ignore_errors: true
+  when: ea_installed.stat.exists
+
+- name: (elastic_preuninstall) Force-remove Elastic Agent install directory
+  ansible.windows.win_powershell:
+    script: |
+      $path = 'C:\Program Files\Elastic\Agent'
+      if (Test-Path $path) {
+        Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
+        # If Remove-Item failed due to locked files, try robocopy mirror trick
+        if (Test-Path $path) {
+          $empty = Join-Path $env:TEMP "empty_dir_$$"
+          New-Item -ItemType Directory -Path $empty -Force | Out-Null
+          & robocopy $empty $path /MIR /NFL /NDL /NJH /NJS | Out-Null
+          Remove-Item -Path $empty -Force -ErrorAction SilentlyContinue
+          Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        $Ansible.Changed = $true
+      }
+  ignore_errors: true
+  when: ea_installed.stat.exists
+
+- name: (elastic_preuninstall) Confirm elastic-agent.exe is gone (retry up to 30s)
+  ansible.windows.win_stat:
+    path: "C:\\Program Files\\Elastic\\Agent\\elastic-agent.exe"
+  register: ea_check_after
+  until: not ea_check_after.stat.exists
+  retries: 6
+  delay: 5
+  when: ea_installed.stat.exists
+
+- name: (elastic_preuninstall) Fail if elastic-agent.exe still present
+  ansible.builtin.fail:
+    msg: "elastic-agent.exe still present after cleanup — manual intervention required"
+  when:
+    - ea_installed.stat.exists
+    - ea_check_after.stat.exists
