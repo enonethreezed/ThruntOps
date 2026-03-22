@@ -146,30 +146,27 @@ ludus ansible roles add -d roles/ludus_atomic_red_team
 ### Wazuh profile
 
 ```bash
-# Wazuh server (all-in-one)
-ludus ansible roles add aleemladha.wazuh_server_install
-
-# Wazuh Windows agent
-ludus ansible roles add aleemladha.ludus_wazuh_agent
-
-# ADCS role
-ludus ansible roles add badsectorlabs.ludus_adcs
-
-# Local roles (included in this repo)
-ludus ansible roles add https://github.com/Cyblex-Consulting/ludus-local-users/archive/refs/heads/main.tar.gz
+# Custom local roles — Wazuh server + agent (included in this repo)
+ludus ansible roles add -d roles/ludus_wazuh_server
+ludus ansible roles add -d roles/ludus_wazuh_agent
+ludus ansible roles add -d roles/ludus_privesc
 ludus ansible roles add -d roles/ludus_ad_content
 ludus ansible roles add -d roles/ludus_laps
 ludus ansible roles add -d roles/ludus_ops
-ludus ansible roles add -d roles/ludus_atomic_red_team
+ludus ansible roles add -d roles/ludus_iis
+
+# Galaxy roles
+ludus ansible roles add badsectorlabs.ludus_adcs
+ludus ansible roles add badsectorlabs.ludus_mssql
+ludus ansible roles add badsectorlabs.ludus_gitlab_ce
+ludus ansible roles add badsectorlabs.ludus_gitlab_ldap
+ludus ansible roles add badsectorlabs.ludus_sssd
 ```
 
 {: .warning }
-The `aleemladha.ludus_wazuh_agent` role uses non-standard internal variable names. After installing the role, patch it to match the `role_vars` keys used in `wazuh.yml`:
-
+After any change to a local role, re-sync with `--force` to overwrite the cached version on the Ludus server:
 ```bash
-ROLE="/opt/ludus/users/ludus-admin/.ansible/roles/aleemladha.ludus_wazuh_agent/tasks/windows.yml"
-sudo sed -i 's/wazuh_agent_install_package/ludus_wazuh_agent_install_package/g' "$ROLE"
-sudo sed -i 's/wazuh_manager_host/ludus_wazuh_siem_server/g' "$ROLE"
+ludus ansible roles add -d roles/<name> --force
 ```
 
 Verify all roles are installed:
@@ -249,7 +246,7 @@ Run the Wazuh agent status check:
 bash tests/wazuh_status.sh
 ```
 
-All Windows VMs (`DC01-2022`, `DC01-SEC`, `ADCS`, `WIN11-22H2-1`, `WIN11-22H2-2`) should appear with status `active`.
+All 8 agents (`DC01-2022`, `DC01-SEC`, `ADCS`, `WEB`, `WIN11-22H2-1`, `WIN11-22H2-2`, `gitlab`, `ops`) should appear with status `active`.
 
 ### Common
 
@@ -271,6 +268,6 @@ bash scripts/add-kali.sh
 - DCs do not support local SAM accounts — local user provisioning only applies to member machines
 - Windows LAPS schema extension runs on DC01-2022 — requires the domain to be fully provisioned first
 - The `win2022-server-x64-laps-template` is used for both DCs. It includes all Windows updates applied at build time, so LAPS cmdlets are immediately available without running `win_updates` during deploy
-- `ludus ansible roles add` does **not** overwrite an existing role — use `sudo cp -rf` to update installed roles
+- `ludus ansible roles add` does **not** overwrite an existing role — use `--force` flag to update installed roles
 - `badsectorlabs.ludus_mssql` requires a manual template patch after install (see step 4) — `win_template` in the Ludus Ansible env does not evaluate Jinja2 block tags, leaving literal Jinja2 syntax in rendered configs which causes `setup.exe` to fail
 - The cached MSSQL ISO at `/opt/ludus/resources/iso/` is SQL Server 2019; `ludus_mssql_version` in `elastic.yml` is set to `"2019"` accordingly
