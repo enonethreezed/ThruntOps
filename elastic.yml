@@ -37,6 +37,7 @@ ludus:
       ludus_ad:
         groups:
           - name: Developers
+          - name: DBA
         users:
           - name: domainadmin
             password: 'iFgu¿83¿'
@@ -121,6 +122,7 @@ ludus:
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
+              - DBA
           - name: primary_user08
             password: 'c7eX@/8N'
             path: "DC=thruntops,DC=domain"
@@ -163,6 +165,8 @@ ludus:
       ludus_laps_read_principal: "secondary\\secondary_user03"
       ludus_laps_admin_password: 'Ut2cf7%/'
       ludus_ad:
+        groups:
+          - name: DBA
         users:
           - name: domainadmin
             password: 'Ut2cf7%/'
@@ -218,6 +222,7 @@ ludus:
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
+              - DBA
           - name: secondary_user08
             password: 'MV3(i)6F'
             path: "DC=secondary,DC=thruntops,DC=domain"
@@ -256,7 +261,6 @@ ludus:
       - badsectorlabs.ludus_elastic_agent
       - ludus_local_users
       - ludus_laps
-      - ludus_atomic_red_team
     role_vars:
       ludus_local_users:
         - login: basicuser
@@ -286,7 +290,6 @@ ludus:
       - badsectorlabs.ludus_elastic_agent
       - ludus_local_users
       - ludus_laps
-      - ludus_atomic_red_team
     role_vars:
       ludus_local_users:
         - login: basicuser
@@ -341,6 +344,8 @@ ludus:
       - badsectorlabs.ludus_elastic_agent
       - badsectorlabs.ludus_mssql
       - ludus_iis
+      - ludus_mssql_config
+      - ludus_webapp
       - ludus_local_users
     role_vars:
       ludus_mssql_version: "2019"
@@ -375,6 +380,7 @@ ludus:
       - ludus_gitlab_ce
       - ludus_gitlab_ldap
       - ludus_sssd
+      - ludus_gitlab_runner
     role_vars:
       ludus_gitlab:
         url: "http://10.2.50.15"

@@ -143,7 +143,9 @@ ludus ansible roles add -d roles/ludus_ops
 ludus ansible roles add -d roles/ludus_sssd
 ludus ansible roles add -d roles/ludus_privesc
 ludus ansible roles add -d roles/ludus_sysmon_linux
-ludus ansible roles add -d roles/ludus_atomic_red_team
+ludus ansible roles add -d roles/ludus_mssql_config
+ludus ansible roles add -d roles/ludus_webapp
+ludus ansible roles add -d roles/ludus_gitlab_runner
 ```
 
 ### Wazuh profile
@@ -159,6 +161,33 @@ ludus ansible roles add -d roles/ludus_ops
 ludus ansible roles add -d roles/ludus_iis
 ludus ansible roles add -d roles/ludus_gitlab_ldap
 ludus ansible roles add -d roles/ludus_sssd
+ludus ansible roles add -d roles/ludus_mssql_config
+ludus ansible roles add -d roles/ludus_webapp
+ludus ansible roles add -d roles/ludus_gitlab_runner
+
+# Galaxy / GitHub roles
+ludus ansible roles add badsectorlabs.ludus_adcs
+ludus ansible roles add badsectorlabs.ludus_mssql
+ludus ansible roles add badsectorlabs.ludus_gitlab_ce
+ludus ansible roles add https://github.com/Cyblex-Consulting/ludus-local-users/archive/refs/heads/main.tar.gz
+```
+
+### Splunk profile
+
+```bash
+# Custom local roles — Splunk UF (included in this repo)
+ludus ansible roles add -d roles/ludus_splunk
+ludus ansible roles add -d roles/ludus_splunk_uf
+ludus ansible roles add -d roles/ludus_privesc
+ludus ansible roles add -d roles/ludus_ad_content
+ludus ansible roles add -d roles/ludus_laps
+ludus ansible roles add -d roles/ludus_ops
+ludus ansible roles add -d roles/ludus_iis
+ludus ansible roles add -d roles/ludus_gitlab_ldap
+ludus ansible roles add -d roles/ludus_sssd
+ludus ansible roles add -d roles/ludus_mssql_config
+ludus ansible roles add -d roles/ludus_webapp
+ludus ansible roles add -d roles/ludus_gitlab_runner
 
 # Galaxy / GitHub roles
 ludus ansible roles add badsectorlabs.ludus_adcs

@@ -1,0 +1,27 @@
+INTERNAL USE ONLY — ThruntOps Infrastructure Notes
+====================================================
+
+Last updated: 2024-03-15
+Author: IT Operations
+
+== Database Server ==
+Host: WEB (10.2.50.14)
+Instance: MSSQLSERVER (SQL Server 2019)
+Admin account: sa
+SA password: Sa@ThruntOps2024!   <-- CHANGE BEFORE PRODUCTION
+App account: IIS app pool (webadmin, local admin)
+
+== Web Application ==
+URL: http://10.2.50.14
+Framework: ASP.NET 4.5 WebForms
+Deployed via: GitLab CI/CD pipeline (runner on gitlab VM)
+
+== Contacts ==
+DBA (primary domain): primary_user07 — has sysadmin on SQL
+DBA (secondary domain): secondary_user07 — read-only on ThruntOps DB
+
+== Pending Tasks ==
+- Rotate SA password before production handoff
+- Enable SSL on IIS
+- Review upload directory permissions
+- Disable SQL Server error messages in production (customErrors mode=Off)

@@ -117,11 +117,11 @@ Webhook
 
 ---
 
-## Implementation Checklist (not yet done)
+## Implementation Checklist
 
-- [ ] Create a repository with the vulnerable web application source
-- [ ] Register a GitLab Runner (shell executor) on WEB as `webadmin`
-- [ ] Write a working `.gitlab-ci.yml` that deploys the app to `wwwroot`
-- [ ] Add intentional hardcoded secrets to the repo (connection string, deploy token)
+- [x] Create a repository with the vulnerable web application source (`thruntops-web` via `ludus_gitlab_runner` role)
+- [x] Register a GitLab Runner (shell executor on GitLab VM, not WEB — deploys via smbclient)
+- [x] Write a working `.gitlab-ci.yml` that deploys the app to `wwwroot` via SMB
+- [x] Add intentional hardcoded secrets to `.gitlab-ci.yml` (webadmin credentials in smbclient command)
+- [x] Document pipeline poisoning + secret leakage attack paths in `docs/vulnerabilities.md`
 - [ ] Verify end-to-end pipeline: push → deploy → app reachable at `http://10.2.50.14`
-- [ ] Document the pipeline poisoning attack path in `docs/vulnerabilities.md`

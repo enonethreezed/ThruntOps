@@ -244,22 +244,24 @@ Compromise primary_user01 (shares domainadmin password)
 
 ---
 
-## Implementation Checklist (not yet done)
+## Implementation Checklist
 
 **DBA role:**
-- [ ] Create `DBA` group in `thruntops.domain` and `secondary.thruntops.domain`
-- [ ] Add `primary_user07` to DBA (thruntops), `secondary_user07` to DBA (secondary)
-- [ ] Post-deploy T-SQL: `CREATE LOGIN [thruntops\DBA] FROM WINDOWS; ALTER SERVER ROLE sysadmin ADD MEMBER [thruntops\DBA]`
-- [ ] Post-deploy T-SQL: `CREATE LOGIN [secondary\DBA] FROM WINDOWS; GRANT CONNECT SQL TO [secondary\DBA]` + db-level read-only on one DB
+- [x] Create `DBA` group in `thruntops.domain` and `secondary.thruntops.domain` (all three profiles)
+- [x] Add `primary_user07` to DBA (thruntops), `secondary_user07` to DBA (secondary)
+- [x] T-SQL: `thruntops\DBA` → sysadmin (`ludus_mssql_config` role)
+- [x] T-SQL: `secondary\DBA` → db_datareader on ThruntOps DB (`ludus_mssql_config` role)
 
 **Web application:**
-- [ ] Write ASP.NET WebForms app covering Scenario A (SQLi login), B (file upload), C (traversal)
-- [ ] App connects to MSSQL using SA or `primary_user07` credentials (makes xp_cmdshell reachable via SQLi)
-- [ ] Place connection string in `web.config` (readable via Scenario C)
-- [ ] Deploy via GitLab pipeline (depends on runner — see GITLAB.md)
-- [ ] Document all three scenarios in `docs/vulnerabilities.md`
+- [x] ASP.NET WebForms app: Login.aspx (SQLi), Upload.aspx (file upload), View.aspx (traversal)
+- [x] SA connection string in `web.config` — leaked via Scenario C
+- [x] `customErrors mode="Off"` — error-based SQLi enabled
+- [x] `uploads/` writable by IIS_IUSRS — web shell upload works
+- [x] Deploy via GitLab CI/CD pipeline (smbclient → WEB wwwroot SMB share)
+- [x] Document all three scenarios in `docs/vulnerabilities.md`
 
 **MSSQL standalone TTPs:**
-- [ ] Document xp_cmdshell scenario in `docs/vulnerabilities.md`
-- [ ] Document NTLM capture via xp_dirtree
-- [ ] Document token impersonation (SeImpersonatePrivilege) from IIS context
+- [x] Document xp_cmdshell scenario in `docs/vulnerabilities.md`
+- [x] Document NTLM capture via xp_dirtree in `docs/vulnerabilities.md`
+- [x] Document DBA group → sysadmin escalation in `docs/vulnerabilities.md`
+- [ ] Verify end-to-end: SQLi bypass → stacked query → xp_cmdshell → reverse shell

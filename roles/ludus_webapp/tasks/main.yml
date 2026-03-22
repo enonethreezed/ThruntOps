@@ -1,0 +1,59 @@
+---
+- name: (webapp) Create uploads directory
+  ansible.windows.win_file:
+    path: '{{ ludus_webapp_wwwroot }}\uploads'
+    state: directory
+
+- name: (webapp) Create documents directory
+  ansible.windows.win_file:
+    path: '{{ ludus_webapp_wwwroot }}\documents'
+    state: directory
+
+- name: (webapp) Copy static application files
+  ansible.windows.win_copy:
+    src: app/
+    dest: '{{ ludus_webapp_wwwroot }}\'
+
+- name: (webapp) Write web.config with SA connection string
+  ansible.windows.win_copy:
+    dest: '{{ ludus_webapp_wwwroot }}\web.config'
+    content: |
+      <?xml version="1.0" encoding="utf-8"?>
+      <configuration>
+        <connectionStrings>
+          <add name="ThruntOps"
+               connectionString="Server=localhost;Database=ThruntOps;User Id=sa;Password={{ ludus_webapp_sa_password }};"
+               providerName="System.Data.SqlClient" />
+        </connectionStrings>
+        <system.web>
+          <compilation debug="true" targetFramework="4.5" />
+          <httpRuntime targetFramework="4.5" maxRequestLength="51200" />
+          <customErrors mode="Off" />
+        </system.web>
+      </configuration>
+
+- name: (webapp) Grant IIS_IUSRS write access on uploads directory
+  ansible.windows.win_acl:
+    path: '{{ ludus_webapp_wwwroot }}\uploads'
+    user: IIS_IUSRS
+    rights: FullControl
+    type: allow
+    state: present
+    inherit: ContainerInherit, ObjectInherit
+    propagation: None
+
+- name: (webapp) Create wwwroot SMB share for CI/CD deployment
+  ansible.windows.win_share:
+    name: wwwroot
+    path: '{{ ludus_webapp_wwwroot }}'
+    state: present
+    full:
+      - Administrators
+      - webadmin
+
+- name: (webapp) Ensure Default Web Site is running
+  ansible.windows.win_shell: |
+    Import-Module WebAdministration
+    Start-WebSite -Name "Default Web Site"
+  changed_when: false
+  failed_when: false

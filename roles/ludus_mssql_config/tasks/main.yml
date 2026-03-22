@@ -1,0 +1,90 @@
+---
+- name: (mssql_config) Wait for SQL Server service
+  ansible.windows.win_service:
+    name: MSSQLSERVER
+    state: started
+
+- name: (mssql_config) Enable mixed mode authentication and set SA password
+  ansible.windows.win_shell: |
+    sqlcmd -S localhost -Q "
+      EXEC xp_instance_regwrite N'HKLM',
+        N'Software\Microsoft\MSSQLServer\MSSQLServer',
+        N'LoginMode', N'REG_DWORD', 2;
+      ALTER LOGIN sa ENABLE;
+      ALTER LOGIN sa WITH PASSWORD = '{{ ludus_mssql_config_sa_password }}';
+    "
+  changed_when: true
+
+- name: (mssql_config) Restart SQL Server to apply mixed mode
+  ansible.windows.win_service:
+    name: MSSQLSERVER
+    state: restarted
+
+- name: (mssql_config) Wait for SQL Server to be ready after restart
+  ansible.windows.win_service:
+    name: MSSQLSERVER
+    state: started
+  register: mssql_wait
+  until: mssql_wait.state == "running"
+  retries: 10
+  delay: 5
+
+- name: (mssql_config) Create ThruntOps database
+  ansible.windows.win_shell: |
+    sqlcmd -S localhost -Q "
+      IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'ThruntOps')
+        CREATE DATABASE ThruntOps;
+    "
+  changed_when: true
+
+- name: (mssql_config) Create Users table and seed data
+  ansible.windows.win_shell: |
+    sqlcmd -S localhost -d ThruntOps -Q "
+      IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Users')
+      BEGIN
+        CREATE TABLE Users (
+          id       INT PRIMARY KEY IDENTITY(1,1),
+          username NVARCHAR(50)  NOT NULL,
+          password NVARCHAR(100) NOT NULL,
+          role     NVARCHAR(20)  DEFAULT 'user'
+        );
+        INSERT INTO Users (username, password, role) VALUES
+          ('admin',   'Adm1n@thruntops!',  'admin'),
+          ('webdev',  'n4&1Kj@K',          'developer'),
+          ('analyst', 'An4lyst@2024!',     'analyst'),
+          ('guest',   'guest',             'user');
+      END
+    "
+  changed_when: true
+
+- name: (mssql_config) Create DBA login for thruntops domain — sysadmin
+  ansible.windows.win_shell: |
+    sqlcmd -S localhost -Q "
+      IF NOT EXISTS (
+        SELECT name FROM sys.server_principals WHERE name = 'thruntops\DBA'
+      )
+      BEGIN
+        CREATE LOGIN [thruntops\DBA] FROM WINDOWS;
+        ALTER SERVER ROLE sysadmin ADD MEMBER [thruntops\DBA];
+      END
+    "
+  changed_when: true
+
+- name: (mssql_config) Create DBA login for secondary domain — read-only
+  ansible.windows.win_shell: |
+    sqlcmd -S localhost -Q "
+      IF NOT EXISTS (
+        SELECT name FROM sys.server_principals WHERE name = 'secondary\DBA'
+      )
+        CREATE LOGIN [secondary\DBA] FROM WINDOWS;
+    "
+    sqlcmd -S localhost -d ThruntOps -Q "
+      IF NOT EXISTS (
+        SELECT name FROM sys.database_principals WHERE name = 'secondary\DBA'
+      )
+      BEGIN
+        CREATE USER [secondary\DBA] FOR LOGIN [secondary\DBA];
+        ALTER ROLE db_datareader ADD MEMBER [secondary\DBA];
+      END
+    "
+  changed_when: true

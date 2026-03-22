@@ -1,0 +1,5 @@
+---
+ludus_gitlab_runner_root_password: "ThruntOps-R00t!"
+ludus_gitlab_runner_gitlab_url: "http://10.2.50.15"
+ludus_gitlab_runner_web_host: "10.2.50.14"
+ludus_gitlab_runner_webadmin_password: "O5G=S(5q"

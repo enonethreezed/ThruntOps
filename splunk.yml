@@ -47,6 +47,7 @@ ludus:
       ludus_ad:
         groups:
           - name: Developers
+          - name: DBA
         users:
           - name: domainadmin
             password: 'iFgu¿83¿'
@@ -131,6 +132,7 @@ ludus:
             path: "DC=thruntops,DC=domain"
             groups:
               - Domain Users
+              - DBA
           - name: primary_user08
             password: 'c7eX@/8N'
             path: "DC=thruntops,DC=domain"
@@ -175,6 +177,8 @@ ludus:
       ludus_laps_read_principal: "secondary\\secondary_user03"
       ludus_laps_admin_password: 'Ut2cf7%/'
       ludus_ad:
+        groups:
+          - name: DBA
         users:
           - name: domainadmin
             password: 'Ut2cf7%/'
@@ -230,6 +234,7 @@ ludus:
             path: "DC=secondary,DC=thruntops,DC=domain"
             groups:
               - Domain Users
+              - DBA
           - name: secondary_user08
             password: 'MV3(i)6F'
             path: "DC=secondary,DC=thruntops,DC=domain"
@@ -268,7 +273,6 @@ ludus:
       - ludus_splunk_uf
       - ludus_local_users
       - ludus_laps
-      - ludus_atomic_red_team
     role_vars:
       ludus_splunk_server_ip: "10.2.50.1"
       ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi"
@@ -300,7 +304,6 @@ ludus:
       - ludus_splunk_uf
       - ludus_local_users
       - ludus_laps
-      - ludus_atomic_red_team
     role_vars:
       ludus_splunk_server_ip: "10.2.50.1"
       ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi"
@@ -359,6 +362,8 @@ ludus:
       - ludus_splunk_uf
       - badsectorlabs.ludus_mssql
       - ludus_iis
+      - ludus_mssql_config
+      - ludus_webapp
       - ludus_local_users
     role_vars:
       ludus_splunk_server_ip: "10.2.50.1"
@@ -394,6 +399,7 @@ ludus:
       - ludus_gitlab_ce
       - ludus_gitlab_ldap
       - ludus_sssd
+      - ludus_gitlab_runner
     role_vars:
       ludus_splunk_server_ip: "10.2.50.1"
       ludus_gitlab:
@@ -446,6 +452,7 @@ ludus:
         - sudo_ansible_test
         - sudo_certbot
         - sudo_watch
+        - cap_gdb
       ludus_privesc_sudo_user: "primary_user06"
       ludus_privesc_sssd_domain: "thruntops.domain"
       ludus_splunk_server_ip: "10.2.50.1"

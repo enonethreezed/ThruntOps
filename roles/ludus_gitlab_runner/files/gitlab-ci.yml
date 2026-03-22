@@ -1,0 +1,17 @@
+stages:
+  - deploy
+
+# Legitimate pipeline: deploys web application to WEB via SMB share
+# Attack vector: compromise webdev → push malicious .aspx file or modified web.config
+deploy-to-web:
+  stage: deploy
+  script:
+    - smbclient //10.2.50.14/wwwroot -U './webadmin%O5G=S(5q' -c
+        "put Default.aspx Default.aspx;
+         put Login.aspx Login.aspx;
+         put Upload.aspx Upload.aspx;
+         put View.aspx View.aspx"
+  tags:
+    - web-deploy
+  only:
+    - main

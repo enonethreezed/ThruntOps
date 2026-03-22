@@ -1,0 +1,168 @@
+---
+- name: (gitlab_runner) Wait for GitLab to be ready
+  ansible.builtin.uri:
+    url: "{{ ludus_gitlab_runner_gitlab_url }}/-/health"
+    method: GET
+    status_code: 200
+  register: gitlab_health
+  until: gitlab_health.status == 200
+  retries: 30
+  delay: 10
+
+- name: (gitlab_runner) Set GitLab root password
+  ansible.builtin.command:
+    cmd: >
+      gitlab-rails runner
+      "u = User.find_by(username: 'root');
+       u.password = '{{ ludus_gitlab_runner_root_password }}';
+       u.password_confirmation = '{{ ludus_gitlab_runner_root_password }}';
+       u.save!"
+  changed_when: true
+
+- name: (gitlab_runner) Create root personal access token
+  ansible.builtin.command:
+    cmd: >
+      gitlab-rails runner
+      "u = User.find_by(username: 'root');
+       t = u.personal_access_tokens.create(name: 'ansible-bootstrap', scopes: [:api]);
+       puts t.token"
+  register: root_token
+  changed_when: true
+
+- name: (gitlab_runner) Check if thruntops-web project exists
+  ansible.builtin.uri:
+    url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/projects/root%2Fthruntops-web"
+    method: GET
+    headers:
+      PRIVATE-TOKEN: "{{ root_token.stdout | trim }}"
+    status_code: [200, 404]
+  register: project_check
+
+- name: (gitlab_runner) Create thruntops-web project
+  ansible.builtin.uri:
+    url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/projects"
+    method: POST
+    headers:
+      PRIVATE-TOKEN: "{{ root_token.stdout | trim }}"
+    body_format: json
+    body:
+      name: thruntops-web
+      path: thruntops-web
+      description: "ThruntOps internal web portal"
+      visibility: internal
+      initialize_with_readme: false
+    status_code: 201
+  register: project_create
+  when: project_check.status == 404
+
+- name: (gitlab_runner) Resolve project ID
+  ansible.builtin.set_fact:
+    webapp_project_id: >-
+      {{ (project_check.status == 200)
+         | ternary(project_check.json.id, project_create.json.id) }}
+
+- name: (gitlab_runner) Get webdev user ID
+  ansible.builtin.uri:
+    url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/users?username=webdev"
+    method: GET
+    headers:
+      PRIVATE-TOKEN: "{{ root_token.stdout | trim }}"
+  register: webdev_user
+
+- name: (gitlab_runner) Add webdev as maintainer on thruntops-web
+  ansible.builtin.uri:
+    url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/projects/{{ webapp_project_id }}/members"
+    method: POST
+    headers:
+      PRIVATE-TOKEN: "{{ root_token.stdout | trim }}"
+    body_format: json
+    body:
+      user_id: "{{ webdev_user.json[0].id }}"
+      access_level: 40
+    status_code: [201, 409]
+
+- name: (gitlab_runner) Push initial app files and pipeline to project
+  ansible.builtin.uri:
+    url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/projects/{{ webapp_project_id }}/repository/commits"
+    method: POST
+    headers:
+      PRIVATE-TOKEN: "{{ root_token.stdout | trim }}"
+    body_format: json
+    body:
+      branch: main
+      start_branch: main
+      commit_message: "Initial web application — ThruntOps internal portal"
+      actions:
+        - action: create
+          file_path: ".gitlab-ci.yml"
+          content: "{{ lookup('file', 'gitlab-ci.yml') | b64encode }}"
+          encoding: base64
+        - action: create
+          file_path: "Default.aspx"
+          content: "{{ lookup('file', 'app/Default.aspx') | b64encode }}"
+          encoding: base64
+        - action: create
+          file_path: "Login.aspx"
+          content: "{{ lookup('file', 'app/Login.aspx') | b64encode }}"
+          encoding: base64
+        - action: create
+          file_path: "Upload.aspx"
+          content: "{{ lookup('file', 'app/Upload.aspx') | b64encode }}"
+          encoding: base64
+        - action: create
+          file_path: "View.aspx"
+          content: "{{ lookup('file', 'app/View.aspx') | b64encode }}"
+          encoding: base64
+    status_code: [201, 400]
+
+- name: (gitlab_runner) Install smbclient for CI/CD deployment
+  ansible.builtin.apt:
+    name: smbclient
+    state: present
+    update_cache: true
+
+- name: (gitlab_runner) Add GitLab Runner apt repository
+  ansible.builtin.shell: |
+    curl -fsSL "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | bash
+  args:
+    creates: /etc/apt/sources.list.d/runner_gitlab-runner.list
+
+- name: (gitlab_runner) Install gitlab-runner
+  ansible.builtin.apt:
+    name: gitlab-runner
+    state: present
+    update_cache: true
+
+- name: (gitlab_runner) Get instance runner registration token
+  ansible.builtin.command:
+    cmd: >
+      gitlab-rails runner
+      "puts Gitlab::CurrentSettings.runners_registration_token"
+  register: runner_reg_token
+  changed_when: false
+
+- name: (gitlab_runner) Check if runner is already registered
+  ansible.builtin.command:
+    cmd: gitlab-runner list
+  register: runner_list
+  changed_when: false
+
+- name: (gitlab_runner) Register shell runner
+  ansible.builtin.command:
+    cmd: >
+      gitlab-runner register
+      --non-interactive
+      --url "{{ ludus_gitlab_runner_gitlab_url }}"
+      --registration-token "{{ runner_reg_token.stdout | trim }}"
+      --executor "shell"
+      --description "ThruntOps Deploy Runner"
+      --tag-list "web-deploy"
+      --run-untagged=true
+  when: "'ThruntOps Deploy Runner' not in runner_list.stdout"
+  changed_when: true
+
+- name: (gitlab_runner) Ensure gitlab-runner service is running
+  ansible.builtin.service:
+    name: gitlab-runner
+    state: started
+    enabled: true

@@ -1,13 +1,13 @@
 ---
-title: Sigma & Atomic Tests
+title: Sigma & Infection Monkey
 layout: default
 nav_order: 8
 ---
 
-# Sigma Rules & Atomic Red Team
+# Sigma Rules & Infection Monkey
 {: .no_toc }
 
-Detection engineering pipeline using Atomic Red Team to generate telemetry and Sigma to write portable detection rules.
+Detection engineering pipeline using Infection Monkey to generate realistic attack telemetry and Sigma to write portable detection rules.
 {: .fs-6 .fw-300 }
 
 ---
@@ -22,46 +22,54 @@ Detection engineering pipeline using Atomic Red Team to generate telemetry and S
 
 {: .note }
 **Sigma** — generic SIEM rule format: [sigmahq.github.io](https://sigmahq.github.io) · [github.com/SigmaHQ/sigma](https://github.com/SigmaHQ/sigma)<br>
-**Atomic Red Team** — ATT&CK-mapped attack simulations: [atomicredteam.io](https://atomicredteam.io) · [github.com/redcanaryco/atomic-red-team](https://github.com/redcanaryco/atomic-red-team)<br>
-**Invoke-AtomicRedTeam** — PowerShell execution framework: [github.com/redcanaryco/invoke-atomicredteam](https://github.com/redcanaryco/invoke-atomicredteam)
+**Infection Monkey** — automated breach and attack simulation (BAS): [github.com/guardicore/monkey](https://github.com/guardicore/monkey) · [Akamai/Guardicore documentation](https://techdocs.akamai.com/infection-monkey/docs/welcome-infection-monkey)
 
 ## Pipeline
 
 ```
 Intentional vulnerability
-  → Atomic test simulates the attack
-    → Elastic captures telemetry
+  → Infection Monkey simulates the attack or exploitation path
+    → SIEM captures telemetry (Elastic / Wazuh / Splunk)
       → Sigma rule written against that telemetry
-        → Rule converted to EQL/KQL and loaded into Elastic
-          → Alert fires on next test run ✓
+        → Rule converted to target query language and loaded into SIEM
+          → Alert fires on next simulation run ✓
 ```
 
 ---
 
-## Atomic Red Team
+## Infection Monkey
 
-Invoke-AtomicRedTeam and the full Atomics library are **automatically installed** on both workstations (`WIN11-22H2-1`, `WIN11-22H2-2`) during lab deployment via the `ludus_atomic_red_team` role.
+Infection Monkey is deployed on the **ops** VM (`10.2.50.2`) via Docker Compose and is available at:
 
-Installation path: `C:\AtomicRedTeam\`
-Module auto-loaded via PowerShell profile for all users.
-
-### Running a test
-
-Open PowerShell on a workstation (e.g. via Guacamole at `http://10.2.50.2:8080/guacamole/`) and run:
-
-```powershell
-# List all tests for a technique
-Invoke-AtomicTest T1078.002 -ShowDetailsBrief
-
-# Run a specific test
-Invoke-AtomicTest T1078.002 -TestNumbers 1
-
-# Run and capture output
-Invoke-AtomicTest T1078.002 -TestNumbers 1 -LoggingModule Attire-ExecutionLogger
-
-# Clean up after test
-Invoke-AtomicTest T1078.002 -TestNumbers 1 -Cleanup
 ```
+https://10.2.50.2:5000
+```
+
+It runs as a self-hosted Island (C2 server) — agents are launched from the Island and spread through the network using configured exploits and credential attacks.
+
+References:
+- Project: [github.com/guardicore/monkey](https://github.com/guardicore/monkey)
+- Documentation: [techdocs.akamai.com/infection-monkey/docs/welcome-infection-monkey](https://techdocs.akamai.com/infection-monkey/docs/welcome-infection-monkey)
+- Configuration guide: [techdocs.akamai.com/infection-monkey/docs/configuration](https://techdocs.akamai.com/infection-monkey/docs/configuration)
+- ATT&CK mapping: [techdocs.akamai.com/infection-monkey/docs/mitre-attack](https://techdocs.akamai.com/infection-monkey/docs/mitre-attack)
+
+### Running a simulation
+
+1. Open `https://10.2.50.2:5000` in a browser (accept the self-signed certificate)
+2. Create or load a simulation configuration
+3. Set target network scope: `10.2.50.0/24`
+4. Seed credentials from the lab user list (`docs/users.md`) to simulate credential reuse and lateral movement
+5. Launch the Monkey Island agent and monitor propagation
+
+### Useful simulation scenarios for this lab
+
+| Scenario | Techniques exercised |
+|---|---|
+| Credential reuse sweep | T1078.002, T1110.004 |
+| SMB lateral movement | T1021.002 |
+| SSH lateral movement | T1021.004 |
+| Network scanning | T1046 |
+| Credential collection | T1003, T1555 |
 
 ---
 
@@ -71,23 +79,23 @@ Invoke-AtomicTest T1078.002 -TestNumbers 1 -Cleanup
 
 ```bash
 pip install sigma-cli
-sigma plugin install elasticsearch
+sigma plugin install elasticsearch   # for Elastic
+sigma plugin install splunk          # for Splunk
 ```
 
 ### Workflow
 
-#### 1. Run the atomic test on a workstation
+#### 1. Run a simulation with Infection Monkey
 
-```powershell
-Invoke-AtomicTest T1078.002 -TestNumbers 1
-```
+Configure and launch a simulation targeting `10.2.50.0/24`. Let it run until completion or until the target technique fires.
 
-#### 2. Capture events in Elastic
+#### 2. Capture events in the SIEM
 
-The Fleet agent ships Windows Event Logs and Sysmon events to Elastic. Identify relevant events:
+Identify events that correspond to the simulated technique:
 
 - Event ID, process name, command line, parent process
 - Network connections, registry changes, file writes
+- Authentication events (4624, 4625, 4768, 4769)
 
 #### 3. Write the Sigma rule
 
@@ -99,7 +107,7 @@ description: Detects a domain user account authenticating with the same credenti
 references:
   - https://attack.mitre.org/techniques/T1078/002/
 author: ThruntOps
-date: 2026/03/20
+date: 2026/03/22
 tags:
   - attack.credential_access
   - attack.t1078.002
@@ -119,30 +127,40 @@ falsepositives:
 level: high
 ```
 
-#### 4. Convert to Elastic EQL
+#### 4. Convert to target query language
 
 ```bash
+# Elastic EQL
 sigma convert -t eql -p ecs_windows sigma/rules/credential_reuse.yml
+
+# Splunk SPL
+sigma convert -t splunk -p splunk_windows sigma/rules/credential_reuse.yml
 ```
 
-#### 5. Load into Elastic
+#### 5. Load into the SIEM
 
-Import the converted query as a detection rule in Kibana:
+**Elastic:** Import the converted query as a detection rule in Kibana:
 **Security → Rules → Create new rule → EQL**
+
+**Splunk:** Create a saved search or correlation search from the converted SPL in the Security Essentials or ES app.
+
+**Wazuh:** Custom rules can be added to `/var/ossec/etc/rules/` on the Wazuh server.
 
 ---
 
 ## Coverage Matrix
 
-Mapping existing lab vulnerabilities to Atomic test IDs:
+Mapping lab vulnerabilities to MITRE techniques — use these to scope Infection Monkey simulations:
 
-| Vulnerability | MITRE | Atomic Test |
+| Vulnerability | MITRE | Simulation target |
 |---|---|---|
-| Credential reuse (user01 = domainadmin) | T1078.002 | T1078.002-1 |
-| RDP to DC (user02) | T1021.001 | T1021.001-1 |
-| LAPS password read (user03) | T1555 | T1555.004-1 |
-| RDP to ADCS (user04) | T1021.001 + T1649 | T1021.001-1, T1649-1 |
-| SSH to GitLab via AD (user05) | T1021.004 | T1021.004-1 |
+| Credential reuse (user01 = domainadmin) | T1078.002 | Seed domainadmin hash/password |
+| RDP to DC (user02) | T1021.001 | RDP propagation enabled |
+| LAPS password read (user03) | T1555 | AD enumeration plugin |
+| RDP to ADCS (user04) | T1021.001 + T1649 | RDP propagation to ADCS |
+| SSH to GitLab via AD (user05) | T1021.004 | SSH lateral movement |
+| Web app SQLi (WEB) | T1190 | HTTP exploitation plugin |
+| CI/CD pipeline poisoning (GitLab) | T1195.002 | Manual — push to main branch |
 
 ---
 
@@ -162,12 +180,15 @@ sigma/
       t1021.004_ssh_gitlab.yml
     privilege_escalation/
       t1649_adcs_esc.yml
+    initial_access/
+      t1190_web_sqli.yml
 ```
 
 ---
 
 ## Notes
 
-- Run atomic tests from a **workstation** (WIN11-22H2-1 or WIN11-22H2-2) to produce realistic telemetry — accessible via Guacamole
-- Each test run should be preceded by a snapshot (`ludus range snapshot`) so the lab can be restored cleanly
-- Sigma rules should be validated against both a positive (attack run) and a negative (normal activity) to tune false positives before loading into Elastic
+- Run simulations from the Infection Monkey Island at `https://10.2.50.2:5000` — accessible after lab deploy
+- Each simulation run should be preceded by a snapshot (`ludus range snapshot`) so the lab can be restored cleanly
+- Sigma rules should be validated against both a positive (simulation run) and a negative (normal activity) to tune false positives before loading into the SIEM
+- Infection Monkey generates a full ATT&CK report after each run — use this to cross-reference which techniques fired and which did not
