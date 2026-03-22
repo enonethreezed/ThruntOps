@@ -43,13 +43,12 @@
     propagation: None
 
 - name: (webapp) Create wwwroot SMB share for CI/CD deployment
-  ansible.windows.win_share:
-    name: wwwroot
-    path: '{{ ludus_webapp_wwwroot }}'
-    state: present
-    full:
-      - Administrators
-      - webadmin
+  ansible.windows.win_powershell:
+    script: |
+      if (-not (Get-SmbShare -Name 'wwwroot' -ErrorAction SilentlyContinue)) {
+        New-SmbShare -Name 'wwwroot' -Path '{{ ludus_webapp_wwwroot }}' -FullAccess 'Administrators','webadmin' | Out-Null
+        $Ansible.Changed = $true
+      }
 
 - name: (webapp) Ensure Default Web Site is running
   ansible.windows.win_shell: |
