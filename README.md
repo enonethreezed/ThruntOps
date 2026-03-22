@@ -8,6 +8,9 @@ A Ludus-based lab environment for TTP testing and security research.
 
 ThruntOps exists to provide a controlled environment for testing attack techniques and procedures (TTPs). The design philosophy is breadth over depth: rather than optimizing for a single attack scenario, the lab grows by adding technologies — each one introducing new attack surfaces, protocols, and vectors to test against.
 
+## Status
+Testing Elastic profile and solving minor issues.
+
 ## Profiles
 
 Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). All VMs run on VLAN 50 (`10.2.50.0/24`). Deploy with the config file matching your chosen SIEM:
