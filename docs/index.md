@@ -20,4 +20,4 @@ Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). Dual Active Directory
 | [Wazuh](wazuh.md) | `wazuh.yml` | Wazuh all-in-one | 9 — full lab with IIS, MSSQL, GitLab CE |
 | [Splunk](splunk.md) | `splunk.yml` | Splunk Enterprise | 9 — full lab with IIS, MSSQL, GitLab CE |
 
-→ [Vulnerabilities](vulnerabilities.md)
+→ [Vulnerabilities](vulnerabilities.md) · [ADCS Attack Paths](adcs.md)
