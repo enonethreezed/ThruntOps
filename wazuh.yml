@@ -264,6 +264,7 @@ ludus:
       - ludus_wazuh_agent
       - ludus_local_users
       - ludus_laps
+      - ludus_lolbins
     role_vars:
       wazuh_manager_ip: "10.2.50.1"
       ludus_local_users:
@@ -276,6 +277,9 @@ ludus:
             - "thruntops\\domainadmin"
             - "thruntops\\domainuser"
             - "thruntops\\basicdomainuser"
+      ludus_lolbins_users:
+        - username: primary_user08
+          domain: thruntops
   - vm_name: "{{ range_id }}-ad-win11-22h2-enterprise-x64-2"
     hostname: "{{ range_id }}-WIN11-22H2-2"
     template: win11-22h2-x64-enterprise-template
@@ -294,6 +298,7 @@ ludus:
       - ludus_wazuh_agent
       - ludus_local_users
       - ludus_laps
+      - ludus_lolbins
     role_vars:
       wazuh_manager_ip: "10.2.50.1"
       ludus_local_users:
@@ -306,6 +311,9 @@ ludus:
             - "secondary\\domainadmin"
             - "secondary\\domainuser"
             - "secondary\\basicdomainuser"
+      ludus_lolbins_users:
+        - username: secondary_user08
+          domain: secondary
   - vm_name: "{{ range_id }}-adcs"
     hostname: "{{ range_id }}-ADCS"
     template: win2022-server-x64-template
