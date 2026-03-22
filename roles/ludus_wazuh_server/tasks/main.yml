@@ -38,19 +38,23 @@
   changed_when: pwd_result.rc == 0
   failed_when: pwd_result.rc != 0
 
+- name: (wazuh_server) Write API password update script
+  ansible.builtin.copy:
+    dest: /tmp/set_wazuh_api_passwords.py
+    mode: "0700"
+    content: |
+      import sqlite3
+      from werkzeug.security import generate_password_hash
+      hashed = generate_password_hash('{{ wazuh_api_password }}')
+      db = '/var/ossec/api/configuration/security/rbac.db'
+      conn = sqlite3.connect(db)
+      conn.execute("UPDATE users SET password=? WHERE username='wazuh'", (hashed,))
+      conn.execute("UPDATE users SET password=? WHERE username='wazuh-wui'", (hashed,))
+      conn.commit()
+      print('API passwords updated')
+
 - name: (wazuh_server) Set Wazuh API user passwords (wazuh + wazuh-wui)
-  ansible.builtin.command: >
-    /var/ossec/framework/python/bin/python3 -c "
-    import sqlite3
-    from werkzeug.security import generate_password_hash
-    hashed = generate_password_hash('{{ wazuh_api_password }}')
-    db = '/var/ossec/api/configuration/security/rbac.db'
-    c = sqlite3.connect(db)
-    c.execute(\"UPDATE users SET password=? WHERE username='wazuh'\", (hashed,))
-    c.execute(\"UPDATE users SET password=? WHERE username='wazuh-wui'\", (hashed,))
-    c.commit()
-    print('API passwords updated')
-    "
+  ansible.builtin.command: /var/ossec/framework/python/bin/python3 /tmp/set_wazuh_api_passwords.py
   register: api_pwd_result
   changed_when: "'updated' in api_pwd_result.stdout"
   notify: restart wazuh
@@ -58,7 +62,7 @@
 - name: (wazuh_server) Set indexer password in wazuh-manager keystore
   ansible.builtin.shell: |
     set -o pipefail
-    echo '{{ wazuh_admin_password }}' | /var/ossec/bin/wazuh-manager-keystore -f indexer -k password
+    echo '{{ wazuh_admin_password }}' | /var/ossec/bin/wazuh-keystore -f indexer -k password
   args:
     executable: /bin/bash
   changed_when: true

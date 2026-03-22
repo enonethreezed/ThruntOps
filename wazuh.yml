@@ -259,7 +259,6 @@ ludus:
       - ludus_wazuh_agent
       - ludus_local_users
       - ludus_laps
-      - ludus_atomic_red_team
     role_vars:
       wazuh_manager_ip: "10.2.50.1"
       ludus_local_users:
@@ -290,7 +289,6 @@ ludus:
       - ludus_wazuh_agent
       - ludus_local_users
       - ludus_laps
-      - ludus_atomic_red_team
     role_vars:
       wazuh_manager_ip: "10.2.50.1"
       ludus_local_users:
@@ -371,39 +369,6 @@ ludus:
       ludus_sssd_dns_servers:
         - "10.2.50.11"
         - "10.2.50.12"
-  - vm_name: "{{ range_id }}-web"
-    hostname: "{{ range_id }}-WEB"
-    template: win2022-server-x64-template
-    vlan: 50
-    ip_last_octet: 14
-    ram_gb: 4
-    cpus: 4
-    windows:
-      sysprep: true
-    domain:
-      fqdn: thruntops.domain
-      role: member
-    roles:
-      - ludus_wazuh_agent
-      - badsectorlabs.ludus_mssql
-      - ludus_iis
-      - ludus_local_users
-    role_vars:
-      wazuh_manager_ip: "10.2.50.1"
-      ludus_mssql_version: "2019"
-      ludus_mssql_install_ssms: true
-      ludus_iis_webadmin_user: webadmin
-      ludus_iis_webadmin_password: 'O5G=S(5q'
-      ludus_local_users:
-        - login: basicuser
-          password: 'H)2?H8vC'
-      ludus_local_groups:
-        - name: Remote Desktop Users
-          members:
-            - basicuser
-            - "thruntops\\domainadmin"
-            - "thruntops\\domainuser"
-            - "thruntops\\basicdomainuser"
   - vm_name: "{{ range_id }}-gitlab"
     hostname: "{{ range_id }}-gitlab"
     template: ubuntu-24.04-x64-server-template
@@ -450,3 +415,36 @@ ludus:
         - secondary_user05
       ludus_sssd_dns_servers:
         - "10.2.50.11"
+  - vm_name: "{{ range_id }}-web"
+    hostname: "{{ range_id }}-WEB"
+    template: win2022-server-x64-template
+    vlan: 50
+    ip_last_octet: 14
+    ram_gb: 4
+    cpus: 4
+    windows:
+      sysprep: true
+    domain:
+      fqdn: thruntops.domain
+      role: member
+    roles:
+      - ludus_wazuh_agent
+      - badsectorlabs.ludus_mssql
+      - ludus_iis
+      - ludus_local_users
+    role_vars:
+      wazuh_manager_ip: "10.2.50.1"
+      ludus_mssql_version: "2019"
+      ludus_mssql_install_ssms: true
+      ludus_iis_webadmin_user: webadmin
+      ludus_iis_webadmin_password: 'O5G=S(5q'
+      ludus_local_users:
+        - login: basicuser
+          password: 'H)2?H8vC'
+      ludus_local_groups:
+        - name: Remote Desktop Users
+          members:
+            - basicuser
+            - "thruntops\\domainadmin"
+            - "thruntops\\domainuser"
+            - "thruntops\\basicdomainuser"
