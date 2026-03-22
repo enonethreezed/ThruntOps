@@ -146,6 +146,7 @@ ludus ansible roles add -d roles/ludus_gitlab_ldap
 ludus ansible roles add -d roles/ludus_laps
 ludus ansible roles add -d roles/ludus_ops
 ludus ansible roles add -d roles/ludus_sssd
+ludus ansible roles add -d roles/ludus_privesc
 ludus ansible roles add -d roles/ludus_atomic_red_team
 ```
 

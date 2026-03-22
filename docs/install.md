@@ -140,6 +140,9 @@ ludus ansible roles add -d roles/ludus_ad_content
 ludus ansible roles add -d roles/ludus_gitlab_ldap
 ludus ansible roles add -d roles/ludus_laps
 ludus ansible roles add -d roles/ludus_ops
+ludus ansible roles add -d roles/ludus_sssd
+ludus ansible roles add -d roles/ludus_privesc
+ludus ansible roles add -d roles/ludus_sysmon_linux
 ludus ansible roles add -d roles/ludus_atomic_red_team
 ```
 
@@ -154,13 +157,14 @@ ludus ansible roles add -d roles/ludus_ad_content
 ludus ansible roles add -d roles/ludus_laps
 ludus ansible roles add -d roles/ludus_ops
 ludus ansible roles add -d roles/ludus_iis
+ludus ansible roles add -d roles/ludus_gitlab_ldap
+ludus ansible roles add -d roles/ludus_sssd
 
-# Galaxy roles
+# Galaxy / GitHub roles
 ludus ansible roles add badsectorlabs.ludus_adcs
 ludus ansible roles add badsectorlabs.ludus_mssql
 ludus ansible roles add badsectorlabs.ludus_gitlab_ce
-ludus ansible roles add badsectorlabs.ludus_gitlab_ldap
-ludus ansible roles add badsectorlabs.ludus_sssd
+ludus ansible roles add https://github.com/Cyblex-Consulting/ludus-local-users/archive/refs/heads/main.tar.gz
 ```
 
 {: .warning }
@@ -202,6 +206,9 @@ ludus range config set -f elastic.yml
 
 # Wazuh profile
 ludus range config set -f wazuh.yml
+
+# Splunk profile
+ludus range config set -f splunk.yml
 ```
 
 Verify the config was accepted without errors, then deploy:
@@ -247,6 +254,15 @@ bash tests/wazuh_status.sh
 ```
 
 All 8 agents (`DC01-2022`, `DC01-SEC`, `ADCS`, `WEB`, `WIN11-22H2-1`, `WIN11-22H2-2`, `gitlab`, `ops`) should appear with status `active`.
+
+### Splunk profile
+
+Check that all Universal Forwarders are connected via Splunk Web at `http://10.2.50.1:8000`:
+
+- **Settings → Forwarding and receiving → Forwarder management** — all 8 forwarders should appear
+- **Search:** `index=windows earliest=-15m` — Windows Event Logs from all domain-joined VMs
+- **Search:** `index=sysmon earliest=-15m` — Sysmon events from Windows VMs
+- **Search:** `index=linux earliest=-15m` — syslog/auth.log from ops and gitlab
 
 ### Common
 
