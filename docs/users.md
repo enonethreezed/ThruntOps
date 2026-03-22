@@ -93,6 +93,23 @@ Domain users with SSH access to Linux VMs, via SSSD + AD authentication.
 
 ---
 
+## ADCS — thruntops.domain
+
+Users created by `badsectorlabs.ludus_adcs` during deployment. Each account is purpose-built for a specific ESC scenario.
+
+| User | Password | ESC | Role |
+|---|---|---|---|
+| `esc5user` | `ESC5password` | ESC5 | Domain Admin — full CA object control ⚠️ |
+| `esc7_camgr_user` | `ESC7password` | ESC7 | CA Manager (ManageCA right on `thruntops-CA`) ⚠️ |
+| `esc7_certmgr_user` | `ESC7password` | ESC7 | Certificate Manager (ManageCertificates right) ⚠️ |
+| `esc9user` | `ESC9password` | ESC9 | Victim account — Domain Users have GenericWrite over it ⚠️ |
+| `esc13user` | `ESC13password` | ESC13 | Member of `esc13group` — issuance policy OID grants group privileges ⚠️ |
+| `esc16user` | `ESC16password` | ESC16 | Victim account — Domain Users have GenericWrite over it ⚠️ |
+
+> See [ADCS Attack Paths](adcs.md) for commands and full attack chains for each ESC.
+
+---
+
 ## Services
 
 | User | Password | Service | URL |
