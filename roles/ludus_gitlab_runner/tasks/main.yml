@@ -3,9 +3,9 @@
   ansible.builtin.uri:
     url: "{{ ludus_gitlab_runner_gitlab_url }}/users/sign_in"
     method: GET
-    status_code: 302
+    status_code: [200, 302]
   register: gitlab_health
-  until: gitlab_health.status == 302
+  until: gitlab_health.status in [200, 302]
   retries: 30
   delay: 10
 
