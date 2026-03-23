@@ -41,6 +41,12 @@
     state: started
     enabled: true
 
+- name: (ops) Ensure localuser SSH authorized_keys is present
+  ansible.posix.authorized_key:
+    user: localuser
+    state: present
+    key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_rsa.pub') }}"
+
 - name: (ops) Deploy Guacamole
   ansible.builtin.include_tasks: guacamole.yml
 
