@@ -463,8 +463,11 @@ ludus:
       - ludus_mssql_config
       - ludus_webapp
       - ludus_local_users
+      - ludus_smb_shares
     role_vars:
       wazuh_manager_ip: "10.2.50.1"
+      ludus_smb_primary_admin_password: 'iFgu¿83¿'
+      ludus_smb_secondary_admin_password: 'Ut2cf7%/'
       ludus_mssql_version: "2019"
       ludus_mssql_install_ssms: true
       ludus_iis_webadmin_user: webadmin

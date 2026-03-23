@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  author: ThruntOps
+  description: Create SMB shares with AD groups and null session for Office abuse scenarios
+  min_ansible_version: "2.14"
+dependencies: []

@@ -1,0 +1,89 @@
+---
+# DC inventory hostnames for group creation (delegate_to)
+ludus_smb_primary_dc_host: "admin-ad-dc-win2022-server-x64"
+ludus_smb_secondary_dc_host: "admin-ad-dc-win2022-secondary"
+
+# Domain admin credentials for group membership tasks
+ludus_smb_primary_domain_short: "thruntops"
+ludus_smb_primary_admin_password: ""
+ludus_smb_secondary_domain_short: "secondary"
+ludus_smb_secondary_admin_password: ""
+
+# AD groups — primary domain
+ludus_smb_primary_groups:
+  - name: "FileShare_Users"
+    description: "Internal share read access - thruntops.domain"
+    members:
+      - domainuser
+      - basicdomainuser
+      - primary_user01
+      - primary_user02
+      - primary_user03
+      - primary_user04
+      - primary_user05
+      - webdev
+  - name: "FileShare_Writers"
+    description: "Internal share write access - thruntops.domain"
+    members:
+      - primary_user08
+  - name: "XDomain_Docs_RO"
+    description: "Cross-domain share read access - thruntops.domain"
+    members:
+      - domainuser
+      - basicdomainuser
+      - primary_user02
+      - primary_user03
+      - primary_user04
+      - primary_user05
+
+# AD groups — secondary domain
+ludus_smb_secondary_groups:
+  - name: "FileShare_Users"
+    description: "Internal share read access - secondary.thruntops.domain"
+    members:
+      - domainuser
+      - basicdomainuser
+      - secondary_user01
+      - secondary_user02
+      - secondary_user03
+      - secondary_user04
+      - secondary_user05
+  - name: "FileShare_Writers"
+    description: "Internal share write access - secondary.thruntops.domain"
+    members:
+      - secondary_user08
+  - name: "XDomain_Docs_RO"
+    description: "Cross-domain share read access - secondary.thruntops.domain"
+    members:
+      - domainuser
+      - basicdomainuser
+      - secondary_user02
+      - secondary_user03
+      - secondary_user04
+      - secondary_user05
+
+# SMB shares
+ludus_smb_shares:
+  - name: "thruntops_docs"
+    path: 'C:\Shares\thruntops_docs'
+    description: "Internal documents - thruntops.domain"
+    subdirs:
+      - HR
+      - IT
+      - Finance
+      - Templates
+  - name: "secondary_docs"
+    path: 'C:\Shares\secondary_docs'
+    description: "Internal documents - secondary.thruntops.domain"
+    subdirs:
+      - HR
+      - IT
+      - Finance
+      - Templates
+  - name: "xdomain_docs"
+    path: 'C:\Shares\xdomain_docs'
+    description: "Cross-domain collaboration"
+    subdirs:
+      - Projects
+      - Reports
+      - Shared-Templates

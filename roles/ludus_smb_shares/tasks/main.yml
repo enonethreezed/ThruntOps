@@ -1,0 +1,110 @@
+---
+# --- AD Groups ---
+
+- name: (smb_shares) Create groups in thruntops.domain
+  ansible.builtin.include_tasks: ad_groups.yml
+  vars:
+    smb_dc_host: "{{ ludus_smb_primary_dc_host }}"
+    smb_domain_short: "{{ ludus_smb_primary_domain_short }}"
+    smb_groups: "{{ ludus_smb_primary_groups }}"
+    smb_admin_password: "{{ ludus_smb_primary_admin_password }}"
+
+- name: (smb_shares) Create groups in secondary.thruntops.domain
+  ansible.builtin.include_tasks: ad_groups.yml
+  vars:
+    smb_dc_host: "{{ ludus_smb_secondary_dc_host }}"
+    smb_domain_short: "{{ ludus_smb_secondary_domain_short }}"
+    smb_groups: "{{ ludus_smb_secondary_groups }}"
+    smb_admin_password: "{{ ludus_smb_secondary_admin_password }}"
+
+# --- Null session (anonymous enumeration) ---
+
+- name: (smb_shares) Allow null sessions
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters
+    name: RestrictNullSessAccess
+    data: 0
+    type: dword
+
+- name: (smb_shares) Include shares in NullSessionShares
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters
+    name: NullSessionShares
+    data: "{{ ludus_smb_shares | map(attribute='name') | list }}"
+    type: multistring
+
+- name: (smb_shares) Everyone includes Anonymous Logon
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+    name: EveryoneIncludesAnonymous
+    data: 1
+    type: dword
+
+# --- Directories ---
+
+- name: (smb_shares) Create share root directories
+  ansible.windows.win_file:
+    path: "{{ item.path }}"
+    state: directory
+  loop: "{{ ludus_smb_shares }}"
+
+- name: (smb_shares) Create share subdirectories
+  ansible.windows.win_file:
+    path: "{{ item.0.path }}\\{{ item.1 }}"
+    state: directory
+  loop: "{{ ludus_smb_shares | subelements('subdirs') }}"
+
+# --- SMB Shares ---
+
+- name: (smb_shares) Create SMB shares
+  ansible.windows.win_share:
+    name: "{{ item.name }}"
+    path: "{{ item.path }}"
+    description: "{{ item.description }}"
+    full: Administrators
+    read: Everyone
+    state: present
+  loop: "{{ ludus_smb_shares }}"
+
+# --- NTFS ACLs ---
+# thruntops_docs: thruntops\FileShare_Users R, thruntops\FileShare_Writers Modify
+# secondary_docs: secondary\FileShare_Users R, secondary\FileShare_Writers Modify,
+#                 thruntops\FileShare_Users R (cross-domain read)
+#                 thruntops\FileShare_Writers Modify (cross-domain write)
+#                 secondary\FileShare_Writers Modify
+# xdomain_docs:   both FileShare_Writers Modify, both XDomain_Docs_RO R
+# All shares:     user08 from both domains covered via FileShare_Writers membership
+
+- name: (smb_shares) Set NTFS ACLs via PowerShell
+  ansible.windows.win_powershell:
+    script: |
+      $p = "{{ ludus_smb_primary_domain_short }}"
+      $s = "{{ ludus_smb_secondary_domain_short }}"
+
+      function Set-ShareAcl {
+          param($Path, $Identity, $Rights, $Type = "Allow")
+          $acl = Get-Acl $Path
+          $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+              $Identity, $Rights, "ContainerInherit,ObjectInherit", "None", $Type)
+          $acl.AddAccessRule($rule)
+          Set-Acl $Path $acl
+      }
+
+      # thruntops_docs
+      $path = "{{ (ludus_smb_shares | selectattr('name','equalto','thruntops_docs') | first).path }}"
+      Set-ShareAcl $path "$p\FileShare_Users"   "ReadAndExecute"
+      Set-ShareAcl $path "$p\FileShare_Writers" "Modify"
+
+      # secondary_docs
+      $path = "{{ (ludus_smb_shares | selectattr('name','equalto','secondary_docs') | first).path }}"
+      Set-ShareAcl $path "$s\FileShare_Users"   "ReadAndExecute"
+      Set-ShareAcl $path "$s\FileShare_Writers" "Modify"
+      Set-ShareAcl $path "$p\FileShare_Users"   "ReadAndExecute"
+      Set-ShareAcl $path "$p\FileShare_Writers" "Modify"
+
+      # xdomain_docs
+      $path = "{{ (ludus_smb_shares | selectattr('name','equalto','xdomain_docs') | first).path }}"
+      Set-ShareAcl $path "$p\FileShare_Writers"  "Modify"
+      Set-ShareAcl $path "$s\FileShare_Writers"  "Modify"
+      Set-ShareAcl $path "$p\XDomain_Docs_RO"    "ReadAndExecute"
+      Set-ShareAcl $path "$s\XDomain_Docs_RO"    "ReadAndExecute"
