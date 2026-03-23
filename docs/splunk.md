@@ -155,7 +155,7 @@ See the [Installation guide](install.md) for full template and prerequisite setu
 ### Deploy
 
 ```bash
-ludus range config set -f splunk.yml
+ludus range config set -f ranges/splunk.yml
 ludus range deploy
 ```
 

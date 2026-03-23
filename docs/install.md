@@ -231,13 +231,13 @@ Set the range configuration for your chosen profile:
 
 ```bash
 # Elastic profile
-ludus range config set -f elastic.yml
+ludus range config set -f ranges/elastic.yml
 
 # Wazuh profile
-ludus range config set -f wazuh.yml
+ludus range config set -f ranges/wazuh.yml
 
 # Splunk profile
-ludus range config set -f splunk.yml
+ludus range config set -f ranges/splunk.yml
 ```
 
 Verify the config was accepted without errors, then deploy:

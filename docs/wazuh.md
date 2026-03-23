@@ -131,7 +131,7 @@ See the [Installation guide](install.md) for full template and role setup steps.
 ### Deploy
 
 ```bash
-ludus range config set -f wazuh.yml
+ludus range config set -f ranges/wazuh.yml
 ludus range deploy
 ```
 

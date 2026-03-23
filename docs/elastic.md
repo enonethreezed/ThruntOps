@@ -103,7 +103,7 @@ graph TB
 ## Deployment
 
 ```bash
-ludus range config set -f elastic.yml
+ludus range config set -f ranges/elastic.yml
 ludus range deploy
 ```
 
