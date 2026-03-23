@@ -40,6 +40,13 @@
     data: 1
     type: dword
 
+- name: (smb_shares) Allow anonymous enumeration of shares
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Lsa
+    name: RestrictAnonymous
+    data: 0
+    type: dword
+
 # --- Directories ---
 
 - name: (smb_shares) Create share root directories
@@ -92,11 +99,13 @@
 
       # thruntops_docs
       $path = "{{ (ludus_smb_shares | selectattr('name','equalto','thruntops_docs') | first).path }}"
+      Set-ShareAcl $path "NT AUTHORITY\ANONYMOUS LOGON" "ReadAndExecute"
       Set-ShareAcl $path "$p\FileShare_Users"   "ReadAndExecute"
       Set-ShareAcl $path "$p\FileShare_Writers" "Modify"
 
       # secondary_docs
       $path = "{{ (ludus_smb_shares | selectattr('name','equalto','secondary_docs') | first).path }}"
+      Set-ShareAcl $path "NT AUTHORITY\ANONYMOUS LOGON" "ReadAndExecute"
       Set-ShareAcl $path "$s\FileShare_Users"   "ReadAndExecute"
       Set-ShareAcl $path "$s\FileShare_Writers" "Modify"
       Set-ShareAcl $path "$p\FileShare_Users"   "ReadAndExecute"
@@ -104,10 +113,18 @@
 
       # xdomain_docs
       $path = "{{ (ludus_smb_shares | selectattr('name','equalto','xdomain_docs') | first).path }}"
+      Set-ShareAcl $path "NT AUTHORITY\ANONYMOUS LOGON" "ReadAndExecute"
       Set-ShareAcl $path "$p\FileShare_Writers"  "Modify"
       Set-ShareAcl $path "$s\FileShare_Writers"  "Modify"
       Set-ShareAcl $path "$p\XDomain_Docs_RO"    "ReadAndExecute"
       Set-ShareAcl $path "$s\XDomain_Docs_RO"    "ReadAndExecute"
+
+# --- Restart LanmanServer to apply null session registry changes ---
+
+- name: (smb_shares) Restart LanmanServer to apply null session config
+  ansible.windows.win_service:
+    name: LanmanServer
+    state: restarted
 
 # --- Lures ---
 
