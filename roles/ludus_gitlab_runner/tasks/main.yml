@@ -90,7 +90,8 @@
     body:
       password: "{{ ludus_gitlab_runner_root_password }}"
       password_confirmation: "{{ ludus_gitlab_runner_root_password }}"
-    status_code: 200
+    status_code: [200, 400]
+  ignore_errors: true
   when: oauth_initial.status == 200 and gitlab_try_password != ludus_gitlab_runner_root_password
 
 # --- Project setup ---
