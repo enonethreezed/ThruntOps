@@ -13,25 +13,25 @@ ludus_ops_guacamole_connections:
     protocol: rdp
     hostname: "10.2.50.11"
     port: 3389
-    username: "thruntops\\domainadmin"
+    username: "thruntops\\domainuser"
     password: ""
   - name: "DC01-SEC (RDP)"
     protocol: rdp
     hostname: "10.2.50.12"
     port: 3389
-    username: "secondary\\domainadmin"
+    username: "secondary\\domainuser"
     password: ""
   - name: "ADCS (RDP)"
     protocol: rdp
     hostname: "10.2.50.13"
     port: 3389
-    username: "thruntops\\pkiadmin"
+    username: "thruntops\\primary_user04"
     password: ""
   - name: "WEB (RDP)"
     protocol: rdp
     hostname: "10.2.50.14"
     port: 3389
-    username: "thruntops\\domainadmin"
+    username: "webadmin"
     password: ""
   - name: "WIN11-22H2-1 (RDP)"
     protocol: rdp

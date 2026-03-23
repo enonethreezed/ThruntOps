@@ -94,6 +94,20 @@ graph TB
 | Wazuh REST API | `https://10.2.50.1:55000` | `wazuh` | set in `wazuh.yml` → `wazuh_api_password` |
 | Guacamole | `http://10.2.50.2:8080/guacamole/` | `guacadmin` | `guacadmin` |
 
+### Guacamole pre-loaded connections
+
+| Connection | Protocol | Host | Bound user | Password |
+|---|---|---|---|---|
+| DC01-2022 | RDP | 10.2.50.11 | `thruntops\domainuser` | `NV#8SL9#` |
+| DC01-SEC | RDP | 10.2.50.12 | `secondary\domainuser` | `p0aAQ¿9)` |
+| ADCS | RDP | 10.2.50.13 | `thruntops\primary_user04` | `ggA15$y!` |
+| WEB | RDP | 10.2.50.14 | `webadmin` | `O5G=S(5q` |
+| WIN11-22H2-1 | RDP | 10.2.50.21 | `basicuser` | `H)2?H8vC` |
+| WIN11-22H2-2 | RDP | 10.2.50.22 | `basicuser` | `H)2?H8vC` |
+| gitlab | SSH | 10.2.50.15 | `primary_user05` | `X¿s|m7C8` |
+| SIEM | SSH | 10.2.50.1 | `localuser` | — (key auth) |
+| ops | SSH | 10.2.50.2 | `localuser` | — (key auth) |
+
 {: .warning }
 The Wazuh REST API user (`wazuh`) and dashboard user (`wazuh-wui`) are stored in a SQLite database at `/var/ossec/api/configuration/security/rbac.db` using werkzeug scrypt hashes. These are **not** updated by `wazuh-passwords-tool.sh` (which only changes the OpenSearch `admin` user). The `ludus_wazuh_server` role handles both via a Python script executed with `/var/ossec/framework/python/bin/python3`.
 

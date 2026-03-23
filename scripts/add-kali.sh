@@ -4,12 +4,14 @@
 
 set -euo pipefail
 
+RANGE_ID=$(ludus range status --json 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['rangeID'])" 2>/dev/null || ludus range status | awk '/\|/{print $2}' | grep -v 'RANGE\|^$' | head -1 | tr -d ' ')
+KALI_VM_NAME="${RANGE_ID}-kali"
 KALI_VM_NAME_PATTERN="-kali"
 
 # Check if kali is already in the range config
-if ludus range config get 2>/dev/null | grep -q "${KALI_VM_NAME_PATTERN}"; then
+if ludus range config get 2>/dev/null | grep -qF "${KALI_VM_NAME_PATTERN}"; then
   echo "Kali is already in the range config."
-  echo "To redeploy: ludus range deploy --tags all-tasks --limit '*-kali'"
+  echo "To redeploy: ludus range deploy --limit "${KALI_VM_NAME}""
   exit 0
 fi
 
@@ -38,7 +40,7 @@ ${KALI_DEFINITION}"
 echo "$NEW_CONFIG" | ludus range config set -f /dev/stdin
 
 echo "Deploying Kali..."
-ludus range deploy --tags all-tasks --limit '*-kali'
+ludus range deploy --limit "${KALI_VM_NAME}"
 
 echo ""
 echo "Monitor progress: ludus range logs -f"
