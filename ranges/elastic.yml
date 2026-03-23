@@ -374,6 +374,8 @@ ludus:
     role_vars:
       ludus_smb_primary_admin_password: 'iFgu¿83¿'
       ludus_smb_secondary_admin_password: 'Ut2cf7%/'
+      ludus_smb_user09_primary_password: 'bpR8#8t"'
+      ludus_smb_user09_secondary_password: 'Ug1$m%b4'
       ludus_mssql_version: "2019"
       ludus_mssql_install_ssms: true
       ludus_iis_webadmin_user: webadmin

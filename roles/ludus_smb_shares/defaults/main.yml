@@ -62,6 +62,10 @@ ludus_smb_secondary_groups:
       - secondary_user04
       - secondary_user05
 
+# Credential lure — user09 from both domains
+ludus_smb_user09_primary_password: ""
+ludus_smb_user09_secondary_password: ""
+
 # SMB shares
 ludus_smb_shares:
   - name: "thruntops_docs"

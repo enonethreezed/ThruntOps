@@ -1,0 +1,32 @@
+---
+# Credential lure files — readable by anonymous via EveryoneIncludesAnonymous
+# user09 from both domains exposed as a realistic IT onboarding document
+
+- name: (smb_shares) Drop credential lure in xdomain_docs/IT
+  ansible.windows.win_copy:
+    dest: 'C:\Shares\xdomain_docs\IT\new_accounts_Q1_2026.txt'
+    content: |
+      New User Accounts - Q1 2026
+      ===========================
+      Provisioned by IT Department - {{ ansible_date_time.date }}
+
+      Please distribute to the relevant team leads.
+      Users must change passwords on first login.
+
+      ---
+
+      Domain: thruntops.domain
+        Username: primary_user09
+        Password: {{ ludus_smb_user09_primary_password }}
+        Email: primary_user09@thruntops.domain
+        Groups: Domain Users
+
+      Domain: secondary.thruntops.domain
+        Username: secondary_user09
+        Password: {{ ludus_smb_user09_secondary_password }}
+        Email: secondary_user09@secondary.thruntops.domain
+        Groups: Domain Users
+
+      ---
+      IT Department
+      helpdesk@thruntops.domain

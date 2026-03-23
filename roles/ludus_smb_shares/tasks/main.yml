@@ -108,3 +108,8 @@
       Set-ShareAcl $path "$s\FileShare_Writers"  "Modify"
       Set-ShareAcl $path "$p\XDomain_Docs_RO"    "ReadAndExecute"
       Set-ShareAcl $path "$s\XDomain_Docs_RO"    "ReadAndExecute"
+
+# --- Lures ---
+
+- name: (smb_shares) Deploy credential lure files
+  ansible.builtin.include_tasks: lures.yml

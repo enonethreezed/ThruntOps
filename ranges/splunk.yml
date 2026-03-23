@@ -377,6 +377,8 @@ ludus:
     role_vars:
       ludus_smb_primary_admin_password: 'iFgu¿83¿'
       ludus_smb_secondary_admin_password: 'Ut2cf7%/'
+      ludus_smb_user09_primary_password: 'bpR8#8t"'
+      ludus_smb_user09_secondary_password: 'Ug1$m%b4'
       ludus_splunk_server_ip: "10.2.50.1"
       ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi"
       ludus_mssql_version: "2019"
