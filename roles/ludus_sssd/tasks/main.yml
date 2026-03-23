@@ -96,7 +96,7 @@
     path: /etc/ssh/sshd_config
     marker: "# {mark} SSSD AD SSH USERS"
     block: |
-      AllowUsers {{ ludus_sssd_ssh_users }}
+      AllowUsers localuser {{ ludus_sssd_ssh_users }}
   when: ludus_sssd_ssh_users | length > 0
   notify: Restart SSH
 
