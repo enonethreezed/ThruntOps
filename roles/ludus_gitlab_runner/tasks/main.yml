@@ -1,11 +1,11 @@
 ---
 - name: (gitlab_runner) Wait for GitLab to be ready
   ansible.builtin.uri:
-    url: "{{ ludus_gitlab_runner_gitlab_url }}/-/health"
+    url: "{{ ludus_gitlab_runner_gitlab_url }}/users/sign_in"
     method: GET
-    status_code: 200
+    status_code: 302
   register: gitlab_health
-  until: gitlab_health.status == 200
+  until: gitlab_health.status == 302
   retries: 30
   delay: 10
 
