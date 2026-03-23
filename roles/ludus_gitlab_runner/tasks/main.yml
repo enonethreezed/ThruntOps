@@ -1,4 +1,5 @@
 ---
+# --- Health check ---
 - name: (gitlab_runner) Wait for GitLab to be ready
   ansible.builtin.uri:
     url: "{{ ludus_gitlab_runner_gitlab_url }}/users/sign_in"
@@ -9,39 +10,96 @@
   retries: 30
   delay: 10
 
-- name: (gitlab_runner) Ensure DB migrations are complete
-  ansible.builtin.command:
-    cmd: gitlab-rake db:migrate
-  changed_when: false
+# --- Authenticate: try initial password, fall back to configured password ---
+- name: (gitlab_runner) Read initial root password file
+  ansible.builtin.slurp:
+    src: /etc/gitlab/initial_root_password
+  register: initial_pw_file
+  ignore_errors: true
 
-- name: (gitlab_runner) Set GitLab root password
-  ansible.builtin.command:
-    cmd: >
-      gitlab-rails runner
-      "u = User.find_by(username: 'root');
-       u.password = '{{ ludus_gitlab_runner_root_password }}';
-       u.password_confirmation = '{{ ludus_gitlab_runner_root_password }}';
-       u.save!"
-  changed_when: true
-  retries: 3
-  delay: 15
+- name: (gitlab_runner) Extract initial root password
+  ansible.builtin.set_fact:
+    gitlab_try_password: "{{ initial_pw_file.content | b64decode | regex_search('Password: (.+)', '\\1') | first | trim }}"
+  when: initial_pw_file is not failed
 
-- name: (gitlab_runner) Create root personal access token
-  ansible.builtin.command:
-    cmd: >
-      gitlab-rails runner
-      "u = User.find_by(username: 'root');
-       t = u.personal_access_tokens.create(name: 'ansible-bootstrap', scopes: [:api]);
-       puts t.token"
-  register: root_token
-  changed_when: true
+- name: (gitlab_runner) Use configured password if initial file missing
+  ansible.builtin.set_fact:
+    gitlab_try_password: "{{ ludus_gitlab_runner_root_password }}"
+  when: initial_pw_file is failed
 
+- name: (gitlab_runner) Authenticate via OAuth
+  ansible.builtin.uri:
+    url: "{{ ludus_gitlab_runner_gitlab_url }}/oauth/token"
+    method: POST
+    body_format: json
+    body:
+      grant_type: password
+      username: root
+      password: "{{ gitlab_try_password }}"
+    status_code: [200, 401]
+  register: oauth_initial
+  retries: 5
+  delay: 10
+
+- name: (gitlab_runner) Authenticate with configured password (fallback)
+  ansible.builtin.uri:
+    url: "{{ ludus_gitlab_runner_gitlab_url }}/oauth/token"
+    method: POST
+    body_format: json
+    body:
+      grant_type: password
+      username: root
+      password: "{{ ludus_gitlab_runner_root_password }}"
+    status_code: 200
+  register: oauth_configured
+  when: oauth_initial.status != 200
+
+- name: (gitlab_runner) Set bearer token
+  ansible.builtin.set_fact:
+    gitlab_bearer: >-
+      {{ (oauth_initial.status == 200)
+         | ternary(oauth_initial.json.access_token,
+                   oauth_configured.json.access_token) }}
+
+# --- Create admin PAT ---
+- name: (gitlab_runner) Create root personal access token via API
+  ansible.builtin.uri:
+    url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/users/1/personal_access_tokens"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ gitlab_bearer }}"
+    body_format: json
+    body:
+      name: "ansible-bootstrap-{{ ansible_date_time.epoch }}"
+      scopes: ["api"]
+    status_code: [200, 201]
+  register: pat_result
+
+- name: (gitlab_runner) Set root API token fact
+  ansible.builtin.set_fact:
+    root_token: "{{ pat_result.json.token }}"
+
+# --- Set root password (only when initial password was used) ---
+- name: (gitlab_runner) Set GitLab root password via API
+  ansible.builtin.uri:
+    url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/users/1"
+    method: PUT
+    headers:
+      PRIVATE-TOKEN: "{{ root_token }}"
+    body_format: json
+    body:
+      password: "{{ ludus_gitlab_runner_root_password }}"
+      password_confirmation: "{{ ludus_gitlab_runner_root_password }}"
+    status_code: 200
+  when: oauth_initial.status == 200 and gitlab_try_password != ludus_gitlab_runner_root_password
+
+# --- Project setup ---
 - name: (gitlab_runner) Check if thruntops-web project exists
   ansible.builtin.uri:
     url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/projects/root%2Fthruntops-web"
     method: GET
     headers:
-      PRIVATE-TOKEN: "{{ root_token.stdout | trim }}"
+      PRIVATE-TOKEN: "{{ root_token }}"
     status_code: [200, 404]
   register: project_check
 
@@ -50,7 +108,7 @@
     url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/projects"
     method: POST
     headers:
-      PRIVATE-TOKEN: "{{ root_token.stdout | trim }}"
+      PRIVATE-TOKEN: "{{ root_token }}"
     body_format: json
     body:
       name: thruntops-web
@@ -73,7 +131,7 @@
     url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/users?username=webdev"
     method: GET
     headers:
-      PRIVATE-TOKEN: "{{ root_token.stdout | trim }}"
+      PRIVATE-TOKEN: "{{ root_token }}"
   register: webdev_user
 
 - name: (gitlab_runner) Add webdev as maintainer on thruntops-web
@@ -81,7 +139,7 @@
     url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/projects/{{ webapp_project_id }}/members"
     method: POST
     headers:
-      PRIVATE-TOKEN: "{{ root_token.stdout | trim }}"
+      PRIVATE-TOKEN: "{{ root_token }}"
     body_format: json
     body:
       user_id: "{{ webdev_user.json[0].id }}"
@@ -93,7 +151,7 @@
     url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/projects/{{ webapp_project_id }}/repository/commits"
     method: POST
     headers:
-      PRIVATE-TOKEN: "{{ root_token.stdout | trim }}"
+      PRIVATE-TOKEN: "{{ root_token }}"
     body_format: json
     body:
       branch: main
@@ -122,6 +180,7 @@
           encoding: base64
     status_code: [201, 400]
 
+# --- GitLab Runner installation and registration ---
 - name: (gitlab_runner) Install smbclient for CI/CD deployment
   ansible.builtin.apt:
     name: smbclient
@@ -140,19 +199,27 @@
     state: present
     update_cache: true
 
-- name: (gitlab_runner) Get instance runner registration token
-  ansible.builtin.command:
-    cmd: >
-      gitlab-rails runner
-      "puts Gitlab::CurrentSettings.runners_registration_token"
-  register: runner_reg_token
-  changed_when: false
-
 - name: (gitlab_runner) Check if runner is already registered
   ansible.builtin.command:
     cmd: gitlab-runner list
   register: runner_list
   changed_when: false
+
+- name: (gitlab_runner) Create instance runner via API (GitLab 17+)
+  ansible.builtin.uri:
+    url: "{{ ludus_gitlab_runner_gitlab_url }}/api/v4/user/runners"
+    method: POST
+    headers:
+      PRIVATE-TOKEN: "{{ root_token }}"
+    body_format: json
+    body:
+      runner_type: instance_type
+      description: "ThruntOps Deploy Runner"
+      tag_list: ["web-deploy"]
+      run_untagged: true
+    status_code: [200, 201]
+  register: runner_create
+  when: "'ThruntOps Deploy Runner' not in runner_list.stdout"
 
 - name: (gitlab_runner) Register shell runner
   ansible.builtin.command:
@@ -160,11 +227,9 @@
       gitlab-runner register
       --non-interactive
       --url "{{ ludus_gitlab_runner_gitlab_url }}"
-      --registration-token "{{ runner_reg_token.stdout | trim }}"
+      --token "{{ runner_create.json.token }}"
       --executor "shell"
       --description "ThruntOps Deploy Runner"
-      --tag-list "web-deploy"
-      --run-untagged=true
   when: "'ThruntOps Deploy Runner' not in runner_list.stdout"
   changed_when: true
 
