@@ -4,7 +4,7 @@ Proposal to add an Office abuse track to ThruntOps, with and without spearphishi
 
 ---
 
-## Objective
+## Objectives
 
 Cover a category that is currently incomplete in `docs/coverage.md`: Office document execution, payload delivery, credential capture, and user-driven initial access.
 
