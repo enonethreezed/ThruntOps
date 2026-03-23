@@ -1,63 +1,63 @@
-# Office - Propuesta de Arquitectura y Matriz TTP
+# Office - Architecture and TTP Matrix Proposal
 
-Propuesta para incorporar una linea de abuso de ofimatica en ThruntOps, con y sin spearphishing, reutilizando la infraestructura actual y minimizando el impacto en recursos.
-
----
-
-## Objetivo
-
-Cubrir una categoria que actualmente aparece incompleta en `docs/coverage.md`: ejecucion de documentos de Office, entrega de payloads, captura de credenciales y acceso inicial basado en usuario.
-
-La propuesta se divide en dos bloques:
-
-- **Sin spearphishing**: el documento malicioso se distribuye por shares internos.
-- **Con spearphishing**: el documento o enlace se entrega por correo interno.
+Proposal to add an Office abuse track to ThruntOps, with and without spearphishing, reusing the current infrastructure and minimizing resource impact.
 
 ---
 
-## Alcance funcional
+## Objective
 
-La ampliacion debe permitir los siguientes escenarios:
+Cover a category that is currently incomplete in `docs/coverage.md`: Office document execution, payload delivery, credential capture, and user-driven initial access.
 
-1. Apertura manual de documentos maliciosos desde recursos compartidos SMB.
-2. Ejecucion de macros VBA en Word y Excel.
-3. Entrega de payloads mediante LOLBins ya presentes en la matriz (`powershell`, `mshta`, `wscript`, `cscript`, `certutil`).
-4. Captura de NTLM mediante documentos con referencias remotas.
-5. Campanas de spearphishing internas con adjuntos o enlaces.
-6. Encadenado posterior con tecnicas ya existentes en el laboratorio: AD, LAPS, RDP, WEB, MSSQL y GitLab.
+The proposal is split into two blocks:
+
+- **Without spearphishing**: the malicious document is distributed through internal shares.
+- **With spearphishing**: the document or link is delivered through internal email.
 
 ---
 
-## Arquitectura propuesta
+## Functional Scope
 
-### 1. Clientes Office
+The expansion should support the following scenarios:
 
-Se reutilizan los dos puestos Windows ya existentes:
+1. Manual opening of malicious documents from SMB shares.
+2. VBA macro execution in Word and Excel.
+3. Payload delivery through LOLBins already present in the matrix (`powershell`, `mshta`, `wscript`, `cscript`, `certutil`).
+4. NTLM capture through documents with remote references.
+5. Internal spearphishing campaigns with attachments or links.
+6. Follow-on chaining into techniques already present in the lab: AD, LAPS, RDP, WEB, MSSQL, and GitLab.
 
-- `WIN11-22H2-1` - usuario principal del dominio `thruntops.domain`
-- `WIN11-22H2-2` - usuario principal del dominio `secondary.thruntops.domain`
+---
 
-Requisito ya cubierto:
+## Proposed Architecture
 
-- Microsoft Office instalado en ambos equipos.
+### 1. Office Clients
 
-### 2. Shares SMB / NAS en `WEB`
+Reuse the two existing Windows workstations:
 
-Se aprovecha `WEB` como servidor de ficheros SMB para no introducir una VM adicional.
+- `WIN11-22H2-1` - primary user endpoint for `thruntops.domain`
+- `WIN11-22H2-2` - primary user endpoint for `secondary.thruntops.domain`
 
-Shares propuestos:
+Requirement already covered:
+
+- Microsoft Office installed on both systems.
+
+### 2. SMB / NAS Shares on `WEB`
+
+Reuse `WEB` as the SMB file server to avoid introducing a new VM.
+
+Proposed shares:
 
 - `\\WEB\thruntops_docs`
 - `\\WEB\secondary_docs`
 - `\\WEB\xdomain_docs`
 
-Funcion de cada share:
+Purpose of each share:
 
-- `thruntops_docs`: intercambio interno del dominio `thruntops.domain`
-- `secondary_docs`: intercambio interno del dominio `secondary.thruntops.domain`
-- `xdomain_docs`: intercambio y colaboracion entre ambos dominios
+- `thruntops_docs`: internal document exchange for `thruntops.domain`
+- `secondary_docs`: internal document exchange for `secondary.thruntops.domain`
+- `xdomain_docs`: shared collaboration space between both domains
 
-Estructura sugerida:
+Suggested structure:
 
 ```text
 thruntops_docs/
@@ -78,309 +78,309 @@ xdomain_docs/
   Shared-Templates/
 ```
 
-### 3. Servicio de correo en `gitlab`
+### 3. Email Service on `gitlab`
 
-Se descarta Exchange por coste de recursos.
+Exchange is excluded due to resource cost.
 
-Se propone desplegar en `gitlab` una pila ligera:
+Deploy a lightweight stack on `gitlab`:
 
 - Postfix
 - Dovecot
 - Roundcube
 
-Modelo recomendado:
+Recommended model:
 
-- un unico servicio de correo
-- dos dominios de correo virtuales:
+- one shared mail service
+- two virtual mail domains:
   - `thruntops.domain`
   - `secondary.thruntops.domain`
 
-Capacidades minimas necesarias:
+Minimum required capabilities:
 
-- envio interno SMTP
-- buzones IMAP
-- acceso webmail con Roundcube
-- soporte de adjuntos
-- soporte de enlaces clicables en correo HTML o texto
-- logs suficientes para analisis defensivo
+- internal SMTP delivery
+- IMAP mailboxes
+- Roundcube webmail access
+- attachment support
+- clickable links in HTML or plain-text emails
+- sufficient logging for defensive analysis
 
-### 4. Hosting de payloads y documentos enlazados
+### 4. Payload and Linked Document Hosting
 
-No es estrictamente necesario anadir un nuevo host web.
+No additional web host is strictly required.
 
-Opciones validas:
+Valid options:
 
-- servir contenido desde `gitlab`
-- servir contenido desde `ops`
-- usar directamente rutas SMB en `WEB`
+- serve content from `gitlab`
+- serve content from `ops`
+- use SMB paths directly on `WEB`
 
-Para una primera fase, SMB + correo interno es suficiente.
+For a first phase, SMB plus internal email is sufficient.
 
 ---
 
-## Requisitos de identidad y permisos
+## Identity and Permissions Requirements
 
-### Grupos AD sugeridos
+### Suggested AD Groups
 
-Para controlar mejor el acceso a shares, se recomienda crear grupos dedicados.
+To control share access more precisely, create dedicated groups.
 
-En `thruntops.domain`:
+In `thruntops.domain`:
 
 - `FileShare_Users`
 - `XDomain_Docs_RW`
 - `XDomain_Docs_RO`
 
-En `secondary.thruntops.domain`:
+In `secondary.thruntops.domain`:
 
 - `FileShare_Users`
 - `XDomain_Docs_RW`
 - `XDomain_Docs_RO`
 
-### ACLs recomendadas
+### Recommended ACLs
 
-- `thruntops_docs`: acceso del dominio `thruntops`
-- `secondary_docs`: acceso del dominio `secondary`
-- `xdomain_docs`: acceso explicito para ambos dominios
+- `thruntops_docs`: access for the `thruntops` domain
+- `secondary_docs`: access for the `secondary` domain
+- `xdomain_docs`: explicit access for both domains
 
-Modelo recomendado:
+Recommended model:
 
-- algunos usuarios con escritura para plantar documentos
-- otros usuarios solo lectura para abrir y consumir documentos
-- evitar permisos amplios a `Domain Users` en todos los shares sin distincion
+- some users with write access to plant lures
+- other users with read-only access to open and consume documents
+- avoid giving broad undifferentiated access to `Domain Users` on every share
 
-Esto permite representar mejor:
+This supports more realistic representations of:
 
-- colaboracion legitima
-- staging de lures
-- abuso por atacante con acceso previo
-- victimas que solo abren documentos
-
----
-
-## Casos de uso sin spearphishing
-
-Estos escenarios no requieren servicio de correo. El documento se coloca en un recurso compartido y el usuario lo abre manualmente.
-
-### 1. Macro VBA desde share SMB
-
-**Cadena:**
-
-```text
-Acceso previo a share interno o cross-domain
-  -> copia de documento .docm o .xlsm
-  -> usuario navega al share
-  -> abre documento
-  -> macro ejecuta powershell/mshta/wscript
-  -> shell en contexto de usuario
-```
-
-**Valor:**
-
-- simula abuso interno sin necesidad de infraestructura de correo
-- encadena bien con AD, LAPS, WEB y MSSQL
-
-### 2. Documento con plantilla remota / referencia SMB
-
-**Cadena:**
-
-```text
-Documento ofimatico en share
-  -> usuario lo abre
-  -> Office intenta cargar recurso remoto SMB/HTTP
-  -> autenticacion NTLM o recuperacion de contenido remoto
-```
-
-**Valor:**
-
-- no depende de macro
-- util para captura de credenciales y deteccion de trafico saliente
-
-### 3. Documento con payload indirecto via LOLBin
-
-**Cadena:**
-
-```text
-Documento con macro
-  -> macro invoca certutil/mshta/wscript/cscript
-  -> descarga o ejecuta payload adicional
-  -> shell de usuario
-```
-
-**Valor:**
-
-- reutiliza tecnicas ya documentadas en Windows
-- genera muy buena telemetria en endpoints
+- legitimate collaboration
+- lure staging
+- attacker abuse after prior access
+- victims who only open documents
 
 ---
 
-## Casos de uso con spearphishing
+## Use Cases Without Spearphishing
 
-Estos escenarios anaden entrega por correo y narrativa de usuario.
+These scenarios do not require email. The document is placed on a shared resource and the user opens it manually.
 
-### 1. Adjunto malicioso con macro
+### 1. VBA Macro from SMB Share
 
-**Pretextos sugeridos:**
-
-- RRHH: actualizacion de nominas
-- IT: nueva politica de contrasenas
-- Seguridad: revisiones de acceso
-- Finanzas: plantilla de gastos
-- Proyecto cross-domain: informe trimestral
-
-**Cadena:**
+**Chain:**
 
 ```text
-Correo interno con adjunto .docm/.xlsm
-  -> usuario abre adjunto en WIN11
-  -> macro ejecuta payload
-  -> shell en contexto de usuario
+Prior access to internal or cross-domain share
+  -> copy .docm or .xlsm document
+  -> user browses the share
+  -> opens the document
+  -> macro executes powershell/mshta/wscript
+  -> user-context shell
 ```
 
-### 2. Correo con enlace a documento en SMB
+**Value:**
 
-**Cadena:**
+- simulates internal abuse without needing mail infrastructure
+- chains well into AD, LAPS, WEB, and MSSQL
+
+### 2. Document with Remote Template / SMB Reference
+
+**Chain:**
 
 ```text
-Correo interno con enlace a \\WEB\xdomain_docs\...
-  -> usuario accede al share
-  -> abre documento alojado en SMB
-  -> ejecucion de macro o referencia remota
+Office document on share
+  -> user opens it
+  -> Office attempts to load remote SMB/HTTP resource
+  -> NTLM authentication or remote content retrieval
 ```
 
-**Valor:**
+**Value:**
 
-- une correo y NAS en una sola tecnica
-- evita depender siempre de adjuntos directos
+- does not depend on macros
+- useful for credential capture and outbound traffic detection
 
-### 3. Correo con enlace a documento remoto
+### 3. Document with Indirect Payload via LOLBin
 
-**Cadena:**
+**Chain:**
 
 ```text
-Correo interno con enlace HTTP interno
-  -> usuario descarga documento
-  -> apertura en Office
-  -> ejecucion o captura de NTLM
+Document with macro
+  -> macro invokes certutil/mshta/wscript/cscript
+  -> downloads or executes additional payload
+  -> user-context shell
+```
+
+**Value:**
+
+- reuses Windows techniques already documented
+- produces strong endpoint telemetry
+
+---
+
+## Use Cases With Spearphishing
+
+These scenarios add email delivery and user narrative.
+
+### 1. Malicious Attachment with Macro
+
+**Suggested pretexts:**
+
+- HR: payroll update
+- IT: new password policy
+- Security: access review
+- Finance: expense template
+- Cross-domain project: quarterly report
+
+**Chain:**
+
+```text
+Internal email with .docm/.xlsm attachment
+  -> user opens attachment on WIN11
+  -> macro executes payload
+  -> user-context shell
+```
+
+### 2. Email with Link to SMB-hosted Document
+
+**Chain:**
+
+```text
+Internal email with link to \\WEB\xdomain_docs\...
+  -> user accesses the share
+  -> opens SMB-hosted document
+  -> macro execution or remote reference trigger
+```
+
+**Value:**
+
+- combines mail and NAS in a single technique
+- avoids depending only on direct attachments
+
+### 3. Email with Link to Remotely Hosted Document
+
+**Chain:**
+
+```text
+Internal email with internal HTTP link
+  -> user downloads document
+  -> opens it in Office
+  -> execution or NTLM capture
 ```
 
 ---
 
-## Matriz propuesta de tecnicas Office
+## Proposed Office Technique Matrix
 
-| Categoria | Tecnica | Requiere correo | Requiere NAS | Objetivo principal |
+| Category | Technique | Requires Mail | Requires NAS | Primary Goal |
 |---|---|---:|---:|---|
-| Office | Macro VBA en Word | No | Si | Ejecucion en contexto de usuario |
-| Office | Macro VBA en Excel | No | Si | Ejecucion en contexto de usuario |
-| Office | Plantilla remota / referencia SMB | No | Si | Captura NTLM / retrieval remoto |
-| Office | Spearphishing con adjunto | Si | No | Acceso inicial |
-| Office | Spearphishing con enlace a SMB | Si | Si | Acceso inicial / user execution |
-| Office | Spearphishing con enlace HTTP interno | Si | No | Acceso inicial / retrieval |
-| Office | Macro + LOLBin | Opcional | Si | Descarga y ejecucion de payload |
+| Office | VBA macro in Word | No | Yes | User-context execution |
+| Office | VBA macro in Excel | No | Yes | User-context execution |
+| Office | Remote template / SMB reference | No | Yes | NTLM capture / remote retrieval |
+| Office | Spearphishing with attachment | Yes | No | Initial access |
+| Office | Spearphishing with SMB link | Yes | Yes | Initial access / user execution |
+| Office | Spearphishing with internal HTTP link | Yes | No | Initial access / retrieval |
+| Office | Macro + LOLBin | Optional | Yes | Payload download and execution |
 
 ---
 
-## Telemetria y detecciones esperadas
+## Expected Telemetry and Detections
 
-### En endpoints Windows
+### On Windows Endpoints
 
-- `WINWORD.EXE` o `EXCEL.EXE` lanzando:
+- `WINWORD.EXE` or `EXCEL.EXE` launching:
   - `powershell.exe`
   - `cmd.exe`
   - `mshta.exe`
   - `wscript.exe`
   - `cscript.exe`
   - `certutil.exe`
-- escrituras en `%TEMP%`, `Downloads` o rutas de Office recovery
-- conexiones SMB/HTTP salientes tras apertura de documento
+- writes into `%TEMP%`, `Downloads`, or Office recovery paths
+- outbound SMB/HTTP connections after document open
 
-### En `WEB` como SMB server
+### On `WEB` as SMB Server
 
-- creacion, renombrado y lectura de documentos en shares
-- accesos a `thruntops_docs`, `secondary_docs` y `xdomain_docs`
-- identificacion del usuario que planta el lure y del usuario que lo abre
+- document creation, rename, and read events in shares
+- access to `thruntops_docs`, `secondary_docs`, and `xdomain_docs`
+- identification of the user who plants the lure and the user who opens it
 
-### En `gitlab` como correo
+### On `gitlab` as Mail Platform
 
-- login a Roundcube
-- entrega SMTP
-- acceso IMAP
-- remitente, destinatario, asunto, adjuntos, enlaces incluidos
-
----
-
-## Encaje con la matriz actual
-
-La linea Office debe servir como capa de acceso inicial o user execution, y no como un bloque aislado.
-
-Encadenados recomendados:
-
-### Cadena A - Office -> AD / LAPS
-
-```text
-Documento malicioso en share o adjunto
-  -> shell en WIN11
-  -> robo de credenciales o contexto de usuario
-  -> abuso de LAPS / movimiento lateral / RDP
-```
-
-### Cadena B - Office -> WEB
-
-```text
-Documento malicioso
-  -> shell en usuario de workstation
-  -> acceso a WEB por RDP/SMB/credenciales recuperadas
-  -> pivot a IIS o MSSQL
-```
-
-### Cadena C - Office -> GitLab / secretos / CI
-
-```text
-Compromiso de workstation de usuario con acceso a GitLab
-  -> robo de credenciales o sesion
-  -> acceso a repositorios / CI
-  -> encadenado con pipeline poisoning
-```
+- Roundcube logins
+- SMTP delivery
+- IMAP access
+- sender, recipient, subject, attachments, and included links
 
 ---
 
-## Implementacion por fases
+## Fit with the Current Matrix
 
-### Fase 1 - Sin correo
+The Office track should serve as an initial access or user-execution layer, not as an isolated block.
 
-1. Crear los tres shares SMB en `WEB`.
-2. Definir grupos AD y ACLs.
-3. Crear estructura de carpetas realista.
-4. Validar apertura de documentos desde `WIN11-22H2-1` y `WIN11-22H2-2`.
-5. Incorporar al menos dos escenarios:
-   - macro VBA
-   - referencia remota SMB
+Recommended chains:
 
-### Fase 2 - Con correo
+### Chain A - Office -> AD / LAPS
 
-1. Desplegar `postfix + dovecot + roundcube` en `gitlab`.
-2. Crear buzones y aliases realistas.
-3. Validar envio de adjuntos y enlaces internos.
-4. Incorporar campanas de spearphishing.
+```text
+Malicious document on share or as email attachment
+  -> shell on WIN11
+  -> credential theft or user-context foothold
+  -> LAPS abuse / lateral movement / RDP
+```
 
-### Fase 3 - Documentacion y cobertura
+### Chain B - Office -> WEB
 
-1. Actualizar `docs/coverage.md`.
-2. Anadir seccion Office a `docs/vulnerabilities.md`.
-3. Documentar usuarios objetivo y pretextos.
-4. Anadir ideas de deteccion Sigma para Office child-process abuse y Office -> SMB/HTTP.
+```text
+Malicious document
+  -> shell on workstation user
+  -> access to WEB via RDP/SMB/recovered credentials
+  -> pivot into IIS or MSSQL
+```
+
+### Chain C - Office -> GitLab / Secrets / CI
+
+```text
+Compromise of workstation used by a GitLab-capable user
+  -> credential or session theft
+  -> access to repositories / CI
+  -> chaining into pipeline poisoning
+```
 
 ---
 
-## Recomendacion final
+## Implementation Phases
 
-La expansion Office debe apoyarse en dos pilares:
+### Phase 1 - Without Mail
 
-- `WEB` como servidor SMB con tres shares (`thruntops_docs`, `secondary_docs`, `xdomain_docs`)
-- `gitlab` como plataforma ligera de correo interno (`postfix + dovecot + roundcube`)
+1. Create the three SMB shares on `WEB`.
+2. Define AD groups and ACLs.
+3. Create a realistic folder structure.
+4. Validate document access from `WIN11-22H2-1` and `WIN11-22H2-2`.
+5. Add at least two scenarios:
+   - VBA macro
+   - remote SMB reference
 
-Con esto se cubren de forma realista y barata dos familias de TTP que hoy faltan en la matriz:
+### Phase 2 - With Mail
 
-- abuso de documentos de Office sin spearphishing
-- acceso inicial via spearphishing interno
+1. Deploy `postfix + dovecot + roundcube` on `gitlab`.
+2. Create realistic mailboxes and aliases.
+3. Validate attachment and internal link delivery.
+4. Add spearphishing campaigns.
 
-La primera fase puede desplegarse sin correo y ya aportaria valor inmediato a la matriz.
+### Phase 3 - Documentation and Coverage
+
+1. Update `docs/coverage.md`.
+2. Add an Office section to `docs/vulnerabilities.md`.
+3. Document target users and pretexts.
+4. Add Sigma ideas for Office child-process abuse and Office -> SMB/HTTP activity.
+
+---
+
+## Final Recommendation
+
+The Office expansion should rest on two pillars:
+
+- `WEB` as SMB server with three shares (`thruntops_docs`, `secondary_docs`, `xdomain_docs`)
+- `gitlab` as lightweight internal mail platform (`postfix + dovecot + roundcube`)
+
+This provides realistic and low-cost coverage for two TTP families currently missing from the matrix:
+
+- Office document abuse without spearphishing
+- initial access through internal spearphishing
+
+The first phase can be deployed without mail and already adds immediate value to the matrix.
