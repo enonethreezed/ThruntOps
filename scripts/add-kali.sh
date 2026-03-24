@@ -39,7 +39,10 @@ ${KALI_DEFINITION}"
 
 echo "$NEW_CONFIG" | ludus range config set -f /dev/stdin
 
-echo "Deploying Kali..."
+echo "Provisioning Kali VM from template..."
+ludus range deploy --tags vm-deploy
+
+echo "Deploying Kali roles..."
 ludus range deploy --limit "${KALI_VM_NAME}"
 
 echo ""
