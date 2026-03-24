@@ -415,6 +415,7 @@ ludus:
       - ludus_gitlab_runner
     role_vars:
       ludus_splunk_server_ip: "10.2.50.1"
+      ludus_splunk_uf_package_linux: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/linux/splunkforwarder-10.2.1-c892b66d163d-linux-amd64.deb"
       ludus_gitlab:
         url: "http://10.2.50.15"
         displayname: "ThruntOps GitLab"
@@ -469,6 +470,7 @@ ludus:
       ludus_privesc_sudo_user: "primary_user06"
       ludus_privesc_sssd_domain: "thruntops.domain"
       ludus_splunk_server_ip: "10.2.50.1"
+      ludus_splunk_uf_package_linux: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/linux/splunkforwarder-10.2.1-c892b66d163d-linux-amd64.deb"
       ludus_sssd_domain: "thruntops.domain"
       ludus_sssd_bind_user: "domainadmin"
       ludus_sssd_bind_password: 'iFgu¿83¿'
