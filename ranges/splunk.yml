@@ -15,6 +15,7 @@ ludus:
     role_vars:
       ludus_splunk_admin_password: "thisisapassword"
       ludus_splunk_version: "10.2.1"
+      ludus_splunk_deb_url: "https://download.splunk.com/products/splunk/releases/10.2.1/linux/splunk-10.2.1-c892b66d163d-linux-amd64.deb"
       ludus_splunk_indexes:
         - windows
         - sysmon
