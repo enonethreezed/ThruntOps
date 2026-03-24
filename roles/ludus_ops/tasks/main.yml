@@ -45,7 +45,9 @@
   ansible.posix.authorized_key:
     user: localuser
     state: present
-    key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_rsa.pub') }}"
+    key: |
+      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDyKEgYqyYY5XkbJSZs+zOlZgB61vxFydrfLkywLuRPk qubth@ludus
+      ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC2eyuvCcF8X4758t1w402wLXzXCqtlqSOUYMUWhqLbgAOkcg1O1nAq9qc5l22CYOXZCatFCK4yRC+dd4Ef5Y2pb75tse/LHQcug6DAuUr80ch3KgP+zID5wTCaDbTAcrbI6fEbQv8/7zbJNHhZ/FKw0n7dWgoFkx+GPrYkCa7Zra49t1oiO69Vej3sExSoO/cL1RGYiEqB3NP9Z+BSEFh4mBfWzefJIPLXB229w6o/ambjswzg5s45a5kjfZvX+1MdJhkdrF1Ho0NYXZH2fthcrw2lHuNzji8Owj3ingotdxc94iGjQVxWV4MYyxUJX+NPAdyPXOqJ7IdULceHlcdyU2ObzDaTJ5fcYsj4NEEFFKpr4H07BWa7Oj9SRHh7SmD+vNEp4+gIhrStc7jY0X5iYXOHxAIZtJjrAh/wcoMd4Jg409rl0g4myApb8nmUMX/+0nUWExRPzAwhnFrf9kA8SiPZ4mNPmi8N2kxgtR9KGluYK0K2fRuQqmlpIQBjYa8= qubth@ludus
 
 - name: (ops) Deploy Guacamole
   ansible.builtin.include_tasks: guacamole.yml
