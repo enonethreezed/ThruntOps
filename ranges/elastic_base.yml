@@ -1,0 +1,142 @@
+defaults:
+  ad_domain_admin: domainadmin
+  ad_domain_admin_password: 'iFgu¿83¿'
+  ad_domain_user: domainuser
+  ad_domain_user_password: 'NV#8SL9#'
+  ad_domain_safe_mode_password: password
+  ad_domain_functional_level: Win2012R2
+  ad_forest_functional_level: Win2012R2
+  snapshot_with_RAM: true
+  stale_hours: 0
+  timezone: "Europe/Madrid"
+  enable_dynamic_wallpaper: true
+
+ludus:
+  - vm_name: "{{ range_id }}-elastic"
+    hostname: "{{ range_id }}-elastic"
+    template: debian-12-x64-server-template
+    vlan: 50
+    ip_last_octet: 1
+    ram_gb: 6
+    cpus: 4
+    linux: true
+    testing:
+      snapshot: false
+      block_internet: false
+    roles:
+      - badsectorlabs.ludus_elastic_container
+    role_vars:
+      ludus_elastic_password: "thisisapassword"
+
+  - vm_name: "{{ range_id }}-ad-dc-win2022-server-x64"
+    hostname: "{{ range_id }}-DC01-2022"
+    template: win2022-server-x64-laps-template
+    vlan: 50
+    ip_last_octet: 11
+    ram_gb: 4
+    cpus: 4
+    windows:
+      sysprep: false
+    domain:
+      fqdn: thruntops.domain
+      role: primary-dc
+    roles:
+      - badsectorlabs.ludus_elastic_agent
+      - ludus_ad_content
+      - ludus_laps
+    role_vars:
+      ludus_laps_configure_schema: true
+      ludus_laps_read_principal: "thruntops\\domainadmin"
+      ludus_laps_admin_password: 'iFgu¿83¿'
+      ludus_ad:
+        users:
+          - name: domainadmin
+            password: 'iFgu¿83¿'
+            path: "CN=Users,DC=thruntops,DC=domain"
+            groups:
+              - Domain Admins
+          - name: domainuser
+            password: 'NV#8SL9#'
+            path: "CN=Users,DC=thruntops,DC=domain"
+            groups:
+              - Domain Users
+          - name: basicdomainuser
+            firstname: Basic
+            surname: DomainUser
+            display_name: Basic Domain User
+            password: 'Zz5)"8Gf'
+            path: "DC=thruntops,DC=domain"
+            description: Low privilege domain user
+            groups:
+              - Domain Users
+          - name: pkiadmin
+            firstname: PKI
+            surname: Admin
+            display_name: PKI Admin
+            password: 'L4U8v!P¿'
+            path: "DC=thruntops,DC=domain"
+            description: PKI/ADCS administrator
+            groups:
+              - Domain Admins
+        rdp_members:
+          - "thruntops\\domainadmin"
+          - "thruntops\\domainuser"
+          - "thruntops\\basicdomainuser"
+          - "thruntops\\pkiadmin"
+
+  - vm_name: "{{ range_id }}-ad-win11-22h2-enterprise-x64-1"
+    hostname: "{{ range_id }}-WIN11-22H2-1"
+    template: win11-22h2-x64-enterprise-template
+    vlan: 50
+    ip_last_octet: 21
+    ram_gb: 4
+    cpus: 4
+    windows:
+      install_additional_tools: true
+    domain:
+      fqdn: thruntops.domain
+      role: member
+    roles:
+      - ludus_elastic_preuninstall
+      - badsectorlabs.ludus_elastic_agent
+      - ludus_local_users
+      - ludus_laps
+    role_vars:
+      ludus_local_users:
+        - login: basicuser
+          password: 'H)2?H8vC'
+      ludus_local_groups:
+        - name: Remote Desktop Users
+          members:
+            - basicuser
+            - "thruntops\\domainadmin"
+            - "thruntops\\domainuser"
+            - "thruntops\\basicdomainuser"
+
+  - vm_name: "{{ range_id }}-adcs"
+    hostname: "{{ range_id }}-ADCS"
+    template: win2022-server-x64-template
+    vlan: 50
+    ip_last_octet: 13
+    ram_gb: 4
+    cpus: 2
+    windows:
+      sysprep: true
+    domain:
+      fqdn: thruntops.domain
+      role: member
+    roles:
+      - badsectorlabs.ludus_elastic_agent
+      - badsectorlabs.ludus_adcs
+      - ludus_local_users
+    role_vars:
+      ludus_adcs_domain_username: "thruntops\\domainadmin"
+      ludus_adcs_domain_password: 'iFgu¿83¿'
+      ludus_local_users:
+        - login: basicuser
+          password: 'H)2?H8vC'
+      ludus_local_groups:
+        - name: Remote Desktop Users
+          members:
+            - "thruntops\\pkiadmin"
+            - "thruntops\\domainadmin"
