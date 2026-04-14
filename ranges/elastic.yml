@@ -287,6 +287,7 @@ ludus:
             - "thruntops\\domainadmin"
             - "thruntops\\domainuser"
             - "thruntops\\basicdomainuser"
+      ignore_chocolatey_checksums: true
       ludus_lolbins_users:
         - username: primary_user08
           domain: thruntops
@@ -321,6 +322,7 @@ ludus:
             - "secondary\\domainadmin"
             - "secondary\\domainuser"
             - "secondary\\basicdomainuser"
+      ignore_chocolatey_checksums: true
       ludus_lolbins_users:
         - username: secondary_user08
           domain: secondary
