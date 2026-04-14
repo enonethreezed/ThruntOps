@@ -108,6 +108,20 @@ bd close bd-42 --reason "Completed" --json
 - ❌ Do NOT use external issue trackers
 - ❌ Do NOT duplicate tracking systems
 
+### MANDATORY: Every bd task must have a GitHub issue
+
+**MANDATORY**: Every bd task, bug, feature, or epic created must ALSO have a corresponding GitHub issue created immediately. Link them bidirectionally:
+
+- GitHub issue body: include `bd: <id>`
+- bd task: set `--external-ref "gh-<N>"` after issue creation
+
+```bash
+# Create GitHub issue first
+gh issue create --title "<type>: <title>" --body "bd: <id>\n\n<description>"
+# Then link back in bd
+bd update <id> --external-ref "gh-<N>" --json
+```
+
 ### Deploy Failures
 
 When a deploy fails, ALWAYS do both:
