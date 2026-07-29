@@ -19,6 +19,7 @@ All three core SIEM profiles have passed Ludus 2 validation: range deploy succee
 | Profile | Config | SIEM | VMs | Validation |
 |---|---|---|---|---|
 | [Elastic](elastic.md) | `elastic-core.yml` | Elastic Stack + Fleet | 5 — dual AD, dual workstations | Passed on Ludus 2 |
+| Elastic + ADCS | `elastic-adcs.yml` | Elastic Stack + Fleet | 6 — core + ADCS | Prepared for Fase 2 |
 | [Splunk](splunk.md) | `splunk-core.yml` | Splunk Enterprise | 5 — dual AD, dual workstations | Passed on Ludus 2 |
 | [Wazuh](wazuh.md) | `wazuh-core.yml` | Wazuh all-in-one | 5 — dual AD, dual workstations | Passed on Ludus 2 |
 

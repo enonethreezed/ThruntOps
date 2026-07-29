@@ -140,6 +140,7 @@ Use `deploy.sh` to destroy any existing range, apply the config, and deploy in o
 
 ```bash
 bash deploy.sh elk      # Elastic profile
+bash deploy.sh elastic-adcs  # Elastic + ADCS profile
 bash deploy.sh splunk   # Splunk profile
 bash deploy.sh wazuh    # Wazuh profile
 ```

