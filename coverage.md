@@ -87,7 +87,7 @@ mindmap
 | **Reverse Shells — Linux** | PHP, Ruby, Python, Node.js, tclsh, Perl | ops, gitlab | [Vulnerabilities](vulnerabilities.md) |
 | **Reverse Shells — Windows** | PowerShell, mshta, certutil, cscript, wscript | WEB, WIN11 | [Vulnerabilities](vulnerabilities.md) |
 | **LOLBins — Windows** | Module installed for user08 on WIN11-22H2-1/2 | WIN11-22H2-1/2 | — |
-| **Office Payloads — Windows** | Macro/VBA execution, phishing simulation — Office 2019 installed on workstations. Full test matrix TBD. | WIN11-22H2-1/2 | — |
+| **Office Payloads — Windows** | Macro/VBA execution, phishing simulation — Office 2019 installed on workstations. Full test matrix TBD. | WIN11-22H2-1/2 | [Office](office.md), [Office Architecture](office-architecture.md) |
 
 ---
 
