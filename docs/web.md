@@ -1,6 +1,24 @@
-# WEB + MSSQL — TTP Planning Notes
+---
+title: WEB + MSSQL TTPs
+layout: default
+nav_order: 12
+---
+
+# WEB + MSSQL TTP Planning Notes
+{: .no_toc }
 
 Attack surface and planned scenarios for the WEB server (10.2.50.14) and its MSSQL instance.
+
+Fase 2 reference material. WEB and MSSQL are not part of the validated Fase 1 core SIEM ranges.
+{: .label .label-yellow }
+
+---
+
+## Table of contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
 
 ---
 

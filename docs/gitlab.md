@@ -1,6 +1,24 @@
-# GitLab — TTP Planning Notes
+---
+title: GitLab TTPs
+layout: default
+nav_order: 11
+---
+
+# GitLab TTP Planning Notes
+{: .no_toc }
 
 Attack surface and planned scenarios for the GitLab CE instance at `10.2.50.15`.
+
+Fase 2 reference material. GitLab is not part of the validated Fase 1 core SIEM ranges.
+{: .label .label-yellow }
+
+---
+
+## Table of contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
 
 ---
 
@@ -34,24 +52,28 @@ All CI/CD-based TTPs require a runner. Options:
 ### 1. CI/CD Pipeline Poisoning (T1195.002 / T1059)
 
 **Setup needed:**
+
 - GitLab Runner registered on WEB, running as `webadmin`
-- A repository with a real (vulnerable) web application and a working `.gitlab-ci.yml`
+- A repository with a real vulnerable web application and a working `.gitlab-ci.yml`
 - Pipeline triggered on push to `main`
 
 **Attack path:**
-```
+
+```text
 Compromise webdev credentials
-  → Push modified .gitlab-ci.yml to main branch
-  → Pipeline executes on WEB runner
-  → Deploy web shell (shell.aspx) to C:\inetpub\wwwroot
-  → RCE via IIS worker process (w3wp.exe)
+  -> Push modified .gitlab-ci.yml to main branch
+  -> Pipeline executes on WEB runner
+  -> Deploy web shell (shell.aspx) to C:\inetpub\wwwroot
+  -> RCE via IIS worker process (w3wp.exe)
 ```
 
 **Trigger options:**
-- Direct push as `webdev` (maintainer — no review required)
+
+- Direct push as `webdev` (maintainer, no review required)
 - Merge request from a forked branch if branch protection is enabled
 
 **Detection opportunities:**
+
 - Unexpected `.gitlab-ci.yml` modification (GitLab audit log)
 - Unusual file deployed to `wwwroot` (Sysmon file creation on WEB)
 - `cmd.exe` / `powershell.exe` spawned by `w3wp.exe` (Sysmon process creation)
@@ -61,22 +83,26 @@ Compromise webdev credentials
 ### 2. Secret Leakage from Repositories (T1552.001)
 
 **Setup needed:**
+
 - Repository with intentional hardcoded secrets: MSSQL connection string with SA credentials, API keys, deploy tokens
 
 **Attack path:**
-```
+
+```text
 Log in to GitLab with any LDAP domain user
-  → Browse repos (all domain users can authenticate via LDAP)
-  → Find hardcoded connection string: Server=10.2.50.14;User=sa;Password=...
-  → Connect to MSSQL directly from Kali with recovered SA credentials
+  -> Browse repos (all domain users can authenticate via LDAP)
+  -> Find hardcoded connection string: Server=10.2.50.14;User=sa;Password=...
+  -> Connect to MSSQL directly from Kali with recovered SA credentials
 ```
 
 **Variants:**
+
 - Secrets in `.gitlab-ci.yml` (env vars in plain text)
 - Secrets in CI/CD project variables (requires maintainer/owner to expose)
-- Commit history with a "accidentally committed" password that was later removed
+- Commit history with an accidentally committed password that was later removed
 
 **Detection opportunities:**
+
 - LDAP authentication by unexpected domain users (GitLab auth log)
 - Direct MSSQL connection from non-WEB host (SQL Server audit, network)
 
@@ -84,14 +110,15 @@ Log in to GitLab with any LDAP domain user
 
 ### 3. Webhook / Outbound SSRF (T1071)
 
-**Setup needed:** None — available immediately once a repo exists.
+**Setup needed:** None, available immediately once a repo exists.
 
 **Attack path:**
-```
+
+```text
 Authenticate to GitLab (any domain user)
-  → Create or modify a project webhook pointing to http://10.2.50.250:<port>
-  → Trigger webhook via push / pipeline event
-  → Capture HTTP request on Kali — confirms outbound connectivity and internal token leakage
+  -> Create or modify a project webhook pointing to http://10.2.50.250:<port>
+  -> Trigger webhook via push / pipeline event
+  -> Capture HTTP request on Kali, confirming outbound connectivity and internal token leakage
 ```
 
 Webhooks include a secret token and internal GitLab metadata in the request body. This is low-effort and works as a building block for exfiltration scenarios.
@@ -100,28 +127,30 @@ Webhooks include a secret token and internal GitLab metadata in the request body
 
 ## Dependencies Between Scenarios
 
-```
+```text
 GitLab Runner on WEB
-    └─► CI/CD Pipeline Poisoning
-            └─► Web Shell on WEB (see WEB.md)
-                    └─► Token Impersonation → SYSTEM
+    -> CI/CD Pipeline Poisoning
+        -> Web Shell on WEB
+            -> Token Impersonation -> SYSTEM
 
 Repo with secrets
-    └─► SA credentials recovered
-            └─► Direct MSSQL access (xp_cmdshell, NTLM capture)
+    -> SA credentials recovered
+        -> Direct MSSQL access (xp_cmdshell, NTLM capture)
 
 Webhook
-    └─► Outbound exfiltration demo
-    └─► SSRF if GitLab is on a more restricted network segment
+    -> Outbound exfiltration demo
+    -> SSRF if GitLab is on a more restricted network segment
 ```
+
+Related reference: [Vulnerabilities](vulnerabilities.md).
 
 ---
 
 ## Implementation Checklist
 
 - [x] Create a repository with the vulnerable web application source (`thruntops-web` via `ludus_gitlab_runner` role)
-- [x] Register a GitLab Runner (shell executor on GitLab VM, not WEB — deploys via smbclient)
+- [x] Register a GitLab Runner (shell executor on GitLab VM, not WEB; deploys via smbclient)
 - [x] Write a working `.gitlab-ci.yml` that deploys the app to `wwwroot` via SMB
 - [x] Add intentional hardcoded secrets to `.gitlab-ci.yml` (webadmin credentials in smbclient command)
-- [x] Document pipeline poisoning + secret leakage attack paths in `docs/vulnerabilities.md`
-- [ ] Verify end-to-end pipeline: push → deploy → app reachable at `http://10.2.50.14`
+- [x] Document pipeline poisoning and secret leakage attack paths in [Vulnerabilities](vulnerabilities.md)
+- [ ] Verify end-to-end pipeline: push -> deploy -> app reachable at `http://10.2.50.14`

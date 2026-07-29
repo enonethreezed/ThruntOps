@@ -31,4 +31,4 @@ All three core SIEM profiles have passed Ludus 2 validation: range deploy succee
 
 → [Installation](install.md) · [Users](users.md) · [Coverage](coverage.md)
 
-> Fase 2 reference docs are preserved and accessible: [ADCS](adcs.md) · [Vulnerabilities](vulnerabilities.md) · [Office](office.md) · [Sigma](sigma.md)
+> Fase 2 reference docs are preserved and accessible: [ADCS](adcs.md) · [Vulnerabilities](vulnerabilities.md) · [WEB + MSSQL](web.md) · [GitLab](gitlab.md) · [Office](office.md) · [Office Architecture](office-architecture.md) · [Sigma](sigma.md)

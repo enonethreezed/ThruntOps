@@ -1,6 +1,24 @@
-# Office - Architecture and TTP Matrix Proposal
+---
+title: Office Architecture Proposal
+layout: default
+nav_order: 13
+---
+
+# Office Architecture and TTP Matrix Proposal
+{: .no_toc }
 
 Proposal to add an Office abuse track to ThruntOps, with and without spearphishing, reusing the current infrastructure and minimizing resource impact.
+
+Fase 2 proposal material. See [Office Abuse](office.md) for the operational reference page.
+{: .label .label-yellow }
+
+---
+
+## Table of contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
 
 ---
 
