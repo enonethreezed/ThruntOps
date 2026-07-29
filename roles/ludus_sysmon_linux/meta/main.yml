@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: ludus_sysmon_linux
+  author: thruntops
+  description: Install and configure Sysmon for Linux on Ubuntu hosts
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+dependencies: []

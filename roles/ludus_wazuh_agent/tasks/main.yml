@@ -1,0 +1,16 @@
+---
+- name: (wazuh_agent) Wait for Wazuh manager registration service (authd) to be ready
+  ansible.builtin.wait_for:
+    host: "{{ wazuh_manager_ip }}"
+    port: "{{ wazuh_manager_registration_port }}"
+    timeout: "{{ wazuh_manager_wait_timeout }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: (wazuh_agent) Install on Windows
+  ansible.builtin.include_tasks: windows.yml
+  when: ansible_os_family == "Windows"
+
+- name: (wazuh_agent) Install on Linux
+  ansible.builtin.include_tasks: linux.yml
+  when: ansible_os_family == "Debian"

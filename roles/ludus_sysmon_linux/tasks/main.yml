@@ -1,0 +1,51 @@
+---
+- name: (sysmon_linux) Install Microsoft package signing key and repo
+  ansible.builtin.shell: |
+    wget -q https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb \
+      -O /tmp/packages-microsoft-prod.deb
+    dpkg -i /tmp/packages-microsoft-prod.deb
+  args:
+    creates: /etc/apt/sources.list.d/microsoft-prod.list
+
+- name: (sysmon_linux) Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: (sysmon_linux) Install sysmonforlinux
+  ansible.builtin.apt:
+    name: sysmonforlinux
+    state: present
+
+- name: (sysmon_linux) Ensure config directory exists
+  ansible.builtin.file:
+    path: /etc/sysmon
+    state: directory
+    mode: "0755"
+
+- name: (sysmon_linux) Deploy sysmon config (custom)
+  ansible.builtin.copy:
+    src: "{{ ludus_sysmon_linux_config_src }}"
+    dest: /etc/sysmon/config.xml
+    mode: "0644"
+  when: ludus_sysmon_linux_config_src | length > 0
+  notify: restart sysmon
+
+- name: (sysmon_linux) Deploy sysmon config (default)
+  ansible.builtin.copy:
+    src: sysmon_config.xml
+    dest: /etc/sysmon/config.xml
+    mode: "0644"
+  when: ludus_sysmon_linux_config_src | length == 0
+  notify: restart sysmon
+
+- name: (sysmon_linux) Apply sysmon config
+  ansible.builtin.command: sysmon -accepteula -i /etc/sysmon/config.xml
+  args:
+    creates: /opt/sysmon/sysmon
+  notify: restart sysmon
+
+- name: (sysmon_linux) Enable and start sysmon service
+  ansible.builtin.service:
+    name: sysmon
+    state: started
+    enabled: true

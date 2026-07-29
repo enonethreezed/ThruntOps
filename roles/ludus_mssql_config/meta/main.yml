@@ -1,0 +1,5 @@
+galaxy_info:
+  role_name: ludus_mssql_config
+  author: ThruntOps
+  description: Post-install MSSQL configuration — mixed mode auth, SA, DBA logins, ThruntOps database
+  min_ansible_version: "2.9"

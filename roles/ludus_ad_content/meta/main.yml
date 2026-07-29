@@ -1,0 +1,5 @@
+galaxy_info:
+  role_name: ludus_ad_content
+  author: ThruntOps
+  description: Create AD groups, domain users, and RDP group memberships via vars
+  min_ansible_version: "2.9"

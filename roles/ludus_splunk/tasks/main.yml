@@ -1,0 +1,134 @@
+---
+- name: (splunk) Check if Splunk is already installed
+  ansible.builtin.stat:
+    path: /opt/splunk/bin/splunk
+  register: splunk_bin
+
+- name: (splunk) Check if Splunk was initialized
+  ansible.builtin.stat:
+    path: /opt/splunk/etc/passwd
+  register: splunk_passwd
+
+- name: (splunk) Install apt prerequisites
+  ansible.builtin.apt:
+    name:
+      - wget
+      - acl
+    state: present
+    update_cache: true
+
+- name: (splunk) Download Splunk Enterprise .deb
+  ansible.builtin.get_url:
+    url: "{{ ludus_splunk_deb_url }}"
+    dest: /tmp/splunk.deb
+    mode: "0644"
+  when: not splunk_bin.stat.exists
+
+- name: (splunk) Install Splunk Enterprise
+  ansible.builtin.apt:
+    deb: /tmp/splunk.deb
+  when: not splunk_bin.stat.exists
+
+- name: (splunk) Accept license and set admin password on first run
+  ansible.builtin.command: >
+    /opt/splunk/bin/splunk start
+    --accept-license --answer-yes --no-prompt
+    --run-as-root
+    --seed-passwd "{{ ludus_splunk_admin_password }}"
+  args:
+    creates: /opt/splunk/etc/passwd
+  when: not splunk_passwd.stat.exists
+
+- name: (splunk) Check if Splunkd systemd service exists
+  ansible.builtin.stat:
+    path: /etc/systemd/system/Splunkd.service
+  register: splunk_systemd_service
+
+- name: (splunk) Stop Splunk before enabling boot-start
+  ansible.builtin.command: >
+    /opt/splunk/bin/splunk stop --run-as-root
+  args:
+    removes: /opt/splunk/bin/splunk
+  register: splunk_stop_boot_start
+  changed_when: "'Stopping splunkd' in splunk_stop_boot_start.stdout"
+  failed_when: splunk_stop_boot_start.rc != 0 and 'not running' not in splunk_stop_boot_start.stderr | lower
+  when: not splunk_systemd_service.stat.exists
+
+- name: (splunk) Ensure Splunk files are owned by the splunk user
+  ansible.builtin.file:
+    path: /opt/splunk
+    owner: splunk
+    group: splunk
+    recurse: true
+
+- name: (splunk) Enable boot-start via systemd
+  ansible.builtin.command: >
+    /opt/splunk/bin/splunk enable boot-start
+    -systemd-managed 1
+    -user splunk
+    --accept-license --answer-yes --no-prompt
+  args:
+    creates: /etc/systemd/system/Splunkd.service
+
+- name: (splunk) Reset Splunkd failed state
+  ansible.builtin.systemd_service:
+    name: Splunkd
+    daemon_reload: true
+    state: stopped
+  failed_when: false
+
+- name: (splunk) Ensure Splunkd service is started and enabled
+  ansible.builtin.service:
+    name: Splunkd
+    state: started
+    enabled: true
+
+- name: (splunk) Wait for Splunk web UI to be ready
+  ansible.builtin.wait_for:
+    port: 8000
+    delay: 5
+    timeout: 120
+
+- name: (splunk) Create custom indexes
+  ansible.builtin.command: >
+    /opt/splunk/bin/splunk add index {{ item }}
+    -auth "admin:{{ ludus_splunk_admin_password }}"
+  loop: "{{ ludus_splunk_indexes }}"
+  register: idx_result
+  changed_when: "'index' in idx_result.stdout | lower"
+  failed_when: idx_result.rc != 0 and 'already exists' not in idx_result.stderr | lower
+
+- name: (splunk) Enable receiving from forwarders
+  ansible.builtin.command: >
+    /opt/splunk/bin/splunk enable listen {{ ludus_splunk_receiver_port }}
+    -auth "admin:{{ ludus_splunk_admin_password }}"
+  register: splunk_enable_listen
+  changed_when: splunk_enable_listen.rc == 0
+  failed_when: >
+    splunk_enable_listen.rc != 0 and
+    'already exists' not in splunk_enable_listen.stderr | lower and
+    'already configured' not in splunk_enable_listen.stderr | lower
+
+- name: (splunk) Copy Splunk license to remote
+  ansible.builtin.copy:
+    src: "{{ ludus_splunk_license_src }}"
+    dest: /tmp/Splunk.License
+    mode: "0600"
+  when: ludus_splunk_license_src | length > 0
+
+- name: (splunk) Apply Splunk developer license
+  ansible.builtin.command: >
+    /opt/splunk/bin/splunk add licenses /tmp/Splunk.License
+    -auth "admin:{{ ludus_splunk_admin_password }}"
+  when: ludus_splunk_license_src | length > 0
+  register: lic_result
+  changed_when: lic_result.rc == 0
+  failed_when: lic_result.rc != 0 and 'already applied' not in lic_result.stderr | lower
+
+- name: (splunk) Restart Splunk after license change
+  ansible.builtin.service:
+    name: Splunkd
+    state: restarted
+  when:
+    - ludus_splunk_license_src | length > 0
+    - lic_result.changed

@@ -1,0 +1,11 @@
+---
+# List of domain users to configure with the lolbins PS profile
+# Each entry requires:
+#   username: SAMAccountName
+#   domain:   NetBIOS domain name
+#
+# Example:
+#   ludus_lolbins_users:
+#     - username: primary_user08
+#       domain: thruntops
+ludus_lolbins_users: []

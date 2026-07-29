@@ -1,0 +1,23 @@
+---
+- name: restart splunkforwarder
+  ansible.windows.win_shell: |
+    $ErrorActionPreference = 'Stop'
+    $svc = Get-Service -Name SplunkForwarder
+    if ($svc.Status -ne 'Stopped') {
+      try {
+        Stop-Service -Name SplunkForwarder -Force
+        $svc.WaitForStatus('Stopped', '00:02:00')
+      } catch {
+        Get-Process -Name splunkd -ErrorAction SilentlyContinue | Stop-Process -Force
+        Start-Sleep -Seconds 5
+      }
+    }
+    Start-Service -Name SplunkForwarder -ErrorAction Stop
+    (Get-Service -Name SplunkForwarder).WaitForStatus('Running', '00:02:00')
+  listen: restart splunkforwarder
+
+- name: restart splunkforwarder linux
+  ansible.builtin.service:
+    name: SplunkForwarder
+    state: restarted
+  listen: restart splunkforwarder linux

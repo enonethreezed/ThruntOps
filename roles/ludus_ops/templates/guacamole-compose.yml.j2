@@ -1,0 +1,43 @@
+services:
+  guacd:
+    image: guacamole/guacd:latest
+    restart: unless-stopped
+    networks:
+      - guac-net
+
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: guacamole
+      POSTGRES_USER: guacamole
+      POSTGRES_PASSWORD: "{{ ludus_ops_guacamole_db_password }}"
+    volumes:
+      - guac-db:/var/lib/postgresql/data
+      - /opt/guacamole/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql:ro
+      - /opt/guacamole/connections.sql:/docker-entrypoint-initdb.d/connections.sql:ro
+    networks:
+      - guac-net
+
+  guacamole:
+    image: guacamole/guacamole:latest
+    restart: unless-stopped
+    ports:
+      - "{{ ludus_ops_guacamole_port }}:8080"
+    environment:
+      GUACD_HOSTNAME: guacd
+      POSTGRESQL_HOSTNAME: postgres
+      POSTGRESQL_DATABASE: guacamole
+      POSTGRESQL_USER: guacamole
+      POSTGRESQL_PASSWORD: "{{ ludus_ops_guacamole_db_password }}"
+    depends_on:
+      - guacd
+      - postgres
+    networks:
+      - guac-net
+
+volumes:
+  guac-db:
+
+networks:
+  guac-net:

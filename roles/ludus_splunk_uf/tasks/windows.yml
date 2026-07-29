@@ -1,0 +1,85 @@
+---
+- name: (splunk_uf/win) Check if Splunk UF is already installed
+  ansible.windows.win_service:
+    name: SplunkForwarder
+  register: splunk_svc
+  failed_when: false
+
+- name: (splunk_uf/win) Create temp directory
+  ansible.windows.win_file:
+    path: C:\tmp
+    state: directory
+
+- name: (splunk_uf/win) Download Splunk Universal Forwarder MSI
+  ansible.windows.win_get_url:
+    url: "{{ ludus_splunk_uf_package_windows }}"
+    dest: C:\tmp\splunkforwarder.msi
+  when: splunk_svc.state is not defined or splunk_svc.state == ""
+
+- name: (splunk_uf/win) Install Splunk Universal Forwarder
+  ansible.windows.win_command: >
+    msiexec.exe /i C:\tmp\splunkforwarder.msi /quiet
+    SPLUNK_PASSWORD="{{ ludus_splunk_uf_password }}"
+    RECEIVING_INDEXER="{{ ludus_splunk_server_ip }}:{{ ludus_splunk_server_port }}"
+    WINEVENTLOG_APP_ENABLE=1
+    WINEVENTLOG_SEC_ENABLE=1
+    WINEVENTLOG_SYS_ENABLE=1
+    AGREETOLICENSE=yes
+  when: splunk_svc.state is not defined or splunk_svc.state == ""
+  register: splunk_install
+
+- name: (splunk_uf/win) Wait for Splunk UF to initialize after install
+  ansible.windows.win_wait_for:
+    path: C:\Program Files\SplunkUniversalForwarder\etc\system\local
+    state: present
+    timeout: 60
+  when: splunk_install is changed
+
+- name: (splunk_uf/win) Configure outputs.conf
+  ansible.windows.win_copy:
+    dest: "C:\\Program Files\\SplunkUniversalForwarder\\etc\\system\\local\\outputs.conf"
+    content: |
+      [tcpout]
+      defaultGroup = default-autolb-group
+
+      [tcpout:default-autolb-group]
+      server = {{ ludus_splunk_server_ip }}:{{ ludus_splunk_server_port }}
+
+      [tcpout-server://{{ ludus_splunk_server_ip }}:{{ ludus_splunk_server_port }}]
+  notify: restart splunkforwarder
+
+- name: (splunk_uf/win) Configure inputs.conf
+  ansible.windows.win_copy:
+    dest: "C:\\Program Files\\SplunkUniversalForwarder\\etc\\system\\local\\inputs.conf"
+    content: |
+      [WinEventLog://Application]
+      index = windows
+      disabled = false
+      renderXml = true
+
+      [WinEventLog://Security]
+      index = windows
+      disabled = false
+      renderXml = true
+
+      [WinEventLog://System]
+      index = windows
+      disabled = false
+      renderXml = true
+
+      [WinEventLog://Microsoft-Windows-Sysmon/Operational]
+      index = sysmon
+      disabled = false
+      renderXml = true
+
+      [WinEventLog://Microsoft-Windows-PowerShell/Operational]
+      index = windows
+      disabled = false
+      renderXml = true
+  notify: restart splunkforwarder
+
+- name: (splunk_uf/win) Ensure SplunkForwarder service is started and enabled
+  ansible.windows.win_service:
+    name: SplunkForwarder
+    state: started
+    start_mode: auto

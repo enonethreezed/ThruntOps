@@ -1,0 +1,47 @@
+---
+- name: (monkey) Create working directory
+  ansible.builtin.file:
+    path: /opt/monkey
+    state: directory
+    mode: '0755'
+
+- name: (monkey) Write docker-compose file
+  ansible.builtin.copy:
+    dest: /opt/monkey/docker-compose.yml
+    mode: '0644'
+    content: |
+      services:
+        mongodb:
+          image: mongo:6.0
+          restart: unless-stopped
+          volumes:
+            - monkey-db:/data/db
+          networks:
+            - monkey-net
+
+        island:
+          image: infectionmonkey/monkey-island:latest
+          restart: unless-stopped
+          ports:
+            - "5000:5000"
+          depends_on:
+            - mongodb
+          environment:
+            MONGO_CONNECTION_STRING: "mongodb://mongodb:27017"
+          networks:
+            - monkey-net
+
+      volumes:
+        monkey-db:
+
+      networks:
+        monkey-net:
+
+- name: (monkey) Pull images
+  ansible.builtin.shell: docker compose -f /opt/monkey/docker-compose.yml pull
+  changed_when: false
+
+- name: (monkey) Start Infection Monkey
+  ansible.builtin.shell: docker compose -f /opt/monkey/docker-compose.yml up -d
+  args:
+    chdir: /opt/monkey

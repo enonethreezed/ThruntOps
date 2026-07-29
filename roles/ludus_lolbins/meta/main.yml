@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  role_name: ludus_lolbins
+  author: ThruntOps
+  description: >
+    Install the Unit-259/lolbins PowerShell module (AllUsers scope) and
+    register a logon-triggered scheduled task per user that bootstraps
+    Import-Module lolbins + Update-LOLBinData into their PS profile.
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Windows
+      versions:
+        - all
+dependencies: []

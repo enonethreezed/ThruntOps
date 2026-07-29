@@ -1,0 +1,5 @@
+galaxy_info:
+  role_name: ludus_webapp
+  author: ThruntOps
+  description: Deploy vulnerable ASP.NET WebForms application to IIS wwwroot (SQLi, file upload, directory traversal)
+  min_ansible_version: "2.9"

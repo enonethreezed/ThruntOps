@@ -1,0 +1,51 @@
+-- Seed Guacamole connections for ThruntOps lab
+-- Runs once on first DB init (idempotent via DO block)
+
+DO $$
+BEGIN
+{% for conn in ludus_ops_guacamole_connections %}
+  IF NOT EXISTS (
+    SELECT 1 FROM guacamole_connection WHERE connection_name = '{{ conn.name }}'
+  ) THEN
+    INSERT INTO guacamole_connection (connection_name, protocol)
+    VALUES ('{{ conn.name }}', '{{ conn.protocol }}');
+
+    INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+    SELECT connection_id, 'hostname', '{{ conn.hostname }}'
+    FROM guacamole_connection WHERE connection_name = '{{ conn.name }}';
+
+    INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+    SELECT connection_id, 'port', '{{ conn.port }}'
+    FROM guacamole_connection WHERE connection_name = '{{ conn.name }}';
+
+    INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+    SELECT connection_id, 'username', '{{ conn.username }}'
+    FROM guacamole_connection WHERE connection_name = '{{ conn.name }}';
+
+{% if conn.password %}
+    INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+    SELECT connection_id, 'password', '{{ conn.password }}'
+    FROM guacamole_connection WHERE connection_name = '{{ conn.name }}';
+
+{% endif %}
+{% if conn.protocol == 'rdp' %}
+    INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+    SELECT connection_id, 'security', 'nla'
+    FROM guacamole_connection WHERE connection_name = '{{ conn.name }}';
+
+    INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+    SELECT connection_id, 'ignore-cert', 'true'
+    FROM guacamole_connection WHERE connection_name = '{{ conn.name }}';
+
+{% endif %}
+  END IF;
+{% endfor %}
+
+  -- Grant guacadmin access to all connections
+  INSERT INTO guacamole_connection_permission (entity_id, connection_id, permission)
+  SELECT e.entity_id, c.connection_id, 'READ'
+  FROM guacamole_entity e, guacamole_connection c
+  WHERE e.name = 'guacadmin' AND e.type = 'USER'
+  ON CONFLICT DO NOTHING;
+
+END $$;

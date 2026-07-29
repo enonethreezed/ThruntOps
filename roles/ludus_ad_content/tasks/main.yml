@@ -1,0 +1,30 @@
+---
+- name: Create AD groups
+  microsoft.ad.group:
+    name: "{{ item.name }}"
+    scope: global
+    state: present
+  loop: "{{ ludus_ad.groups | default([]) }}"
+  when: ludus_ad is defined and ludus_ad.groups is defined
+
+- name: Create domain users
+  microsoft.ad.user:
+    name: "{{ item.name }}"
+    firstname: "{{ item.firstname | default(item.name) }}"
+    surname: "{{ item.surname | default('') }}"
+    display_name: "{{ item.display_name | default(item.name) }}"
+    password: "{{ item.password }}"
+    description: "{{ item.description | default('') }}"
+    state: present
+    password_never_expires: true
+    groups:
+      add: "{{ item.groups | default(['Domain Users']) }}"
+  loop: "{{ ludus_ad.users | default([]) }}"
+  when: ludus_ad is defined and ludus_ad.users is defined
+
+- name: Add domain users to Remote Desktop Users group
+  ansible.windows.win_group_membership:
+    name: Remote Desktop Users
+    members: "{{ ludus_ad.rdp_members }}"
+    state: present
+  when: ludus_ad is defined and ludus_ad.rdp_members is defined

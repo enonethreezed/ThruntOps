@@ -1,0 +1,16 @@
+---
+- name: Create local users
+  ansible.windows.win_user:
+    name: "{{ item.login }}"
+    password: "{{ item.password }}"
+    state: present
+    password_never_expires: true
+    user_cannot_change_password: false
+  loop: "{{ ludus_local_users }}"
+
+- name: Manage local group memberships
+  ansible.windows.win_group_membership:
+    name: "{{ item.name }}"
+    members: "{{ item.members }}"
+    state: present
+  loop: "{{ ludus_local_groups }}"

@@ -1,0 +1,4 @@
+---
+- name: restart wazuh
+  ansible.builtin.command: /var/ossec/bin/wazuh-control restart
+  listen: restart wazuh
