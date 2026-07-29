@@ -5,7 +5,7 @@ nav_order: 9
 ---
 
 {: .warning }
-**Fase 2 — prepared, not yet validated.** `ranges/elastic-adcs.yml` adds the ADCS VM and ESC attack-path prerequisites to the validated Elastic core profile. This documentation is preserved as implementation and testing reference until the ADCS range is deployed and tested end to end.
+**Fase 2 — ADCS smoke-tested on Ludus 2.** `ranges/elastic-adcs.yml` adds the ADCS VM and ESC attack-path prerequisites to the validated Elastic core profile. Deploy has been validated with Elastic/Fleet online, ADCS web enrollment reachable, Certipy enumeration, and ESC1 certificate issuance.
 
 # ADCS Attack Paths
 {: .no_toc }
@@ -53,6 +53,15 @@ All attack paths use **Certipy** from Kali:
 
 ```bash
 pip install certipy-ad
+```
+
+Use LDAP explicitly if LDAPS resets during enumeration:
+
+```bash
+certipy find -u domainuser@thruntops.domain -p 'password' \
+  -dc-ip <range_ip>.20.11 \
+  -ldap-scheme ldap -ldap-port 389 \
+  -vulnerable -stdout
 ```
 
 ---
@@ -488,25 +497,27 @@ certipy auth \
 
 | ESC | Template / Mechanism | Entry credentials | Status |
 |---|---|---|---|
-| ESC1 | `ESC1` — enrollee supplies SAN | any Domain User | ☐ |
-| ESC2 | `ESC2` — Enrollment Agent | any Domain User | ☐ |
-| ESC3 | `ESC3` + `ESC3_CRA` — EA + SAN | any Domain User | ☐ |
-| ESC4 | `ESC4` — GenericAll on template | any Domain User | ☐ |
-| ESC5 | CA object — Domain Admin user | `esc5user:ESC5password` | ☐ |
-| ESC6 | CA flag — EDITF_ATTRIBUTESUBJECTALTNAME2 | any Domain User | ☐ |
-| ESC7 | CA roles — ManageCA / ManageCertificates | `esc7_camgr_user:ESC7password` | ☐ |
-| ESC8 | Web Enrollment NTLM relay (PetitPotam) | unauthenticated | ☐ |
-| ESC9 | `ESC9` — no SID extension, GenericWrite on user | `esc9user:ESC9password` | ☐ |
-| ESC11 | RPC relay — unencrypted ICSR (PetitPotam) | unauthenticated | ☐ |
-| ESC13 | `ESC13` — issuance policy → group privilege | `esc13user:ESC13password` | ☐ |
-| ESC15 | AltSecurityIdentities mapping | any Domain User | ☐ |
-| ESC16 | szOID_NTDS_CA_SECURITY_EXT disabled | `esc16user:ESC16password` | ☐ |
+| ESC1 | `ESC1` — enrollee supplies SAN | any Domain User | Smoke-tested: cert issued |
+| ESC2 | `ESC2` — Enrollment Agent | any Domain User | Enumerated vulnerable |
+| ESC3 | `ESC3` + `ESC3_CRA` — EA + SAN | any Domain User | Enumerated vulnerable |
+| ESC4 | `ESC4` — GenericAll on template | any Domain User | Enumerated vulnerable |
+| ESC5 | CA object — Domain Admin user | `esc5user:ESC5password` | Role configured |
+| ESC6 | CA flag — EDITF_ATTRIBUTESUBJECTALTNAME2 | any Domain User | Enumerated vulnerable |
+| ESC7 | CA roles — ManageCA / ManageCertificates | `esc7_camgr_user:ESC7password` | Role configured |
+| ESC8 | Web Enrollment NTLM relay (PetitPotam) | unauthenticated | Enumerated vulnerable |
+| ESC9 | `ESC9` — no SID extension, GenericWrite on user | `esc9user:ESC9password` | Enumerated vulnerable |
+| ESC10 | Weak certificate binding | `esc10user:ESC10password` | Enumerated vulnerable |
+| ESC11 | RPC relay — unencrypted ICSR (PetitPotam) | unauthenticated | Enumerated vulnerable |
+| ESC13 | `ESC13` — issuance policy → group privilege | `esc13user:ESC13password` | Enumerated vulnerable |
+| ESC14 | GenericWrite on altSecurityIdentities | `esc14user` / `esc14target` | Role configured |
+| ESC15 | AltSecurityIdentities mapping | any Domain User | Enumerated vulnerable |
+| ESC16 | szOID_NTDS_CA_SECURITY_EXT disabled | `esc16user:ESC16password` | Enumerated vulnerable |
 
 ---
 
 ## Notes
 
-- All ESCs are enabled by default in `badsectorlabs.ludus_adcs` — no additional config required in `elastic.yml`/`wazuh.yml`/`splunk.yml`
+- ADCS attack paths are currently implemented in `ranges/elastic-adcs.yml`
 - `primary_user04` has RDP on ADCS — useful for local enumeration and ESC5 interactive access
 - Certificate authentication requires PKINIT support on the DC — available on all Windows Server 2016+ DCs
 - For ESC8 and ESC11 (PetitPotam), the Kali VM must be deployed: `bash scripts/add-kali.sh`
