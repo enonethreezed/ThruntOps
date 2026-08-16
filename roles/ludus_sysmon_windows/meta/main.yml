@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  role_name: ludus_sysmon_windows
+  author: thruntops
+  description: Install and configure Sysinternals Sysmon on Windows hosts
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Windows
+      versions:
+        - all
+dependencies: []

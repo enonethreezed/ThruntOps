@@ -1,0 +1,4 @@
+---
+ludus_sysmon_windows_download_url: "https://download.sysinternals.com/files/Sysmon.zip"
+ludus_sysmon_windows_config_url: "https://raw.githubusercontent.com/SwiftOnSecurity/sysmon-config/master/sysmonconfig-export.xml"
+ludus_sysmon_windows_install_dir: 'C:\Program Files (x86)\Sysmon'

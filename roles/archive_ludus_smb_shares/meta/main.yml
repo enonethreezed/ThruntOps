@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  role_name: archive_ludus_smb_shares
+  author: ThruntOps
+  description: Archived SMB shares with AD groups and null sessions
+  min_ansible_version: "2.14"
+dependencies: []

@@ -1,10 +1,13 @@
 ---
 # Guacamole
+ludus_ops_deploy_guacamole: true
 ludus_ops_guacamole_port: 8080
 ludus_ops_guacamole_db_password: "guacamole"
 ludus_ops_guacamole_admin_password: "guacadmin"
 
 # Infection Monkey
+ludus_ops_deploy_monkey: true
+ludus_ops_manage_localuser_ssh: true
 ludus_ops_monkey_port: 5000
 
 # Lab connections pre-loaded into Guacamole

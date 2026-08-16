@@ -1,0 +1,51 @@
+---
+- name: (sysmon_windows) Check whether Sysmon is installed
+  ansible.windows.win_service:
+    name: Sysmon64
+  register: sysmon_service
+  failed_when: false
+
+- name: (sysmon_windows) Create installation directory
+  ansible.windows.win_file:
+    path: "{{ ludus_sysmon_windows_install_dir }}"
+    state: directory
+
+- name: (sysmon_windows) Download Sysmon archive
+  ansible.windows.win_get_url:
+    url: "{{ ludus_sysmon_windows_download_url }}"
+    dest: C:\Windows\Temp\Sysmon.zip
+  when: sysmon_service.exists is not defined or not sysmon_service.exists
+
+- name: (sysmon_windows) Extract Sysmon64
+  community.windows.win_unzip:
+    src: C:\Windows\Temp\Sysmon.zip
+    dest: "{{ ludus_sysmon_windows_install_dir }}"
+    creates: "{{ ludus_sysmon_windows_install_dir }}\\Sysmon64.exe"
+  when: sysmon_service.exists is not defined or not sysmon_service.exists
+
+- name: (sysmon_windows) Download Sysmon configuration
+  ansible.windows.win_get_url:
+    url: "{{ ludus_sysmon_windows_config_url }}"
+    dest: "{{ ludus_sysmon_windows_install_dir }}\\sysmonconfig.xml"
+  register: sysmon_config
+
+- name: (sysmon_windows) Install Sysmon service
+  ansible.windows.win_command: >
+    "{{ ludus_sysmon_windows_install_dir }}\Sysmon64.exe" -accepteula -i
+    "{{ ludus_sysmon_windows_install_dir }}\sysmonconfig.xml"
+  when: sysmon_service.exists is not defined or not sysmon_service.exists
+
+- name: (sysmon_windows) Apply updated Sysmon configuration
+  ansible.windows.win_command: >
+    "{{ ludus_sysmon_windows_install_dir }}\Sysmon64.exe" -c
+    "{{ ludus_sysmon_windows_install_dir }}\sysmonconfig.xml"
+  when:
+    - sysmon_service.exists is defined
+    - sysmon_service.exists
+    - sysmon_config.changed
+
+- name: (sysmon_windows) Ensure Sysmon service is started and enabled
+  ansible.windows.win_service:
+    name: Sysmon64
+    state: started
+    start_mode: auto

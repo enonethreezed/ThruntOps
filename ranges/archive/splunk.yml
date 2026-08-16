@@ -374,7 +374,7 @@ ludus:
       - ludus_mssql_config
       - ludus_webapp
       - ludus_local_users
-      - ludus_smb_shares
+      - archive_ludus_smb_shares
     role_vars:
       ludus_smb_primary_admin_password: 'iFgu¿83¿'
       ludus_smb_secondary_admin_password: 'Ut2cf7%/'

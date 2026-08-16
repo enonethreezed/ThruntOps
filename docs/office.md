@@ -173,15 +173,8 @@ macro → certutil / mshta / wscript / cscript
 
 ---
 
-## Ansible Role
+## Implementation
 
-Deployed by `ludus_smb_shares` on `admin-web` in all three range profiles.
-
-Key variables:
-
-| Variable | Description |
-|---|---|
-| `ludus_smb_primary_admin_password` | thruntops domainadmin password |
-| `ludus_smb_secondary_admin_password` | secondary domainadmin password |
-| `ludus_smb_user09_primary_password` | Lure credential — primary_user09 |
-| `ludus_smb_user09_secondary_password` | Lure credential — secondary_user09 |
+When Fase 2 is deployed, configure the SMB shares and lure files with
+`badsectorlabs.ludus_windows_utils.ludus_smb_shares` and
+`badsectorlabs.ludus_windows_utils.ludus_files`.

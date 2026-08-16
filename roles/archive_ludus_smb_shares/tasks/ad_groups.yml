@@ -1,7 +1,4 @@
 ---
-# Runs delegated to the DC for the given domain
-# Caller must set: smb_dc_host, smb_domain_short, smb_groups, smb_admin_password
-
 - name: (smb_shares) Create AD group {{ item.name }} in {{ smb_domain_short }}
   community.windows.win_domain_group:
     name: "{{ item.name }}"

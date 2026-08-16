@@ -25,9 +25,12 @@ ludus:
       block_internet: false
     roles:
       - ludus_wazuh_server
+      - ludus_ops
     role_vars:
       wazuh_admin_password: "Thisisapassword1-"
       wazuh_api_password: "Thisisapassword1-"
+      ludus_ops_deploy_monkey: false
+      ludus_ops_manage_localuser_ssh: false
 
   - vm_name: "{{ range_id }}-ad-dc-win2022-server-x64"
     hostname: "{{ range_id }}-DC01-2022"
@@ -43,6 +46,7 @@ ludus:
       role: primary-dc
     roles:
       - ludus_wazuh_agent
+      - ludus_sysmon_windows
       - ludus_laps
     role_vars:
       wazuh_manager_ip: "10.1.20.1"
@@ -63,6 +67,7 @@ ludus:
       role: primary-dc
     roles:
       - ludus_wazuh_agent
+      - ludus_sysmon_windows
       - ludus_laps
     role_vars:
       wazuh_manager_ip: "10.1.20.1"
@@ -83,6 +88,7 @@ ludus:
       role: member
     roles:
       - ludus_wazuh_agent
+      - ludus_sysmon_windows
       - ludus_laps
     role_vars:
       wazuh_manager_ip: "10.1.20.1"
@@ -101,6 +107,7 @@ ludus:
       role: member
     roles:
       - ludus_wazuh_agent
+      - ludus_sysmon_windows
       - ludus_laps
     role_vars:
       wazuh_manager_ip: "10.1.20.1"

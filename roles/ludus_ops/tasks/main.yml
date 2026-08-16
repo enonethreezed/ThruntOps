@@ -19,7 +19,7 @@
 - name: (ops) Add Docker apt repository
   ansible.builtin.shell: |
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
-    https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+    https://download.docker.com/linux/{{ ansible_distribution | lower }} $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
     > /etc/apt/sources.list.d/docker.list
   args:
     creates: /etc/apt/sources.list.d/docker.list
@@ -42,6 +42,7 @@
     enabled: true
 
 - name: (ops) Ensure localuser SSH authorized_keys is present
+  when: ludus_ops_manage_localuser_ssh
   ansible.posix.authorized_key:
     user: localuser
     state: present
@@ -51,6 +52,8 @@
 
 - name: (ops) Deploy Guacamole
   ansible.builtin.include_tasks: guacamole.yml
+  when: ludus_ops_deploy_guacamole
 
 - name: (ops) Deploy Infection Monkey
   ansible.builtin.include_tasks: monkey.yml
+  when: ludus_ops_deploy_monkey
