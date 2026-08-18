@@ -150,6 +150,34 @@ for HOST in "${EXPECTED[@]}"; do
 done
 
 # ------------------------------------------------------------------
+section "5. Sysmon activo en endpoints Windows"
+# ------------------------------------------------------------------
+SYSMON_SEARCH="search index=sysmon earliest=-${LOOKBACK} | stats latest(_time) as last_seen count by host | eval last_seen=strftime(last_seen, \"%Y-%m-%dT%H:%M:%S\") | fields host last_seen count"
+
+sysmon_response=$(curl -sk -u "${SPLUNK_USER}:${SPLUNK_PASS}" "${SPLUNK_URL}/services/search/jobs/export" \
+  --data-urlencode "search=${SYSMON_SEARCH}" -d "output_mode=json" -d "exec_mode=oneshot" -d "count=0" 2>/dev/null)
+
+declare -A SYSMON_LASTSEEN
+while IFS= read -r line; do
+  [[ -z "$line" ]] && continue
+  host=$(echo "$line" | jq -r '.result.host // empty' 2>/dev/null)
+  last=$(echo "$line" | jq -r '.result.last_seen // "never"' 2>/dev/null)
+  [[ -n "$host" ]] && SYSMON_LASTSEEN["$host"]="$last"
+done <<< "$sysmon_response"
+
+for HOST in "${EXPECTED[@]}"; do
+  matched=""
+  for key in "${!SYSMON_LASTSEEN[@]}"; do
+    [[ "${key,,}" == "${HOST,,}" ]] && matched="$key" && break
+  done
+  if [[ -n "$matched" ]]; then
+    ok "${HOST} — Sysmon activo (last_seen=${SYSMON_LASTSEEN[$matched]})"
+  else
+    bad "${HOST} — sin eventos en index=sysmon en las últimas ${LOOKBACK}"
+  fi
+done
+
+# ------------------------------------------------------------------
 section "Resumen"
 # ------------------------------------------------------------------
 echo "  OK: ${PASS}   FAIL: ${FAIL}   WARN: ${WARN}"

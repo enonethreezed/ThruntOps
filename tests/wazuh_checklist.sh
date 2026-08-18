@@ -134,6 +134,42 @@ else
 fi
 
 # ------------------------------------------------------------------
+section "5. Sysmon activo en endpoints Windows"
+# ------------------------------------------------------------------
+if [[ -z "$token" ]]; then
+  bad "Sin token — no se puede comprobar Sysmon"
+elif [[ -z "${agents_response:-}" ]]; then
+  bad "Sin listado de agentes — no se puede comprobar Sysmon"
+else
+  sysmon_agent_count=$(echo "$agents_response" | jq '
+    [.data.affected_items[]
+    | select(.name | test("(DC01-2022|DC01-SEC|WIN11-22H2-1|WIN11-22H2-2)$"; "i"))]
+    | length
+  ' 2>/dev/null)
+  sysmon_agents=$(echo "$agents_response" | jq -r '
+    .data.affected_items[]
+    | select(.name | test("(DC01-2022|DC01-SEC|WIN11-22H2-1|WIN11-22H2-2)$"; "i"))
+    | [.id, .name] | @tsv
+  ' 2>/dev/null)
+
+  if [[ "$sysmon_agent_count" != "4" ]]; then
+    bad "No se encontraron los cuatro endpoints Windows esperados para comprobar Sysmon"
+  else
+    while IFS=$'\t' read -r agent_id agent_name; do
+      services_response=$(curl -sk -H "Authorization: Bearer ${token}" \
+        "${WAZUH_URL}/syscollector/${agent_id}/services?limit=1000" 2>/dev/null)
+      if echo "$services_response" | jq -e '
+        any(.data.affected_items[]?; .service.name == "Sysmon64" and .service.state == "RUNNING")
+      ' >/dev/null 2>&1; then
+        ok "${agent_name} — Sysmon64 activo"
+      else
+        bad "${agent_name} — Sysmon64 no está activo en Syscollector"
+      fi
+    done <<< "$sysmon_agents"
+  fi
+fi
+
+# ------------------------------------------------------------------
 section "Resumen"
 # ------------------------------------------------------------------
 echo "  OK: ${PASS}   FAIL: ${FAIL}   WARN: ${WARN}"
