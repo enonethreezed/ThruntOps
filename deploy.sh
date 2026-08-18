@@ -16,7 +16,7 @@ case "$1" in
     *)            usage ;;
 esac
 
-ludus range destroy && \
+ludus range destroy --no-prompt && \
 ludus range config set -f "$config" && \
 ludus range deploy && \
 ludus range logs -f

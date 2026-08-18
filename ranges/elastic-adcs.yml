@@ -34,7 +34,7 @@ ludus:
 
   - vm_name: "{{ range_id }}-ad-dc-win2022-server-x64"
     hostname: "{{ range_id }}-DC01-2022"
-    template: win2022-server-x64-laps-template
+    template: win2022-server-x64-template
     vlan: 20
     ip_last_octet: 11
     ram_gb: 6
@@ -47,12 +47,8 @@ ludus:
     roles:
       - badsectorlabs.ludus_elastic_agent
       - ludus_ad_content
-      - ludus_laps
     role_vars:
       ludus_elastic_agent_version: "9.4.0"
-      ludus_laps_configure_schema: true
-      ludus_laps_admin_password: password
-      ludus_laps_read_principal: domainadmin
       ludus_ad:
         users:
           - name: pkiadmin
@@ -71,7 +67,7 @@ ludus:
 
   - vm_name: "{{ range_id }}-ad-dc-win2022-secondary"
     hostname: "{{ range_id }}-DC01-SEC"
-    template: win2022-server-x64-laps-template
+    template: win2022-server-x64-template
     vlan: 20
     ip_last_octet: 12
     ram_gb: 4
@@ -83,12 +79,8 @@ ludus:
       role: primary-dc
     roles:
       - badsectorlabs.ludus_elastic_agent
-      - ludus_laps
     role_vars:
       ludus_elastic_agent_version: "9.4.0"
-      ludus_laps_configure_schema: true
-      ludus_laps_admin_password: password
-      ludus_laps_read_principal: domainadmin
 
   - vm_name: "{{ range_id }}-adcs"
     hostname: "{{ range_id }}-ADCS"
@@ -135,7 +127,6 @@ ludus:
       role: member
     roles:
       - badsectorlabs.ludus_elastic_agent
-      - ludus_laps
     role_vars:
       ludus_elastic_agent_version: "9.4.0"
 
@@ -153,6 +144,5 @@ ludus:
       role: member
     roles:
       - badsectorlabs.ludus_elastic_agent
-      - ludus_laps
     role_vars:
       ludus_elastic_agent_version: "9.4.0"

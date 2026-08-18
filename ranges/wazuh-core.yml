@@ -34,7 +34,7 @@ ludus:
 
   - vm_name: "{{ range_id }}-ad-dc-win2022-server-x64"
     hostname: "{{ range_id }}-DC01-2022"
-    template: win2022-server-x64-laps-template
+    template: win2022-server-x64-template
     vlan: 20
     ip_last_octet: 11
     ram_gb: 6
@@ -45,17 +45,14 @@ ludus:
       fqdn: thruntops.domain
       role: primary-dc
     roles:
-      - ludus_wazuh_agent
       - ludus_sysmon_windows
-      - ludus_laps
+      - ludus_wazuh_agent
     role_vars:
       wazuh_manager_ip: "10.1.20.1"
-      ludus_laps_configure_schema: true
-      ludus_laps_admin_password: password
 
   - vm_name: "{{ range_id }}-ad-dc-win2022-secondary"
     hostname: "{{ range_id }}-DC01-SEC"
-    template: win2022-server-x64-laps-template
+    template: win2022-server-x64-template
     vlan: 20
     ip_last_octet: 12
     ram_gb: 4
@@ -66,13 +63,10 @@ ludus:
       fqdn: secondary.thruntops.domain
       role: primary-dc
     roles:
-      - ludus_wazuh_agent
       - ludus_sysmon_windows
-      - ludus_laps
+      - ludus_wazuh_agent
     role_vars:
       wazuh_manager_ip: "10.1.20.1"
-      ludus_laps_configure_schema: true
-      ludus_laps_admin_password: password
 
   - vm_name: "{{ range_id }}-ad-win11-22h2-enterprise-x64-1"
     hostname: "{{ range_id }}-WIN11-22H2-1"
@@ -87,9 +81,8 @@ ludus:
       fqdn: thruntops.domain
       role: member
     roles:
-      - ludus_wazuh_agent
       - ludus_sysmon_windows
-      - ludus_laps
+      - ludus_wazuh_agent
     role_vars:
       wazuh_manager_ip: "10.1.20.1"
 
@@ -106,8 +99,7 @@ ludus:
       fqdn: secondary.thruntops.domain
       role: member
     roles:
-      - ludus_wazuh_agent
       - ludus_sysmon_windows
-      - ludus_laps
+      - ludus_wazuh_agent
     role_vars:
       wazuh_manager_ip: "10.1.20.1"

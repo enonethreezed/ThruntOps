@@ -45,7 +45,7 @@ ThruntOps Fase 1 uses Ludus default credentials. No custom user population is de
 
 | User | Password | Scope |
 |---|---|---|
-| `localuser` | `password` | Local Admin — template default (LAPS-managed after deploy) |
+| `localuser` | `password` | Local Admin — template default |
 
 ### Services
 
@@ -72,7 +72,7 @@ ThruntOps Fase 1 uses Ludus default credentials. No custom user population is de
 | `webdev` | `n4&1Kj@K` | Domain User — Developers group, GitLab maintainer |
 | `primary_user01` | `iFgu¿83¿` | Domain User — shares domain admin password ⚠️ |
 | `primary_user02` | `OS)O69H"` | Domain User — RDP on DC01-2022 ⚠️ |
-| `primary_user03` | `o)@9t7iq` | Domain User — LAPS read on workstations ⚠️ |
+| `primary_user03` | `o)@9t7iq` | Domain User — unassigned (was LAPS read; LAPS removed from ThruntOps) |
 | `primary_user04` | `ggA15$y!` | Domain User — RDP access to ADCS ⚠️ |
 | `primary_user05` | `X¿s\|m7C8` | Domain User — SSH + sudo on gitlab VM |
 | `primary_user06` | `U34SO/p@` | Domain User — SSH on ops VM (no sudo) ⚠️ |
@@ -88,7 +88,7 @@ ThruntOps Fase 1 uses Ludus default credentials. No custom user population is de
 | `basicdomainuser` | `FrN1u/1?` | Low privilege domain user |
 | `secondary_user01` | `Ut2cf7%/` | Domain User — shares domain admin password ⚠️ |
 | `secondary_user02` | `G4L4¿/Ff` | Domain User — RDP on DC01-SEC ⚠️ |
-| `secondary_user03` | `cqA(&P91` | Domain User — LAPS read on workstations ⚠️ |
+| `secondary_user03` | `cqA(&P91` | Domain User — unassigned (was LAPS read; LAPS removed from ThruntOps) |
 | `secondary_user04` | `Xz"c7e7?` | Domain User — RDP access to ADCS ⚠️ |
 | `secondary_user05` | `B@80G(Va` | Domain User — SSH + sudo on gitlab VM |
 | `secondary_user06` | `kN&(2V3T` | Domain User — SSH on gitlab VM (no sudo) ⚠️ |
@@ -109,5 +109,4 @@ ThruntOps Fase 1 uses Ludus default credentials. No custom user population is de
 ## Notes
 
 - ⚠️ marks accounts with intentional vulnerabilities — see [Vulnerabilities](vulnerabilities.md)
-- `localuser` on workstations is managed by Windows LAPS after deploy — read with `Get-LapsADPassword -Identity <hostname>` from a domain admin
 - Fase 2 passwords use special characters from: `!"$%&/()=?¿@#|`

@@ -46,12 +46,12 @@ graph TB
     subgraph VLAN20["VLAN 20"]
 
         subgraph primary["thruntops.domain"]
-            DC1["🖥 DC01-2022\n.20.11\nPrimary DC + LAPS"]
+            DC1["🖥 DC01-2022\n.20.11\nPrimary DC"]
             W1["🖥 WIN11-22H2-1\n.20.21\nWorkstation"]
         end
 
         subgraph secondary["secondary.thruntops.domain"]
-            DC2["🖥 DC01-SEC\n.20.12\nPrimary DC + LAPS"]
+            DC2["🖥 DC01-SEC\n.20.12\nPrimary DC"]
             W2["🖥 WIN11-22H2-2\n.20.22\nWorkstation"]
         end
 
@@ -80,7 +80,7 @@ graph TB
 
 | User | Password | Scope |
 |---|---|---|
-| `localuser` | LAPS-managed | Local Admin — all Windows VMs |
+| `localuser` | `password` (template default) | Local Admin — all Windows VMs |
 | `THRUNTOPS\domainadmin` | `password` | Domain Admin — thruntops.domain |
 | `THRUNTOPS\domainuser` | `password` | Domain User — thruntops.domain |
 | `SECONDARY\domainadmin` | `password` | Domain Admin — secondary.thruntops.domain |
@@ -143,5 +143,4 @@ By default Splunk runs under the free license (500 MB/day ingest limit). To appl
 ## Notes
 
 - `splunk-core.yml` deploys Splunk Enterprise version `10.2.1`
-- LAPS is deployed as neutral infrastructure — `localuser` password is managed on both DCs and workstations
 - Fase 2 will add ADCS, WEB (IIS + MSSQL), GitLab CE, and OPS VM.

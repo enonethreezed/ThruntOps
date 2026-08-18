@@ -66,7 +66,7 @@ SQL Server 2019 used as the backend for the vulnerable web application and as an
 ### Microsoft Active Directory & ADCS
 [microsoft.com](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/)
 
-Windows Server 2022 domain infrastructure (dual domain, ADCS, LAPS) providing the core AD attack surface.
+Windows Server 2022 domain infrastructure (dual domain, ADCS) providing the core AD attack surface.
 
 ---
 
@@ -126,11 +126,3 @@ Adversarial tactics and techniques framework. All attack paths in this lab are m
 [medium.com/specter-ops-posts](https://medium.com/specter-ops-posts)
 
 ADCS attack path documentation in BloodHound (Parts 1–3), referenced throughout the ADCS attack path documentation.
-
----
-
-## Windows LAPS
-
-[learn.microsoft.com — Windows LAPS](https://learn.microsoft.com/en-us/windows-server/identity/laps/laps-overview) — Microsoft
-
-Windows Local Administrator Password Solution deployed on all domain-joined VMs. The `win2022-server-x64-laps-template` custom Packer template ensures KB5025230 is pre-installed so LAPS cmdlets are available without running Windows Update during every deploy.

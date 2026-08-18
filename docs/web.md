@@ -49,7 +49,7 @@ Fase 2 reference material. WEB and MSSQL are not part of the validated Fase 1 co
 
 | User | Type | Notes |
 |---|---|---|
-| `localuser` | Local Admin | LAPS-managed password |
+| `localuser` | Local Admin | `password` (template default) |
 | `webadmin` | Local Admin | IIS/wwwroot owner, CI/CD runner identity |
 
 `primary_user*` / `secondary_user*` accounts do not have RDP on WEB by default.
@@ -251,7 +251,7 @@ Traverse to web.config → recover SA password
   → Relay or crack → lateral movement to DC (if service account has domain privileges)
 ```
 
-### Chain 4 — LAPS / domainadmin → RDP → WEB → MSSQL
+### Chain 4 — domainadmin → RDP → WEB → MSSQL
 
 ```
 Compromise primary_user01 (shares domainadmin password)
