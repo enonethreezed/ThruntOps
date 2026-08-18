@@ -74,7 +74,7 @@ graph TB
 
 | Service | URL | User | Password |
 |---|---|---|---|
-| Splunk Web | `http://<range_ip>.20.1:8000` | `admin` | set in `splunk-core.yml` → `ludus_splunk_admin_password` |
+| Splunk Web | `http://<range_ip>.20.1:8000` | `admin` | set in `splunk-dual.yml` → `ludus_splunk_admin_password` |
 
 ### Windows — Ludus defaults
 
@@ -91,14 +91,16 @@ graph TB
 ## Deployment
 
 ```bash
-bash deploy.sh splunk
+bash splunk.sh --dual   # 2 AD + 2 workstations
+bash splunk.sh --base   # 1 AD + 1 workstation
+bash splunk.sh --adcs   # 1 AD + ADCS + 1 workstation
 ```
 
 Or step by step:
 
 ```bash
 ludus range destroy
-ludus range config set -f ranges/splunk-core.yml
+ludus range config set -f ranges/splunk-dual.yml
 ludus range deploy
 ludus range logs -f
 ```
@@ -133,7 +135,7 @@ By default Splunk runs under the free license (500 MB/day ingest limit). To appl
    ```bash
    scp Splunk.License ludus-admin@<ludus-host>:~/
    ```
-4. Set `ludus_splunk_license_src` in `splunk-core.yml`:
+4. Set `ludus_splunk_license_src` in `splunk-dual.yml` (or the profile you're using):
    ```yaml
    ludus_splunk_license_src: "/home/ludus-admin/Splunk.License"
    ```
@@ -142,5 +144,5 @@ By default Splunk runs under the free license (500 MB/day ingest limit). To appl
 
 ## Notes
 
-- `splunk-core.yml` deploys Splunk Enterprise version `10.2.1`
+- `splunk-dual.yml` deploys Splunk Enterprise version `10.2.1` (also available as `splunk-base.yml` and `splunk-adcs.yml` — see `splunk.sh`)
 - Fase 2 will add ADCS, WEB (IIS + MSSQL), GitLab CE, and OPS VM.

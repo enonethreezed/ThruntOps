@@ -1,14 +1,30 @@
 #!/usr/bin/env bash
-# Checklist de validación post-deploy — variante Elastic (ranges/elastic-core.yml)
-# Cubre: VMs levantadas / usuarios de dominio / SIEM up / endpoints reportando.
+# Checklist de validación post-deploy — variante Elastic
+# Cubre: VMs levantadas / usuarios de dominio / SIEM up / endpoints reportando (Fleet).
 #
 # Requiere: curl, jq. Opcional: ldapwhoami (paquete ldap-utils) para el check de
 # usuarios de dominio.
 #
+# Uso:
+#   ./tests/elastic_checklist.sh --base   # ranges/elk-base.yml  (1 AD + 1 WRK)
+#   ./tests/elastic_checklist.sh --dual   # ranges/elk-dual.yml  (2 AD + 2 WRK)
+#   ./tests/elastic_checklist.sh --adcs   # ranges/elk-adcs.yml  (1 AD + ADCS + 1 WRK)
+#
 # Override de red vía env vars si la autodetección falla:
-#   RANGE_PREFIX=10.2 ./tests/elastic_checklist.sh
+#   RANGE_PREFIX=10.2 ./tests/elastic_checklist.sh --dual
 
 set -uo pipefail
+
+usage() {
+  echo "Usage: $0 <--base|--dual|--adcs>"
+  exit 1
+}
+
+PROFILE="${1:-}"
+case "$PROFILE" in
+  --base|--dual|--adcs) ;;
+  *) usage ;;
+esac
 
 ELASTIC_USER="elastic"
 ELASTIC_PASS="thisisapassword"
@@ -31,7 +47,7 @@ if [[ -z "${RANGE_PREFIX:-}" ]]; then
     RANGE_PREFIX="10.${RANGE_NUM}"
   else
     echo "No se pudo autodetectar el prefijo de red desde 'ludus range status --json'."
-    echo "Define RANGE_PREFIX manualmente, p.ej.: RANGE_PREFIX=10.2 $0"
+    echo "Define RANGE_PREFIX manualmente, p.ej.: RANGE_PREFIX=10.2 $0 ${PROFILE}"
     exit 1
   fi
 fi
@@ -40,11 +56,43 @@ BASE="${RANGE_PREFIX}.20"
 ELASTIC_IP="${BASE}.1"
 DC1_IP="${BASE}.11"
 DC2_IP="${BASE}.12"
-WS1_IP="${BASE}.21"
-WS2_IP="${BASE}.22"
 KIBANA_URL="https://${ELASTIC_IP}:5601"
 
-echo "Prefijo de red: ${RANGE_PREFIX}  (elastic: ${ELASTIC_IP})"
+# --- Forma del perfil ---
+case "$PROFILE" in
+  --base)
+    VM_PATTERNS=(
+      "elastic:-elastic$"
+      "DC01-2022:-ad-dc-win2022-server-x64$"
+      "WIN11-22H2-1:-ad-win11-22h2-enterprise-x64-1$"
+    )
+    declare -A DOMAINS=( ["thruntops.domain"]="$DC1_IP" )
+    ;;
+  --dual)
+    VM_PATTERNS=(
+      "elastic:-elastic$"
+      "DC01-2022:-ad-dc-win2022-server-x64$"
+      "DC01-SEC:-ad-dc-win2022-secondary$"
+      "WIN11-22H2-1:-ad-win11-22h2-enterprise-x64-1$"
+      "WIN11-22H2-2:-ad-win11-22h2-enterprise-x64-2$"
+    )
+    declare -A DOMAINS=(
+      ["thruntops.domain"]="$DC1_IP"
+      ["secondary.thruntops.domain"]="$DC2_IP"
+    )
+    ;;
+  --adcs)
+    VM_PATTERNS=(
+      "elastic:-elastic$"
+      "DC01-2022:-ad-dc-win2022-server-x64$"
+      "ADCS:-adcs$"
+      "WIN11-22H2-1:-ad-win11-22h2-enterprise-x64-1$"
+    )
+    declare -A DOMAINS=( ["thruntops.domain"]="$DC1_IP" )
+    ;;
+esac
+
+echo "Perfil: ${PROFILE#--}  |  Prefijo de red: ${RANGE_PREFIX}  (elastic: ${ELASTIC_IP})"
 
 # ------------------------------------------------------------------
 section "1. VMs levantadas"
@@ -55,13 +103,6 @@ if [[ -z "$STATUS_JSON" ]]; then
 else
   # El campo .name de 'ludus range status --json' es el vm_name de Proxmox, no el
   # hostname de Windows/AD — hay que matchear contra el patrón de vm_name real.
-  VM_PATTERNS=(
-    "elastic:-elastic$"
-    "DC01-2022:-ad-dc-win2022-server-x64$"
-    "DC01-SEC:-ad-dc-win2022-secondary$"
-    "WIN11-22H2-1:-ad-win11-22h2-enterprise-x64-1$"
-    "WIN11-22H2-2:-ad-win11-22h2-enterprise-x64-2$"
-  )
   for entry in "${VM_PATTERNS[@]}"; do
     label="${entry%%:*}"
     pattern="${entry#*:}"
@@ -82,10 +123,6 @@ section "2. Usuarios — dominio"
 if ! command -v ldapwhoami >/dev/null 2>&1; then
   warn "ldapwhoami no instalado (paquete ldap-utils) — no se puede validar autenticación de dominio"
 else
-  declare -A DOMAINS=(
-    ["thruntops.domain"]="$DC1_IP"
-    ["secondary.thruntops.domain"]="$DC2_IP"
-  )
   for domain in "${!DOMAINS[@]}"; do
     dc_ip="${DOMAINS[$domain]}"
     for user in "domainadmin:$DOMAIN_ADMIN_PASS" "domainuser:$DOMAIN_USER_PASS"; do

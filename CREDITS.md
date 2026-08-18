@@ -37,17 +37,17 @@ The entire lab is built on Ludus — a Proxmox-based cyber range automation plat
 ### Elastic
 [elastic.co](https://www.elastic.co)
 
-Elasticsearch, Kibana, and the Elastic Fleet/Agent framework used in the `elastic-core.yml` profile.
+Elasticsearch, Kibana, and the Elastic Fleet/Agent framework used in the `elk-dual.yml` profile.
 
 ### Wazuh
 [wazuh.com](https://wazuh.com)
 
-Open-source XDR and SIEM platform used in the `wazuh-core.yml` profile. Agents deployed on all lab VMs for centralized log collection and alerting.
+Open-source XDR and SIEM platform used in the `wazuh-dual.yml` profile. Agents deployed on all lab VMs for centralized log collection and alerting.
 
 ### Splunk
 [splunk.com](https://www.splunk.com)
 
-Splunk Enterprise and Universal Forwarder used in the `splunk-core.yml` profile.
+Splunk Enterprise and Universal Forwarder used in the `splunk-dual.yml` profile.
 
 ---
 

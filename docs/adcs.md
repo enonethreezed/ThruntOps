@@ -5,7 +5,10 @@ nav_order: 9
 ---
 
 {: .warning }
-**Fase 2 — ADCS smoke-tested on Ludus 2.** `ranges/elastic-adcs.yml` adds the ADCS VM and ESC attack-path prerequisites to the validated Elastic core profile. Deploy has been validated with Elastic/Fleet online, ADCS web enrollment reachable, Certipy enumeration, and ESC1 certificate issuance.
+**Fase 2 — ADCS smoke-tested on Ludus 2.** `ranges/elk-adcs.yml` adds a dedicated ADCS VM to the single-domain Elastic profile. Deploy has been validated with Elastic/Fleet online, ADCS web enrollment reachable, Certipy enumeration, and ESC1 certificate issuance.
+
+{: .warning }
+**Known gap (ThruntOps-6pu):** as of the base/dual/adcs profile split, `elk-adcs.yml`/`wazuh-adcs.yml`/`splunk-adcs.yml` only provision Ludus's default accounts — the vulnerable ESC-specific users referenced below (`primary_user04`, `esc5user`, `esc7_camgr_user`, etc.) are no longer created by the range config and need to move to a dedicated content role per the N-roles model (see [Vulnerable-AD Matrix](vulnerable-ad-matrix.md)).
 
 # ADCS Attack Paths
 {: .no_toc }
@@ -517,7 +520,7 @@ certipy auth \
 
 ## Notes
 
-- ADCS attack paths are currently implemented in `ranges/elastic-adcs.yml`
+- ADCS attack paths are currently implemented in `ranges/elk-adcs.yml`, `ranges/wazuh-adcs.yml`, and `ranges/splunk-adcs.yml`
 - `primary_user04` has RDP on ADCS — useful for local enumeration and ESC5 interactive access
 - Certificate authentication requires PKINIT support on the DC — available on all Windows Server 2016+ DCs
 - For ESC8 and ESC11 (PetitPotam), the Kali VM must be deployed: `bash scripts/add-kali.sh`

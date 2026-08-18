@@ -74,8 +74,8 @@ graph TB
 
 | Service | URL | User | Password |
 |---|---|---|---|
-| Wazuh Dashboard | `https://<range_ip>.20.1` | `admin` | set in `wazuh-core.yml` → `wazuh_admin_password` |
-| Wazuh REST API | `https://<range_ip>.20.1:55000` | `wazuh` | set in `wazuh-core.yml` → `wazuh_api_password` |
+| Wazuh Dashboard | `https://<range_ip>.20.1` | `admin` | set in `wazuh-dual.yml` → `wazuh_admin_password` |
+| Wazuh REST API | `https://<range_ip>.20.1:55000` | `wazuh` | set in `wazuh-dual.yml` → `wazuh_api_password` |
 
 ### Windows — Ludus defaults
 
@@ -95,14 +95,16 @@ The Wazuh REST API user (`wazuh`) and dashboard user (`wazuh-wui`) are stored in
 ## Deployment
 
 ```bash
-bash deploy.sh wazuh
+bash wazuh.sh --dual   # 2 AD + 2 workstations
+bash wazuh.sh --base   # 1 AD + 1 workstation
+bash wazuh.sh --adcs   # 1 AD + ADCS + 1 workstation
 ```
 
 Or step by step:
 
 ```bash
 ludus range destroy
-ludus range config set -f ranges/wazuh-core.yml
+ludus range config set -f ranges/wazuh-dual.yml
 ludus range deploy
 ludus range logs -f
 ```
@@ -131,5 +133,5 @@ ludus range status
 
 ## Notes
 
-- `wazuh-core.yml` deploys Wazuh all-in-one via `wazuh-install.sh -a`
+- `wazuh-dual.yml` deploys Wazuh all-in-one via `wazuh-install.sh -a` (also available as `wazuh-base.yml` and `wazuh-adcs.yml` — see `wazuh.sh`)
 - Fase 2 will add ADCS, WEB (IIS + MSSQL), GitLab CE, and OPS VM.

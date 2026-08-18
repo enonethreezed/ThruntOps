@@ -123,19 +123,23 @@ ludus ansible roles list
 
 ## 5. Deploy the Range
 
-Use `deploy.sh` to destroy any existing range, apply the config, and deploy in one step:
+Each SIEM has its own script (`elastic.sh`, `wazuh.sh`, `splunk.sh`) that destroys any existing range, applies the config, and deploys in one step. Each accepts one of three profile flags:
+
+- `--base` — 1 AD + 1 workstation
+- `--dual` — 2 AD + 2 workstations
+- `--adcs` — 1 AD + ADCS + 1 workstation
 
 ```bash
-bash deploy.sh elk      # Elastic profile
-bash deploy.sh elastic-adcs  # Elastic + ADCS profile
-bash deploy.sh splunk   # Splunk profile
-bash deploy.sh wazuh    # Wazuh profile
+bash elastic.sh --dual   # ranges/elk-dual.yml
+bash elastic.sh --adcs   # ranges/elk-adcs.yml
+bash wazuh.sh --dual     # ranges/wazuh-dual.yml
+bash splunk.sh --dual    # ranges/splunk-dual.yml
 ```
 
 Or step by step:
 
 ```bash
-ludus range config set -f ranges/elastic-core.yml
+ludus range config set -f ranges/elk-dual.yml
 ludus range deploy
 ludus range logs -f
 ```

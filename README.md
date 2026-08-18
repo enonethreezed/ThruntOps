@@ -15,16 +15,15 @@ Validation completed: all three core SIEM ranges deploy successfully, domain aut
 
 ## Profiles
 
-Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). The validated core profiles run on VLAN 20 (`10.<range>.20.0/24`). Deploy with the config file matching your chosen SIEM:
+Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). The validated profiles run on VLAN 20 (`10.<range>.20.0/24`). Each SIEM has three atomic profiles, deployed via its own script (`elastic.sh`, `wazuh.sh`, `splunk.sh`) with `--base`, `--dual`, or `--adcs`:
 
 | Profile | Config | SIEM | VMs | Validation |
 |---|---|---|---|---|
-| [Elastic](https://enonethreezed.github.io/ThruntOps/elastic) | `elastic-core.yml` | Elastic Stack + Fleet | 5 — dual AD, dual workstations | Passed on Ludus 2 |
-| Elastic + ADCS | `elastic-adcs.yml` | Elastic Stack + Fleet | 6 — core + ADCS | Passed ADCS smoke test on Ludus 2 |
-| [Wazuh](https://enonethreezed.github.io/ThruntOps/wazuh) | `wazuh-core.yml` | Wazuh all-in-one | 5 — dual AD, dual workstations | Passed on Ludus 2 |
-| [Splunk](https://enonethreezed.github.io/ThruntOps/splunk) | `splunk-core.yml` | Splunk Enterprise | 5 — dual AD, dual workstations | Passed on Ludus 2 |
+| [Elastic](https://enonethreezed.github.io/ThruntOps/elastic) | `elk-{base,dual,adcs}.yml` | Elastic Stack + Fleet | 3 / 5 / 4 VMs | Passed on Ludus 2 (dual) |
+| [Wazuh](https://enonethreezed.github.io/ThruntOps/wazuh) | `wazuh-{base,dual,adcs}.yml` | Wazuh all-in-one | 3 / 5 / 4 VMs | Passed on Ludus 2 (dual) |
+| [Splunk](https://enonethreezed.github.io/ThruntOps/splunk) | `splunk-{base,dual,adcs}.yml` | Splunk Enterprise | 3 / 5 / 4 VMs | Passed on Ludus 2 (dual) |
 
-All validated core profiles share the same dual AD forest (`thruntops.domain` + `secondary.thruntops.domain`) and dual Windows 11 workstations. Fase 2 will add ADCS, WEB, GitLab, and OPS infrastructure.
+`--base` is a single AD domain + 1 workstation, `--dual` adds a second AD domain + workstation (the validated profile above), and `--adcs` swaps the second domain for a dedicated ADCS VM on the single domain. All profiles share the same AD forest naming (`thruntops.domain` [+ `secondary.thruntops.domain` on dual]) and only provision Ludus's default accounts. Fase 2 will add WEB, GitLab, and OPS infrastructure.
 
 ## Users
 

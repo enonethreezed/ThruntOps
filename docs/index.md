@@ -18,10 +18,21 @@ All three core SIEM profiles have passed Ludus 2 validation: range deploy succee
 
 | Profile | Config | SIEM | VMs | Validation |
 |---|---|---|---|---|
-| [Elastic](elastic.md) | `elastic-core.yml` | Elastic Stack + Fleet | 5 — dual AD, dual workstations | Passed on Ludus 2 |
-| Elastic + ADCS | `elastic-adcs.yml` | Elastic Stack + Fleet | 6 — core + ADCS | Passed ADCS smoke test on Ludus 2 |
-| [Splunk](splunk.md) | `splunk-core.yml` | Splunk Enterprise | 5 — dual AD, dual workstations | Passed on Ludus 2 |
-| [Wazuh](wazuh.md) | `wazuh-core.yml` | Wazuh all-in-one | 5 — dual AD, dual workstations | Passed on Ludus 2 |
+| [Elastic](elastic.md) | `elk-{base,dual,adcs}.yml` | Elastic Stack + Fleet | 3 / 5 / 4 VMs | Passed on Ludus 2 (dual) |
+| [Splunk](splunk.md) | `splunk-{base,dual,adcs}.yml` | Splunk Enterprise | 3 / 5 / 4 VMs | Passed on Ludus 2 (dual) |
+| [Wazuh](wazuh.md) | `wazuh-{base,dual,adcs}.yml` | Wazuh all-in-one | 3 / 5 / 4 VMs | Passed on Ludus 2 (dual) |
+
+Each SIEM has three atomic profiles, deployed via its own script:
+
+- `--base` — 1 AD + 1 workstation
+- `--dual` — 2 AD + 2 workstations (the validated profile above)
+- `--adcs` — 1 AD + dedicated ADCS VM + 1 workstation
+
+```bash
+bash elastic.sh --dual
+bash wazuh.sh --dual
+bash splunk.sh --dual
+```
 
 ## Phases
 
