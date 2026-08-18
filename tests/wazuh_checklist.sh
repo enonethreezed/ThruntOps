@@ -66,7 +66,7 @@ else
     label="${entry%%:*}"
     pattern="${entry#*:}"
     powered=$(echo "$STATUS_JSON" | jq -r --arg p "$pattern" '
-      [.VMs[]? // .vms[]? | select(.name // .Name | test($p))] | .[0] |
+      [.VMs[]? // .vms[]? | select((.name // .Name // "") | test($p))] | .[0] |
       (.poweredOn // .powered_on // .PoweredOn // empty)' 2>/dev/null)
     case "$powered" in
       true)  ok "$label — encendida" ;;

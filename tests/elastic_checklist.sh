@@ -66,7 +66,7 @@ else
     label="${entry%%:*}"
     pattern="${entry#*:}"
     powered=$(echo "$STATUS_JSON" | jq -r --arg p "$pattern" '
-      [.VMs[]? // .vms[]? | select(.name // .Name | test($p))] | .[0] |
+      [.VMs[]? // .vms[]? | select((.name // .Name // "") | test($p))] | .[0] |
       (.poweredOn // .powered_on // .PoweredOn // empty)' 2>/dev/null)
     case "$powered" in
       true)  ok "$label — encendida" ;;
@@ -123,18 +123,23 @@ fleet_response=$(curl -sk -u "${ELASTIC_USER}:${ELASTIC_PASS}" -H "kbn-xsrf: tru
 if ! echo "$fleet_response" | jq -e '.items' >/dev/null 2>&1; then
   bad "No se pudo obtener la lista de agentes Fleet"
 else
-  echo "$fleet_response" | jq -r '
+  agent_lines=$(echo "$fleet_response" | jq -r '
     [ .items[] | select(.active == true and .status != "uninstalled") ] |
     group_by(.local_metadata.host.hostname // .id) |
     .[] | sort_by(.last_checkin) | last |
     [ (.local_metadata.host.hostname // .id), (.status // "unknown") ] | @tsv
-  ' | while IFS=$'\t' read -r hostname status; do
-    if [[ "$status" == "online" ]]; then
-      echo "  ✓ ${hostname} — online"
-    else
-      echo "  ✗ ${hostname} — ${status}"
-    fi
-  done
+  ')
+  if [[ -z "$agent_lines" ]]; then
+    bad "No hay agentes Fleet activos registrados"
+  else
+    while IFS=$'\t' read -r hostname status; do
+      if [[ "$status" == "online" ]]; then
+        ok "${hostname} — online"
+      else
+        bad "${hostname} — ${status}"
+      fi
+    done <<< "$agent_lines"
+  fi
 fi
 
 # ------------------------------------------------------------------
