@@ -12,15 +12,15 @@ A Ludus-based lab environment for TTP testing and security research.
 
 Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). Dual Active Directory domains and a choice of SIEM.
 
-All three core SIEM profiles have passed Ludus 2 validation: range deploy succeeds, domain users authenticate, SIEM services are reachable, and all four Windows endpoints report telemetry.
+All 9 atomized profiles (base/dual/adcs × Elastic/Splunk/Wazuh) have passed a from-scratch deploy validation on Ludus 2: destroy + deploy succeeds, domain users authenticate, SIEM services are reachable, and every endpoint enrolls.
 
 ## Profiles
 
 | Profile | Config | SIEM | VMs | Validation |
 |---|---|---|---|---|
-| [Elastic](elastic.md) | `elk-{base,dual,adcs}.yml` | Elastic Stack + Fleet | 3 / 5 / 4 VMs | Passed on Ludus 2 (dual) |
-| [Splunk](splunk.md) | `splunk-{base,dual,adcs}.yml` | Splunk Enterprise | 3 / 5 / 4 VMs | Passed on Ludus 2 (dual) |
-| [Wazuh](wazuh.md) | `wazuh-{base,dual,adcs}.yml` | Wazuh all-in-one | 3 / 5 / 4 VMs | Passed on Ludus 2 (dual) |
+| [Elastic](elastic.md) | `elk-{base,dual,adcs}.yml` | Elastic Stack + Fleet | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
+| [Splunk](splunk.md) | `splunk-{base,dual,adcs}.yml` | Splunk Enterprise | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
+| [Wazuh](wazuh.md) | `wazuh-{base,dual,adcs}.yml` | Wazuh all-in-one | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
 
 Each SIEM has three atomic profiles, deployed via its own script:
 

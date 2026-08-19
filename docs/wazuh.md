@@ -10,7 +10,7 @@ nav_order: 4
 Wazuh all-in-one SIEM with dual AD domains and workstations. Fase 1 — core infrastructure and agent enrollment.
 {: .fs-6 .fw-300 }
 
-Validated on Ludus 2: deploy succeeds, domain authentication works, Wazuh API/dashboard are reachable, and all four agents are active.
+Validated on Ludus 2 across all three profiles (`--base`, `--dual`, `--adcs`): a from-scratch deploy (destroy + deploy) succeeds, domain authentication works, Wazuh API/dashboard are reachable, and every agent is active — including Sysmon telemetry.
 {: .label .label-green }
 
 ---
@@ -36,6 +36,8 @@ All VMs run on VLAN 20.
 | .20.22 | WIN11-22H2-2 | Windows 11 22H2 | Workstation — `secondary.thruntops.domain` |
 
 > IP prefix depends on the Ludus range network (e.g. `10.1.0.0/16` → `10.1.20.x`).
+
+Table shows `--dual` (5 VMs). `--base` drops the secondary domain (3 VMs: `wazuh`, `DC01-2022`, `WIN11-22H2-1`). `--adcs` swaps the secondary domain for a dedicated ADCS VM at `.20.13` (4 VMs: `wazuh`, `DC01-2022`, `ADCS`, `WIN11-22H2-1`) — single domain only.
 
 ---
 
@@ -113,15 +115,19 @@ ludus range logs -f
 
 ## Verify
 
-This profile has passed the post-deploy validation checklist on Ludus 2.
+All three profiles have passed the post-deploy validation checklist on Ludus 2, run with the matching flag:
 
-After deploy, confirm all 4 agents are enrolled and active:
+```bash
+RANGE_PREFIX=10.<range> tests/wazuh_checklist.sh --base   # or --dual / --adcs
+```
+
+Or manually, confirm agents are enrolled, active, and reporting Sysmon:
 
 ```bash
 bash tests/wazuh_status.sh
 ```
 
-Expected output: all agents (`DC01-2022`, `DC01-SEC`, `WIN11-22H2-1`, `WIN11-22H2-2`) with status `active`.
+Expected output: every agent in the deployed profile with status `active` (2 for `--base`, 4 for `--dual`, 3 for `--adcs`).
 
 Check range status:
 
@@ -134,4 +140,5 @@ ludus range status
 ## Notes
 
 - `wazuh-dual.yml` deploys Wazuh all-in-one via `wazuh-install.sh -a` (also available as `wazuh-base.yml` and `wazuh-adcs.yml` — see `wazuh.sh`)
+- Unlike Splunk ([ThruntOps-m13](splunk.md#notes)), the Wazuh agent reads the Sysmon event channel correctly on every endpoint, including domain-member workstations and the ADCS VM — confirmed during validation.
 - Fase 2 will add ADCS, WEB (IIS + MSSQL), GitLab CE, and OPS VM.

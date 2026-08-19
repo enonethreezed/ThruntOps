@@ -5,10 +5,10 @@ nav_order: 9
 ---
 
 {: .warning }
-**Fase 2 — ADCS smoke-tested on Ludus 2.** `ranges/elk-adcs.yml` adds a dedicated ADCS VM to the single-domain Elastic profile. Deploy has been validated with Elastic/Fleet online, ADCS web enrollment reachable, Certipy enumeration, and ESC1 certificate issuance.
+**Fase 2 — ADCS validated on Ludus 2 across all three SIEM profiles.** `elk-adcs.yml`, `wazuh-adcs.yml`, and `splunk-adcs.yml` each add a dedicated ADCS VM to a single-domain profile. A from-scratch deploy (destroy + deploy) was confirmed clean for all three; the Elastic variant was additionally validated with Fleet online, ADCS web enrollment reachable, Certipy enumeration, and ESC1 certificate issuance.
 
 {: .warning }
-**Known gap (ThruntOps-6pu):** as of the base/dual/adcs profile split, `elk-adcs.yml`/`wazuh-adcs.yml`/`splunk-adcs.yml` only provision Ludus's default accounts — the vulnerable ESC-specific users referenced below (`primary_user04`, `esc5user`, `esc7_camgr_user`, etc.) are no longer created by the range config and need to move to a dedicated content role per the N-roles model (see [Vulnerable-AD Matrix](vulnerable-ad-matrix.md)).
+**Known gap (ThruntOps-xtx), narrower than first thought:** `badsectorlabs.ludus_adcs` creates its own ESC13/ESC14/ESC15/ESC16 users (`esc13group`, `esc14user`, `esc14target`, `esc16user`, etc.) as part of the role itself — confirmed working during the base/dual/adcs validation round, no range-config content needed. The real gap is just `pkiadmin` and `primary_user04` (previously seeded via `ludus_ad_content` in the pre-atomization `elastic-adcs.yml`, not recreated in the atomized profiles); whether `esc5user`/`esc7_camgr_user`/`esc7_certmgr_user`/`esc9user` are also self-provisioned by the role is unconfirmed. See [Vulnerable-AD Matrix](vulnerable-ad-matrix.md) for the N-roles model this content should move to.
 
 # ADCS Attack Paths
 {: .no_toc }

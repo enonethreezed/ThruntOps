@@ -10,7 +10,7 @@ nav_order: 3
 Elastic Stack SIEM with dual AD domains and workstations. Fase 1 — core infrastructure and agent enrollment.
 {: .fs-6 .fw-300 }
 
-Validated on Ludus 2: deploy succeeds, domain authentication works, Kibana/Fleet is reachable, and all four Elastic Agents are online.
+Validated on Ludus 2 across all three profiles (`--base`, `--dual`, `--adcs`): a from-scratch deploy (destroy + deploy) succeeds, domain authentication works, Kibana/Fleet is reachable, and every endpoint enrolls.
 {: .label .label-green }
 
 ---
@@ -36,6 +36,8 @@ All VMs run on VLAN 20.
 | .20.22 | WIN11-22H2-2 | Windows 11 22H2 | Workstation — `secondary.thruntops.domain` |
 
 > IP prefix depends on the Ludus range network (e.g. `10.1.0.0/16` → `10.1.20.x`).
+
+Table shows `--dual` (5 VMs). `--base` drops the secondary domain (3 VMs: `elastic`, `DC01-2022`, `WIN11-22H2-1`). `--adcs` swaps the secondary domain for a dedicated ADCS VM at `.20.13` (4 VMs: `elastic`, `DC01-2022`, `ADCS`, `WIN11-22H2-1`) — single domain only.
 
 ---
 
@@ -109,13 +111,17 @@ ludus range logs -f
 
 ## Verify
 
-This profile has passed the post-deploy validation checklist on Ludus 2.
+All three profiles have passed the post-deploy validation checklist on Ludus 2, run with the matching flag:
 
-After deploy, confirm all 4 agents enrolled in Fleet:
+```bash
+RANGE_PREFIX=10.<range> tests/elastic_checklist.sh --base   # or --dual / --adcs
+```
+
+Or manually, confirm all agents enrolled in Fleet:
 
 **Kibana → Management → Fleet → Agents**
 
-All four VMs (`DC01-2022`, `DC01-SEC`, `WIN11-22H2-1`, `WIN11-22H2-2`) should show status `Healthy`.
+Every Windows VM in the deployed profile should show status `Healthy` (2 for `--base`, 4 for `--dual`, 3 for `--adcs`).
 
 Check range status:
 
