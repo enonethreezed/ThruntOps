@@ -13,5 +13,7 @@ plugins:
 nav_external_links:
   - title: GitHub
     url: https://github.com/enonethreezed/ThruntOps
+  - title: Vulnerabilities
+    url: https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md
 
 footer_content: "ThruntOps — MIT License"

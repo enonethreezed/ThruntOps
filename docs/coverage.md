@@ -5,7 +5,7 @@ nav_order: 10
 ---
 
 {: .note }
-**Fase 1 active:** SIEM agent enrollment on DC01-2022, DC01-SEC, WIN11-22H2-1, WIN11-22H2-2. All other categories below require Fase 2 (ADCS, MSSQL, OPS VMs).
+**Fase 1 active:** SIEM agent enrollment on DC01-2022, DC01-SEC, WIN11-22H2-1, WIN11-22H2-2. All other categories below require Fase 2 (ADCS, MSSQL, OPS VMs). AD, Linux PrivEsc, and Reverse Shell techniques are tracked in the external [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) matrix and are not yet implemented as ThruntOps roles.
 
 # Lab Coverage
 {: .no_toc }
@@ -63,12 +63,12 @@ mindmap
 
 | Category | Techniques | VM | Docs |
 |---|---|---|---|
-| **Active Directory** | Credential reuse, RDP to DC, RDP to ADCS | DC01-2022, DC01-SEC, WIN11 | [Vulnerability role matrix](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) |
+| **Active Directory** | Credential reuse, RDP to DC, RDP to ADCS | DC01-2022, DC01-SEC, WIN11 | [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) |
 | **ADCS / PKI** | ESC1–ESC16 | ADCS | [ADCS Attack Paths](adcs.md) |
 | **MSSQL** | xp_cmdshell, NTLM capture, DBA→sysadmin | TBD | [MSSQL TTPs](mssql.md) |
-| **Linux PrivEsc — ops** | sudo (ansible-playbook, ansible-test, certbot, watch), cap_gdb | ops | [Vulnerability role matrix](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) |
-| **Reverse Shells — Linux** | PHP, Ruby, Python, Node.js, tclsh, Perl | ops | [Vulnerability role matrix](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) |
-| **Reverse Shells — Windows** | PowerShell, mshta, certutil, cscript, wscript | WIN11 | [Vulnerability role matrix](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) |
+| **Linux PrivEsc — ops** | sudo (ansible-playbook, ansible-test, certbot, watch), cap_gdb | ops | [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) |
+| **Reverse Shells — Linux** | PHP, Ruby, Python, Node.js, tclsh, Perl | ops | [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) |
+| **Reverse Shells — Windows** | PowerShell, mshta, certutil, cscript, wscript | WIN11 | [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) |
 | **LOLBins — Windows** | Module installed for user08 on WIN11-22H2-1/2 | WIN11-22H2-1/2 | — |
 
 ---

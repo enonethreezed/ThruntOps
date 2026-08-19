@@ -29,9 +29,9 @@ Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). The validated profile
 
 See the [Users reference](https://enonethreezed.github.io/ThruntOps/users) for the full credentials reference.
 
-## Attack Surface
+## Vulnerabilities
 
-See the [Vulnerabilities reference](https://enonethreezed.github.io/ThruntOps/vulnerabilities) for the full attack surface reference.
+See the [Vulnerabilities matrix](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) for the full attack surface reference.
 
 ## Installation
 
