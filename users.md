@@ -107,5 +107,5 @@ ThruntOps Fase 1 uses Ludus default credentials. No custom user population is de
 
 ## Notes
 
-- ⚠️ marks accounts with intentional vulnerabilities — see the [vulnerability role matrix](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md)
+- ⚠️ marks accounts with intentional vulnerabilities — see the [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md)
 - Fase 2 passwords use special characters from: `!"$%&/()=?¿@#|`
