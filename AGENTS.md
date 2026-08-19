@@ -156,6 +156,7 @@ For more details, see README.md and docs/QUICKSTART.md.
     Do not change the project idea unless an explicit change is requested.
     Do not propose changes, modifications, or improvements until all Beads tasks are closed.
     Never touch Ludus's own code or the roles/modules provided by the Ludus tool itself (e.g. anything under /opt/ludus, or upstream roles such as badsectorlabs.*). Only this repo's own roles, ranges, and configs are in scope.
+    All repo content (code, comments, scripts, docs, commit messages, and new beads/GitHub tracking) must be written in English. This does not apply to conversation with the user, which may be in any language.
 
 **Agent Response Contract (Mandatory)**
 

@@ -3,7 +3,7 @@
 if [[ -z "${RANGE_PREFIX:-}" ]]; then
   RANGE_NUM=$(ludus range status --json 2>/dev/null | jq -r '.rangeNumber // .range_number // empty' 2>/dev/null)
   if [[ -z "$RANGE_NUM" ]]; then
-    echo "Error: no se pudo autodetectar el prefijo de red. Define RANGE_PREFIX, p.ej.: RANGE_PREFIX=10.1 $0"
+    echo "Error: could not autodetect the network prefix. Set RANGE_PREFIX, e.g.: RANGE_PREFIX=10.1 $0"
     exit 1
   fi
   RANGE_PREFIX="10.${RANGE_NUM}"
@@ -21,8 +21,8 @@ token=$(curl -sk --max-time 10 \
   | jq -r '.data.token // empty')
 
 if [[ -z "$token" ]]; then
-  echo "Error: no se pudo autenticar con la API de Wazuh (${WAZUH_URL})"
-  echo "Comprueba que el servidor está activo y las credenciales son correctas."
+  echo "Error: could not authenticate with the Wazuh API (${WAZUH_URL})"
+  echo "Check that the server is up and the credentials are correct."
   exit 1
 fi
 
@@ -32,7 +32,7 @@ response=$(curl -sk --max-time 10 \
   "${WAZUH_URL}/agents?limit=500&q=id!=000")
 
 if ! echo "$response" | jq -e '.data.affected_items' > /dev/null 2>&1; then
-  echo "Error al obtener agentes:"
+  echo "Error fetching agents:"
   echo "$response" | jq '.' 2>/dev/null || echo "$response"
   exit 1
 fi
@@ -61,10 +61,10 @@ echo "$response" | jq -r '
 done
 
 echo ""
-echo "--- Resumen ---"
+echo "--- Summary ---"
 echo "$response" | jq -r '.data.affected_items[].status' | sort | uniq -c | while read -r count status; do
   echo "  $status: $count"
 done
 
 total=$(echo "$response" | jq '.data.total_affected_items')
-echo "  Total agentes: $total"
+echo "  Total agents: $total"

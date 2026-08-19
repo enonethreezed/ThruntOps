@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Checklist de validación post-deploy — variante Splunk
-# Cubre: VMs levantadas / usuarios de dominio / SIEM up / endpoints reportando / Sysmon.
+# Post-deploy validation checklist — Splunk variant
+# Covers: VMs up / domain users / SIEM up / endpoints reporting / Sysmon.
 #
-# Requiere: curl, jq. Opcional: ldapwhoami (paquete ldap-utils) para el check de
-# usuarios de dominio.
+# Requires: curl, jq. Optional: ldapwhoami (ldap-utils package) for the
+# domain user check.
 #
-# Uso:
+# Usage:
 #   ./tests/splunk_checklist.sh --base   # ranges/splunk-base.yml  (1 AD + 1 WRK)
 #   ./tests/splunk_checklist.sh --dual   # ranges/splunk-dual.yml  (2 AD + 2 WRK)
 #   ./tests/splunk_checklist.sh --adcs   # ranges/splunk-adcs.yml  (1 AD + ADCS + 1 WRK)
 #
-# Override de red vía env vars si la autodetección falla:
+# Network override via env vars if autodetection fails:
 #   RANGE_PREFIX=10.2 ./tests/splunk_checklist.sh --dual
 
 set -uo pipefail
@@ -41,14 +41,14 @@ bad()  { printf "  \033[31m✗\033[0m %s\n" "$1"; FAIL=$((FAIL+1)); }
 warn() { printf "  \033[33m~\033[0m %s\n" "$1"; WARN=$((WARN+1)); }
 section() { printf "\n=== %s ===\n" "$1"; }
 
-# --- Resolver prefijo de red del range (10.<rangeNumber>) ---
+# --- Resolve the range's network prefix (10.<rangeNumber>) ---
 if [[ -z "${RANGE_PREFIX:-}" ]]; then
   RANGE_NUM=$(ludus range status --json 2>/dev/null | jq -r '.rangeNumber // .range_number // empty' 2>/dev/null)
   if [[ -n "$RANGE_NUM" ]]; then
     RANGE_PREFIX="10.${RANGE_NUM}"
   else
-    echo "No se pudo autodetectar el prefijo de red desde 'ludus range status --json'."
-    echo "Define RANGE_PREFIX manualmente, p.ej.: RANGE_PREFIX=10.2 $0 ${PROFILE}"
+    echo "Could not autodetect the network prefix from 'ludus range status --json'."
+    echo "Set RANGE_PREFIX manually, e.g.: RANGE_PREFIX=10.2 $0 ${PROFILE}"
     exit 1
   fi
 fi
@@ -59,7 +59,7 @@ DC1_IP="${BASE}.11"
 DC2_IP="${BASE}.12"
 SPLUNK_URL="https://${SPLUNK_IP}:8089"
 
-# --- Forma del perfil ---
+# --- Profile shape ---
 case "$PROFILE" in
   --base)
     VM_PATTERNS=(
@@ -93,17 +93,17 @@ case "$PROFILE" in
     ;;
 esac
 
-echo "Perfil: ${PROFILE#--}  |  Prefijo de red: ${RANGE_PREFIX}  (splunk: ${SPLUNK_IP})"
+echo "Profile: ${PROFILE#--}  |  Network prefix: ${RANGE_PREFIX}  (splunk: ${SPLUNK_IP})"
 
 # ------------------------------------------------------------------
-section "1. VMs levantadas"
+section "1. VMs up"
 # ------------------------------------------------------------------
 STATUS_JSON=$(ludus range status --json 2>/dev/null)
 if [[ -z "$STATUS_JSON" ]]; then
-  bad "No se pudo obtener 'ludus range status --json'"
+  bad "Could not get 'ludus range status --json'"
 else
-  # El campo .name de 'ludus range status --json' es el vm_name de Proxmox, no el
-  # hostname de Windows/AD — hay que matchear contra el patrón de vm_name real.
+  # The .name field from 'ludus range status --json' is the Proxmox vm_name,
+  # not the Windows/AD hostname — match against the real vm_name pattern.
   for entry in "${VM_PATTERNS[@]}"; do
     label="${entry%%:*}"
     pattern="${entry#*:}"
@@ -111,18 +111,18 @@ else
       [.VMs[]? // .vms[]? | select((.name // .Name // "") | test($p))] | .[0] |
       (.poweredOn // .powered_on // .PoweredOn // empty)' 2>/dev/null)
     case "$powered" in
-      true)  ok "$label — encendida" ;;
-      false) bad "$label — apagada" ;;
-      *)     warn "$label — no se pudo determinar el estado (revisar 'ludus range status' manualmente)" ;;
+      true)  ok "$label — powered on" ;;
+      false) bad "$label — powered off" ;;
+      *)     warn "$label — could not determine status (check 'ludus range status' manually)" ;;
     esac
   done
 fi
 
 # ------------------------------------------------------------------
-section "2. Usuarios — dominio"
+section "2. Users — domain"
 # ------------------------------------------------------------------
 if ! command -v ldapwhoami >/dev/null 2>&1; then
-  warn "ldapwhoami no instalado (paquete ldap-utils) — no se puede validar autenticación de dominio"
+  warn "ldapwhoami not installed (ldap-utils package) — cannot validate domain authentication"
 else
   for domain in "${!DOMAINS[@]}"; do
     dc_ip="${DOMAINS[$domain]}"
@@ -130,28 +130,28 @@ else
       uname="${user%%:*}"
       upass="${user##*:}"
       if ldapwhoami -x -H "ldap://${dc_ip}" -D "${uname}@${domain}" -w "${upass}" >/dev/null 2>&1; then
-        ok "${domain}\\${uname} autentica (${dc_ip})"
+        ok "${domain}\\${uname} authenticates (${dc_ip})"
       else
-        bad "${domain}\\${uname} NO autentica (${dc_ip})"
+        bad "${domain}\\${uname} does NOT authenticate (${dc_ip})"
       fi
     done
   done
 fi
 
 # ------------------------------------------------------------------
-section "3. SIEM (Splunk) levantado"
+section "3. SIEM (Splunk) up"
 # ------------------------------------------------------------------
 info_response=$(curl -sk -u "${SPLUNK_USER}:${SPLUNK_PASS}" "${SPLUNK_URL}/services/server/info?output_mode=json" 2>/dev/null)
 server_name=$(echo "$info_response" | jq -r '.entry[0].content.serverName // empty' 2>/dev/null)
 
 if [[ -n "$server_name" ]]; then
-  ok "Splunk disponible (${SPLUNK_URL}, serverName=${server_name})"
+  ok "Splunk available (${SPLUNK_URL}, serverName=${server_name})"
 else
-  bad "No se pudo contactar con Splunk (${SPLUNK_URL})"
+  bad "Could not reach Splunk (${SPLUNK_URL})"
 fi
 
 # ------------------------------------------------------------------
-section "4. Endpoints dados de alta y reportando"
+section "4. Endpoints enrolled and reporting"
 # ------------------------------------------------------------------
 RANGE_ID=$(echo "$STATUS_JSON" | jq -r '.rangeID // empty' 2>/dev/null)
 EXPECTED=()
@@ -180,14 +180,14 @@ for HOST in "${EXPECTED[@]}"; do
     [[ "${key,,}" == "${HOST,,}" ]] && matched="$key" && break
   done
   if [[ -n "$matched" ]]; then
-    ok "${HOST} — reportando (last_seen=${HOST_LASTSEEN[$matched]})"
+    ok "${HOST} — reporting (last_seen=${HOST_LASTSEEN[$matched]})"
   else
-    bad "${HOST} — sin eventos en las últimas ${LOOKBACK}"
+    bad "${HOST} — no events in the last ${LOOKBACK}"
   fi
 done
 
 # ------------------------------------------------------------------
-section "5. Sysmon activo en endpoints Windows"
+section "5. Sysmon active on Windows endpoints"
 # ------------------------------------------------------------------
 SYSMON_SEARCH="search index=sysmon earliest=-${LOOKBACK} | stats latest(_time) as last_seen count by host | eval last_seen=strftime(last_seen, \"%Y-%m-%dT%H:%M:%S\") | fields host last_seen count"
 
@@ -208,14 +208,14 @@ for HOST in "${EXPECTED[@]}"; do
     [[ "${key,,}" == "${HOST,,}" ]] && matched="$key" && break
   done
   if [[ -n "$matched" ]]; then
-    ok "${HOST} — Sysmon activo (last_seen=${SYSMON_LASTSEEN[$matched]})"
+    ok "${HOST} — Sysmon active (last_seen=${SYSMON_LASTSEEN[$matched]})"
   else
-    bad "${HOST} — sin eventos en index=sysmon en las últimas ${LOOKBACK}"
+    bad "${HOST} — no events in index=sysmon in the last ${LOOKBACK}"
   fi
 done
 
 # ------------------------------------------------------------------
-section "Resumen"
+section "Summary"
 # ------------------------------------------------------------------
 echo "  OK: ${PASS}   FAIL: ${FAIL}   WARN: ${WARN}"
 
