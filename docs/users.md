@@ -41,11 +41,11 @@ ThruntOps Fase 1 uses Ludus default credentials. No custom user population is de
 | `SECONDARY\domainadmin` | `password` | Domain Admin (Ludus default) |
 | `SECONDARY\domainuser` | `password` | Domain User (Ludus default) |
 
-### Local (Windows VMs)
+### Local (all VMs)
 
 | User | Password | Scope |
 |---|---|---|
-| `localuser` | `password` | Local Admin — template default |
+| `localuser` | `password` | Local Admin (Windows) / SSH login (Linux) — template default, all VMs |
 
 ### Services
 

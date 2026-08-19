@@ -76,11 +76,11 @@ graph TB
 |---|---|---|---|
 | Elastic / Kibana | `https://<range_ip>.20.1:5601` | `elastic` | set in `elk-dual.yml` → `ludus_elastic_password` |
 
-### Windows — Ludus defaults
+### Local & Domain — Ludus defaults
 
 | User | Password | Scope |
 |---|---|---|
-| `localuser` | `password` (template default) | Local Admin — all Windows VMs |
+| `localuser` | `password` (template default) | Local Admin (Windows) / SSH login (Linux) — all VMs |
 | `THRUNTOPS\domainadmin` | `password` | Domain Admin — thruntops.domain |
 | `THRUNTOPS\domainuser` | `password` | Domain User — thruntops.domain |
 | `SECONDARY\domainadmin` | `password` | Domain Admin — secondary.thruntops.domain |

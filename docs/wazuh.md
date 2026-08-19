@@ -77,11 +77,11 @@ graph TB
 | Wazuh Dashboard | `https://<range_ip>.20.1` | `admin` | set in `wazuh-dual.yml` → `wazuh_admin_password` |
 | Wazuh REST API | `https://<range_ip>.20.1:55000` | `wazuh` | set in `wazuh-dual.yml` → `wazuh_api_password` |
 
-### Windows — Ludus defaults
+### Local & Domain — Ludus defaults
 
 | User | Password | Scope |
 |---|---|---|
-| `localuser` | `password` (template default) | Local Admin — all Windows VMs |
+| `localuser` | `password` (template default) | Local Admin (Windows) / SSH login (Linux) — all VMs |
 | `THRUNTOPS\domainadmin` | `password` | Domain Admin — thruntops.domain |
 | `THRUNTOPS\domainuser` | `password` | Domain User — thruntops.domain |
 | `SECONDARY\domainadmin` | `password` | Domain Admin — secondary.thruntops.domain |
