@@ -10,7 +10,7 @@ nav_order: 4
 Wazuh all-in-one SIEM with dual AD domains and workstations. Fase 1 — core infrastructure and agent enrollment.
 {: .fs-6 .fw-300 }
 
-Validated on Ludus 2: deploy succeeds, domain authentication works, Wazuh API/dashboard are reachable, and all four agents are active.
+Validated on Ludus 2 across all three profiles (`--base`, `--dual`, `--adcs`): a from-scratch deploy (destroy + deploy) succeeds, domain authentication works, Wazuh API/dashboard are reachable, and every agent is active — including Sysmon telemetry.
 {: .label .label-green }
 
 ---
@@ -37,6 +37,8 @@ All VMs run on VLAN 20.
 
 > IP prefix depends on the Ludus range network (e.g. `10.1.0.0/16` → `10.1.20.x`).
 
+Table shows `--dual` (5 VMs). `--base` drops the secondary domain (3 VMs: `wazuh`, `DC01-2022`, `WIN11-22H2-1`). `--adcs` swaps the secondary domain for a dedicated ADCS VM at `.20.13` (4 VMs: `wazuh`, `DC01-2022`, `ADCS`, `WIN11-22H2-1`) — single domain only.
+
 ---
 
 ## Network Diagram
@@ -46,12 +48,12 @@ graph TB
     subgraph VLAN20["VLAN 20"]
 
         subgraph primary["thruntops.domain"]
-            DC1["🖥 DC01-2022\n.20.11\nPrimary DC + LAPS"]
+            DC1["🖥 DC01-2022\n.20.11\nPrimary DC"]
             W1["🖥 WIN11-22H2-1\n.20.21\nWorkstation"]
         end
 
         subgraph secondary["secondary.thruntops.domain"]
-            DC2["🖥 DC01-SEC\n.20.12\nPrimary DC + LAPS"]
+            DC2["🖥 DC01-SEC\n.20.12\nPrimary DC"]
             W2["🖥 WIN11-22H2-2\n.20.22\nWorkstation"]
         end
 
@@ -74,14 +76,14 @@ graph TB
 
 | Service | URL | User | Password |
 |---|---|---|---|
-| Wazuh Dashboard | `https://<range_ip>.20.1` | `admin` | set in `wazuh-core.yml` → `wazuh_admin_password` |
-| Wazuh REST API | `https://<range_ip>.20.1:55000` | `wazuh` | set in `wazuh-core.yml` → `wazuh_api_password` |
+| Wazuh Dashboard | `https://<range_ip>.20.1` | `admin` | set in `wazuh-dual.yml` → `wazuh_admin_password` |
+| Wazuh REST API | `https://<range_ip>.20.1:55000` | `wazuh` | set in `wazuh-dual.yml` → `wazuh_api_password` |
 
-### Windows — Ludus defaults
+### Local & Domain — Ludus defaults
 
 | User | Password | Scope |
 |---|---|---|
-| `localuser` | LAPS-managed | Local Admin — all Windows VMs |
+| `localuser` | `password` (template default) | Local Admin (Windows) / SSH login (Linux) — all VMs |
 | `THRUNTOPS\domainadmin` | `password` | Domain Admin — thruntops.domain |
 | `THRUNTOPS\domainuser` | `password` | Domain User — thruntops.domain |
 | `SECONDARY\domainadmin` | `password` | Domain Admin — secondary.thruntops.domain |
@@ -95,14 +97,16 @@ The Wazuh REST API user (`wazuh`) and dashboard user (`wazuh-wui`) are stored in
 ## Deployment
 
 ```bash
-bash deploy.sh wazuh
+bash wazuh.sh --dual   # 2 AD + 2 workstations
+bash wazuh.sh --base   # 1 AD + 1 workstation
+bash wazuh.sh --adcs   # 1 AD + ADCS + 1 workstation
 ```
 
 Or step by step:
 
 ```bash
 ludus range destroy
-ludus range config set -f ranges/wazuh-core.yml
+ludus range config set -f ranges/wazuh-dual.yml
 ludus range deploy
 ludus range logs -f
 ```
@@ -111,15 +115,19 @@ ludus range logs -f
 
 ## Verify
 
-This profile has passed the post-deploy validation checklist on Ludus 2.
+All three profiles have passed the post-deploy validation checklist on Ludus 2, run with the matching flag:
 
-After deploy, confirm all 4 agents are enrolled and active:
+```bash
+RANGE_PREFIX=10.<range> tests/wazuh_checklist.sh --base   # or --dual / --adcs
+```
+
+Or manually, confirm agents are enrolled, active, and reporting Sysmon:
 
 ```bash
 bash tests/wazuh_status.sh
 ```
 
-Expected output: all agents (`DC01-2022`, `DC01-SEC`, `WIN11-22H2-1`, `WIN11-22H2-2`) with status `active`.
+Expected output: every agent in the deployed profile with status `active` (2 for `--base`, 4 for `--dual`, 3 for `--adcs`).
 
 Check range status:
 
@@ -131,6 +139,6 @@ ludus range status
 
 ## Notes
 
-- `wazuh-core.yml` deploys Wazuh all-in-one via `wazuh-install.sh -a`
-- LAPS is deployed as neutral infrastructure — `localuser` password is managed on both DCs and workstations
+- `wazuh-dual.yml` deploys Wazuh all-in-one via `wazuh-install.sh -a` (also available as `wazuh-base.yml` and `wazuh-adcs.yml` — see `wazuh.sh`)
+- Unlike Splunk ([ThruntOps-m13](splunk.md#notes)), the Wazuh agent reads the Sysmon event channel correctly on every endpoint, including domain-member workstations and the ADCS VM — confirmed during validation.
 - Fase 2 will add ADCS, WEB (IIS + MSSQL), GitLab CE, and OPS VM.

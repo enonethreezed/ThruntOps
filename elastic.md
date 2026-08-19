@@ -10,7 +10,7 @@ nav_order: 3
 Elastic Stack SIEM with dual AD domains and workstations. Fase 1 — core infrastructure and agent enrollment.
 {: .fs-6 .fw-300 }
 
-Validated on Ludus 2: deploy succeeds, domain authentication works, Kibana/Fleet is reachable, and all four Elastic Agents are online.
+Validated on Ludus 2 across all three profiles (`--base`, `--dual`, `--adcs`): a from-scratch deploy (destroy + deploy) succeeds, domain authentication works, Kibana/Fleet is reachable, and every endpoint enrolls.
 {: .label .label-green }
 
 ---
@@ -37,6 +37,8 @@ All VMs run on VLAN 20.
 
 > IP prefix depends on the Ludus range network (e.g. `10.1.0.0/16` → `10.1.20.x`).
 
+Table shows `--dual` (5 VMs). `--base` drops the secondary domain (3 VMs: `elastic`, `DC01-2022`, `WIN11-22H2-1`). `--adcs` swaps the secondary domain for a dedicated ADCS VM at `.20.13` (4 VMs: `elastic`, `DC01-2022`, `ADCS`, `WIN11-22H2-1`) — single domain only.
+
 ---
 
 ## Network Diagram
@@ -46,12 +48,12 @@ graph TB
     subgraph VLAN20["VLAN 20"]
 
         subgraph primary["thruntops.domain"]
-            DC1["🖥 DC01-2022\n.20.11\nPrimary DC + LAPS"]
+            DC1["🖥 DC01-2022\n.20.11\nPrimary DC"]
             W1["🖥 WIN11-22H2-1\n.20.21\nWorkstation"]
         end
 
         subgraph secondary["secondary.thruntops.domain"]
-            DC2["🖥 DC01-SEC\n.20.12\nPrimary DC + LAPS"]
+            DC2["🖥 DC01-SEC\n.20.12\nPrimary DC"]
             W2["🖥 WIN11-22H2-2\n.20.22\nWorkstation"]
         end
 
@@ -74,13 +76,13 @@ graph TB
 
 | Service | URL | User | Password |
 |---|---|---|---|
-| Elastic / Kibana | `https://<range_ip>.20.1:5601` | `elastic` | set in `elastic-core.yml` → `ludus_elastic_password` |
+| Elastic / Kibana | `https://<range_ip>.20.1:5601` | `elastic` | set in `elk-dual.yml` → `ludus_elastic_password` |
 
-### Windows — Ludus defaults
+### Local & Domain — Ludus defaults
 
 | User | Password | Scope |
 |---|---|---|
-| `localuser` | LAPS-managed | Local Admin — all Windows VMs |
+| `localuser` | `password` (template default) | Local Admin (Windows) / SSH login (Linux) — all VMs |
 | `THRUNTOPS\domainadmin` | `password` | Domain Admin — thruntops.domain |
 | `THRUNTOPS\domainuser` | `password` | Domain User — thruntops.domain |
 | `SECONDARY\domainadmin` | `password` | Domain Admin — secondary.thruntops.domain |
@@ -91,14 +93,16 @@ graph TB
 ## Deployment
 
 ```bash
-bash deploy.sh elk
+bash elastic.sh --dual   # 2 AD + 2 workstations
+bash elastic.sh --base   # 1 AD + 1 workstation
+bash elastic.sh --adcs   # 1 AD + ADCS + 1 workstation
 ```
 
 Or step by step:
 
 ```bash
 ludus range destroy
-ludus range config set -f ranges/elastic-core.yml
+ludus range config set -f ranges/elk-dual.yml
 ludus range deploy
 ludus range logs -f
 ```
@@ -107,13 +111,17 @@ ludus range logs -f
 
 ## Verify
 
-This profile has passed the post-deploy validation checklist on Ludus 2.
+All three profiles have passed the post-deploy validation checklist on Ludus 2, run with the matching flag:
 
-After deploy, confirm all 4 agents enrolled in Fleet:
+```bash
+RANGE_PREFIX=10.<range> tests/elastic_checklist.sh --base   # or --dual / --adcs
+```
+
+Or manually, confirm all agents enrolled in Fleet:
 
 **Kibana → Management → Fleet → Agents**
 
-All four VMs (`DC01-2022`, `DC01-SEC`, `WIN11-22H2-1`, `WIN11-22H2-2`) should show status `Healthy`.
+Every Windows VM in the deployed profile should show status `Healthy` (2 for `--base`, 4 for `--dual`, 3 for `--adcs`).
 
 Check range status:
 
@@ -125,7 +133,6 @@ ludus range status
 
 ## Notes
 
-- `elastic-core.yml` deploys Elastic Stack version `9.4.0`
+- `elk-dual.yml` deploys Elastic Stack version `9.4.0` (also available as `elk-base.yml` and `elk-adcs.yml` — see `elastic.sh`)
 - Elastic Agent is pinned to `9.4.0` via `ludus_elastic_agent_version` (role_vars on each Windows VM) to match the stack version — `badsectorlabs.ludus_elastic_agent` defaults to `9.3.1` otherwise
-- LAPS is deployed as neutral infrastructure — `localuser` password is managed on both DCs and workstations
 - Fase 2 will add ADCS, WEB (IIS + MSSQL), GitLab CE, and OPS VM.

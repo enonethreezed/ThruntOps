@@ -12,16 +12,27 @@ A Ludus-based lab environment for TTP testing and security research.
 
 Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). Dual Active Directory domains and a choice of SIEM.
 
-All three core SIEM profiles have passed Ludus 2 validation: range deploy succeeds, domain users authenticate, SIEM services are reachable, and all four Windows endpoints report telemetry.
+All 9 atomized profiles (base/dual/adcs × Elastic/Splunk/Wazuh) have passed a from-scratch deploy validation on Ludus 2: destroy + deploy succeeds, domain users authenticate, SIEM services are reachable, and every endpoint enrolls.
 
 ## Profiles
 
 | Profile | Config | SIEM | VMs | Validation |
 |---|---|---|---|---|
-| [Elastic](elastic.md) | `elastic-core.yml` | Elastic Stack + Fleet | 5 — dual AD, dual workstations | Passed on Ludus 2 |
-| Elastic + ADCS | `elastic-adcs.yml` | Elastic Stack + Fleet | 6 — core + ADCS | Passed ADCS smoke test on Ludus 2 |
-| [Splunk](splunk.md) | `splunk-core.yml` | Splunk Enterprise | 5 — dual AD, dual workstations | Passed on Ludus 2 |
-| [Wazuh](wazuh.md) | `wazuh-core.yml` | Wazuh all-in-one | 5 — dual AD, dual workstations | Passed on Ludus 2 |
+| [Elastic](elastic.md) | `elk-{base,dual,adcs}.yml` | Elastic Stack + Fleet | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
+| [Splunk](splunk.md) | `splunk-{base,dual,adcs}.yml` | Splunk Enterprise | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
+| [Wazuh](wazuh.md) | `wazuh-{base,dual,adcs}.yml` | Wazuh all-in-one | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
+
+Each SIEM has three atomic profiles, deployed via its own script:
+
+- `--base` — 1 AD + 1 workstation
+- `--dual` — 2 AD + 2 workstations (the validated profile above)
+- `--adcs` — 1 AD + dedicated ADCS VM + 1 workstation
+
+```bash
+bash elastic.sh --dual
+bash wazuh.sh --dual
+bash splunk.sh --dual
+```
 
 ## Phases
 
@@ -32,4 +43,4 @@ All three core SIEM profiles have passed Ludus 2 validation: range deploy succee
 
 → [Installation](install.md) · [Users](users.md) · [Coverage](coverage.md)
 
-> Fase 2 reference docs are preserved and accessible: [ADCS](adcs.md) · [Vulnerabilities](vulnerabilities.md) · [WEB + MSSQL](web.md) · [GitLab](gitlab.md) · [Office](office.md) · [Office Architecture](office-architecture.md) · [Sigma](sigma.md)
+> Fase 2 reference docs are preserved and accessible: [ADCS](adcs.md) · [Vulnerabilities](vulnerabilities.md) · [Vulnerable-AD Matrix](vulnerable-ad-matrix.md) · [WEB + MSSQL](web.md) · [GitLab](gitlab.md) · [Sigma](sigma.md)

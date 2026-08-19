@@ -10,7 +10,7 @@ nav_order: 5
 Splunk Enterprise SIEM with dual AD domains and workstations. Fase 1 — core infrastructure and agent enrollment.
 {: .fs-6 .fw-300 }
 
-Validated on Ludus 2: deploy succeeds, domain authentication works, Splunk is reachable, and all four Universal Forwarders report telemetry.
+Validated on Ludus 2 across all three profiles (`--base`, `--dual`, `--adcs`): a from-scratch deploy (destroy + deploy) succeeds, domain authentication works, Splunk is reachable, and every Universal Forwarder reports telemetry.
 {: .label .label-green }
 
 ---
@@ -37,6 +37,8 @@ All VMs run on VLAN 20.
 
 > IP prefix depends on the Ludus range network (e.g. `10.1.0.0/16` → `10.1.20.x`).
 
+Table shows `--dual` (5 VMs). `--base` drops the secondary domain (3 VMs: `splunk`, `DC01-2022`, `WIN11-22H2-1`). `--adcs` swaps the secondary domain for a dedicated ADCS VM at `.20.13` (4 VMs: `splunk`, `DC01-2022`, `ADCS`, `WIN11-22H2-1`) — single domain only.
+
 ---
 
 ## Network Diagram
@@ -46,12 +48,12 @@ graph TB
     subgraph VLAN20["VLAN 20"]
 
         subgraph primary["thruntops.domain"]
-            DC1["🖥 DC01-2022\n.20.11\nPrimary DC + LAPS"]
+            DC1["🖥 DC01-2022\n.20.11\nPrimary DC"]
             W1["🖥 WIN11-22H2-1\n.20.21\nWorkstation"]
         end
 
         subgraph secondary["secondary.thruntops.domain"]
-            DC2["🖥 DC01-SEC\n.20.12\nPrimary DC + LAPS"]
+            DC2["🖥 DC01-SEC\n.20.12\nPrimary DC"]
             W2["🖥 WIN11-22H2-2\n.20.22\nWorkstation"]
         end
 
@@ -74,13 +76,13 @@ graph TB
 
 | Service | URL | User | Password |
 |---|---|---|---|
-| Splunk Web | `http://<range_ip>.20.1:8000` | `admin` | set in `splunk-core.yml` → `ludus_splunk_admin_password` |
+| Splunk Web | `http://<range_ip>.20.1:8000` | `admin` | set in `splunk-dual.yml` → `ludus_splunk_admin_password` |
 
-### Windows — Ludus defaults
+### Local & Domain — Ludus defaults
 
 | User | Password | Scope |
 |---|---|---|
-| `localuser` | LAPS-managed | Local Admin — all Windows VMs |
+| `localuser` | `password` (template default) | Local Admin (Windows) / SSH login (Linux) — all VMs |
 | `THRUNTOPS\domainadmin` | `password` | Domain Admin — thruntops.domain |
 | `THRUNTOPS\domainuser` | `password` | Domain User — thruntops.domain |
 | `SECONDARY\domainadmin` | `password` | Domain Admin — secondary.thruntops.domain |
@@ -91,14 +93,16 @@ graph TB
 ## Deployment
 
 ```bash
-bash deploy.sh splunk
+bash splunk.sh --dual   # 2 AD + 2 workstations
+bash splunk.sh --base   # 1 AD + 1 workstation
+bash splunk.sh --adcs   # 1 AD + ADCS + 1 workstation
 ```
 
 Or step by step:
 
 ```bash
 ludus range destroy
-ludus range config set -f ranges/splunk-core.yml
+ludus range config set -f ranges/splunk-dual.yml
 ludus range deploy
 ludus range logs -f
 ```
@@ -107,13 +111,17 @@ ludus range logs -f
 
 ## Verify
 
-This profile has passed the post-deploy validation checklist on Ludus 2.
+All three profiles have passed the post-deploy validation checklist on Ludus 2, run with the matching flag:
 
-After deploy, confirm all 4 Universal Forwarders are connected:
+```bash
+RANGE_PREFIX=10.<range> tests/splunk_checklist.sh --base   # or --dual / --adcs
+```
+
+Or manually, confirm the Universal Forwarders are connected:
 
 **Splunk Web → Settings → Forwarding and receiving → Forwarder management**
 
-All four VMs (`DC01-2022`, `DC01-SEC`, `WIN11-22H2-1`, `WIN11-22H2-2`) should appear.
+Every Windows VM in the deployed profile should appear (2 for `--base`, 4 for `--dual`, 3 for `--adcs`).
 
 Check range status:
 
@@ -133,7 +141,7 @@ By default Splunk runs under the free license (500 MB/day ingest limit). To appl
    ```bash
    scp Splunk.License ludus-admin@<ludus-host>:~/
    ```
-4. Set `ludus_splunk_license_src` in `splunk-core.yml`:
+4. Set `ludus_splunk_license_src` in `splunk-dual.yml` (or the profile you're using):
    ```yaml
    ludus_splunk_license_src: "/home/ludus-admin/Splunk.License"
    ```
@@ -142,6 +150,6 @@ By default Splunk runs under the free license (500 MB/day ingest limit). To appl
 
 ## Notes
 
-- `splunk-core.yml` deploys Splunk Enterprise version `10.2.1`
-- LAPS is deployed as neutral infrastructure — `localuser` password is managed on both DCs and workstations
+- `splunk-dual.yml` deploys Splunk Enterprise version `10.2.1` (also available as `splunk-base.yml` and `splunk-adcs.yml` — see `splunk.sh`)
+- **Known issue (ThruntOps-m13):** the Splunk Universal Forwarder fails to read the `Microsoft-Windows-Sysmon/Operational` event channel on domain-member Windows machines (workstations and the ADCS VM) with `ACCESS_DENIED` — confirmed across all three profiles during validation. Domain controllers are unaffected. Only Sysmon telemetry is impacted; the rest of the Windows/Security event log forwarding works normally. Root cause not yet fixed.
 - Fase 2 will add ADCS, WEB (IIS + MSSQL), GitLab CE, and OPS VM.

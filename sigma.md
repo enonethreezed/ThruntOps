@@ -159,7 +159,6 @@ Mapping lab vulnerabilities to MITRE techniques — use these to scope Infection
 |---|---|---|
 | Credential reuse (user01 = domainadmin) | T1078.002 | Seed domainadmin hash/password |
 | RDP to DC (user02) | T1021.001 | RDP propagation enabled |
-| LAPS password read (user03) | T1555 | AD enumeration plugin |
 | RDP to ADCS (user04) | T1021.001 + T1649 | RDP propagation to ADCS |
 | SSH to GitLab via AD (user05) | T1021.004 | SSH lateral movement |
 | Web app SQLi (WEB) | T1190 | HTTP exploitation plugin |
@@ -176,7 +175,6 @@ sigma/
   rules/
     credential_access/
       t1078.002_credential_reuse.yml
-      t1555_laps_read.yml
     lateral_movement/
       t1021.001_rdp_to_dc.yml
       t1021.001_rdp_to_adcs.yml
