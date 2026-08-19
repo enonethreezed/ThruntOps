@@ -39,8 +39,8 @@ bash splunk.sh --dual
 | Phase | Scope | Status |
 |---|---|---|
 | **Fase 1 — Core SIEM** | SIEM + dual AD + workstations + agents | Passed validation on Ludus 2 |
-| **Fase 2 — Vulnerabilities** | ADCS, WEB (IIS+MSSQL), GitLab, OPS, vuln scripts | Planned |
+| **Fase 2 — Vulnerabilities** | ADCS, MSSQL, OPS, vuln scripts | Planned |
 
 → [Installation](install.md) · [Users](users.md) · [Coverage](coverage.md)
 
-> Fase 2 reference docs are preserved and accessible: [ADCS](adcs.md) · [Vulnerabilities](vulnerabilities.md) · [Vulnerable-AD Matrix](vulnerable-ad-matrix.md) · [WEB + MSSQL](web.md) · [GitLab](gitlab.md) · [Sigma](sigma.md)
+> Fase 2 reference docs are preserved and accessible: [ADCS](adcs.md) · [Vulnerabilities](vulnerabilities.md) · [Vulnerable-AD Matrix](vulnerable-ad-matrix.md) · [MSSQL](mssql.md)

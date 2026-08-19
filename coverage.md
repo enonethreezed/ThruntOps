@@ -5,7 +5,7 @@ nav_order: 10
 ---
 
 {: .note }
-**Fase 1 active:** SIEM agent enrollment on DC01-2022, DC01-SEC, WIN11-22H2-1, WIN11-22H2-2. All other categories below require Fase 2 (ADCS, WEB, GitLab, OPS VMs).
+**Fase 1 active:** SIEM agent enrollment on DC01-2022, DC01-SEC, WIN11-22H2-1, WIN11-22H2-2. All other categories below require Fase 2 (ADCS, MSSQL, OPS VMs).
 
 # Lab Coverage
 {: .no_toc }
@@ -37,20 +37,10 @@ mindmap
       ESC14 Weak Mapping
       ESC15 Schema v1
       ESC16 SecurityExtension Off
-    Web Application
-      SQL Injection
-      File Upload Web Shell
-      Directory Traversal
     MSSQL
       xp_cmdshell RCE
       NTLM Hash Capture
       DBA to Sysadmin
-    Linux PrivEsc gitlab
-      SUID r
-      SUID apt-get
-      SUID less
-      SUID rsync
-      cap_gzip
     Linux PrivEsc ops
       sudo ansible-playbook
       sudo ansible-test
@@ -75,12 +65,10 @@ mindmap
 |---|---|---|---|
 | **Active Directory** | Credential reuse, RDP to DC, RDP to ADCS | DC01-2022, DC01-SEC, WIN11 | [Vulnerabilities](vulnerabilities.md) |
 | **ADCS / PKI** | ESC1–ESC16 | ADCS | [ADCS Attack Paths](adcs.md) |
-| **Web Application** | SQL injection, file upload, directory traversal | WEB | [Vulnerabilities](vulnerabilities.md) |
-| **MSSQL** | xp_cmdshell, NTLM capture, DBA→sysadmin | WEB | [Vulnerabilities](vulnerabilities.md) |
-| **Linux PrivEsc — gitlab** | SUID (r, apt-get, less, rsync), cap_gzip | gitlab | [Vulnerabilities](vulnerabilities.md) |
+| **MSSQL** | xp_cmdshell, NTLM capture, DBA→sysadmin | TBD | [MSSQL TTPs](mssql.md) |
 | **Linux PrivEsc — ops** | sudo (ansible-playbook, ansible-test, certbot, watch), cap_gdb | ops | [Vulnerabilities](vulnerabilities.md) |
-| **Reverse Shells — Linux** | PHP, Ruby, Python, Node.js, tclsh, Perl | ops, gitlab | [Vulnerabilities](vulnerabilities.md) |
-| **Reverse Shells — Windows** | PowerShell, mshta, certutil, cscript, wscript | WEB, WIN11 | [Vulnerabilities](vulnerabilities.md) |
+| **Reverse Shells — Linux** | PHP, Ruby, Python, Node.js, tclsh, Perl | ops | [Vulnerabilities](vulnerabilities.md) |
+| **Reverse Shells — Windows** | PowerShell, mshta, certutil, cscript, wscript | WIN11 | [Vulnerabilities](vulnerabilities.md) |
 | **LOLBins — Windows** | Module installed for user08 on WIN11-22H2-1/2 | WIN11-22H2-1/2 | — |
 
 ---
@@ -110,11 +98,6 @@ mindmap
 
 | Technique | VM | Entry | Target |
 |---|---|---|---|
-| SUID r | gitlab | `secondary_user06` (no sudo) | root shell |
-| SUID apt-get | gitlab | `secondary_user06` | root shell |
-| SUID less | gitlab | `secondary_user06` | root shell |
-| SUID rsync | gitlab | `secondary_user06` | root shell |
-| cap_gzip | gitlab | `secondary_user06` | arbitrary file read |
 | sudo ansible-playbook | ops | `primary_user06` (no sudo on most) | root shell |
 | sudo ansible-test | ops | `primary_user06` | root shell |
 | sudo certbot | ops | `primary_user06` | root shell |

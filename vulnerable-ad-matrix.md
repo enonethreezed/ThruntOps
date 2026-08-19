@@ -4,13 +4,13 @@ layout: default
 nav_order: 14
 ---
 
-{: .warning }
-**Fase 2 — planning only, not implemented.** All scenarios below are exclusively for isolated lab ranges. They must be disabled by default and enabled explicitly in range `role_vars`.
+{: .note }
+**Implemented in a separate repository.** AD vulnerability scenarios are provisioned by standalone Ansible roles in [`ThruntOps-vulnerabilities`](https://github.com/enonethreezed/ThruntOps-vulnerabilities) — that repo's own [`ansible/vulnerability-matrix.md`](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) is the authoritative, up-to-date scenario list (ID, role, provisioned condition, source). This page is a ThruntOps-side integration summary — do not duplicate scenario design here.
 
 # Vulnerable-AD Scenario Matrix
 {: .no_toc }
 
-Implementation matrix for porting [`safebuffer/vulnerable-AD`](https://github.com/safebuffer/vulnerable-AD)'s `vulnad.ps1` into declarative ThruntOps scenarios.
+How ThruntOps wires the AD-vulnerable-scenario roles from `ThruntOps-vulnerabilities` into a range.
 {: .fs-6 .fw-300 }
 
 ---
@@ -23,66 +23,73 @@ Implementation matrix for porting [`safebuffer/vulnerable-AD`](https://github.co
 
 ---
 
-## Design Rules
+## Design Rules (confirmed in the external repo)
 
-- Keep base users and groups in `ludus_ad_content`; do not generate random identities in any vulnerability role.
-- Implement each scenario as its own standalone role. There is no shared `ludus_ad_vulnerable` role — each scenario (or tightly-coupled pair, e.g. the two credential-exposure scenarios) gets its own `roles/ludus_ad_vuln_<scenario>` role with its own `defaults/main.yml`, added independently to a range's `roles:` list.
-- Accept explicit users, groups, DNs, passwords, and host names as variables. Do not select targets randomly.
-- Validate every configured principal and target object before changing Active Directory.
-- Fail on an unmet prerequisite. Do not suppress errors with empty PowerShell `catch` blocks.
-- Keep global domain changes opt-in and separate from per-object scenarios.
+- One role provisions one intentional condition — no shared `ludus_ad_vulnerable` monolith. This was the original ThruntOps design decision for this matrix, and `ThruntOps-vulnerabilities` implements it: each scenario is its own role under `ansible/roles/`.
+- Roles are disabled by omission: nothing changes on a host unless its role is added to that VM's `roles:` list.
+- Roles accept explicit users, groups, DNs, passwords, and host names as variables — no random target selection.
+- Roles validate every configured principal and target object before changing Active Directory, and fail on an unmet prerequisite rather than silently no-op.
+- Windows roles declare a `target_profile` (`windows-legacy-2016` / `windows-standard-2022` / `windows-modern-2025`) so a role never silently applies a legacy condition to a host where the OS or its patches would block it.
 
-## Scenario Matrix
+## Current AD Role Catalog
 
-| ID | Intentional condition | Source function | Proposed role | Required role variables | Verification |
-|---|---|---|---|---|---|
-| AD-BASE-01 | Create the named users and groups consumed by later scenarios. This is prerequisite content, not a vulnerability. | `VulnAD-AddADUser`, `VulnAD-AddADGroup` (lines 36-68) | Existing `ludus_ad_content` | `ludus_ad.users`, `ludus_ad.groups` | Query every declared user and group with AD cmdlets. |
-| AD-PP-01 | Weak domain password policy: minimum length, complexity, and lockout settings. | `Invoke-VulnAD` (line 227) | `roles/ludus_ad_vuln_password_policy` | `min_password_length`, `complexity_enabled`, `lockout_duration`, `lockout_observation_window` | `Get-ADDefaultDomainPasswordPolicy` matches the configured values. |
-| AD-ACL-01 | A low-privilege group receives object-control rights over a higher-privilege group or user. Rights include `GenericAll`, `GenericWrite`, `WriteOwner`, `WriteDACL`, `Self`, and `WriteProperty`. | `VulnAD-BadAcls`, `VulnAD-AddACL` (lines 69-124) | `roles/ludus_ad_vuln_acls` | `acl_rules`: `source_principal`, `target_dn`, `rights`, optional `inheritance` | The target object's DACL contains the requested allow ACE for the source SID. |
-| AD-KRB-01 | Service principal with a known lab password and a requestable SPN, enabling Kerberoasting. The source creates managed service accounts; the role must explicitly select a managed service account or a normal user account. | `VulnAD-Kerberoasting` (lines 126-142) | `roles/ludus_ad_vuln_kerberoast` | `kerberoast_accounts`: `name`, `account_type`, `password`, `spns`, optional `enabled` | The selected account type exists, exposes every declared SPN, and authenticates according to the selected account model. |
-| AD-ASREP-01 | User has Kerberos pre-authentication disabled and a known lab password. | `VulnAD-ASREPRoasting` (lines 144-151) | `roles/ludus_ad_vuln_asrep_roast` | `asrep_roast_users`: `name`, optional `password` | `DoesNotRequirePreAuth` is true for each declared user. |
-| AD-DNS-01 | Explicit user or group membership in `DnsAdmins`. | `VulnAD-DnsAdmins` (lines 153-161) | `roles/ludus_ad_vuln_dnsadmins` | `dnsadmins_members` | `Get-ADGroupMember DnsAdmins` contains each declared principal. |
-| AD-CRED-01 | A user password is deliberately stored in the readable `description` attribute. | `VulnAD-PwdInObjectDescription` (lines 163-170) | `roles/ludus_ad_vuln_credentials` | `password_descriptions`: `name`, `password`, optional `description_template` | The account password is set and `Get-ADUser -Properties Description` returns the expected lab value. |
-| AD-CRED-02 | Multiple accounts share the same known password for password-spraying and reuse scenarios. | `VulnAD-DefaultPassword`, `VulnAD-PasswordSpraying` (lines 172-189) | `roles/ludus_ad_vuln_credentials` | `shared_passwords`: `users`, `password`, optional `change_password_at_logon` | Each configured account authenticates with the configured shared password. |
-| AD-DCSYNC-01 | A declared principal receives the three directory replication extended rights on the domain root. | `VulnAD-DCSync` (lines 191-212) | `roles/ludus_ad_vuln_dcsync` | `dcsync_principals` | The domain-root DACL contains `DS-Replication-Get-Changes`, `DS-Replication-Get-Changes-All`, and `DS-Replication-Get-Changes-In-Filtered-Set` ACEs for the principal SID. |
-| AD-SMB-01 | SMB client signing is disabled on a declared Windows host. | `VulnAD-DisableSMBSigning` (lines 214-216) | `roles/ludus_ad_vuln_smb_signing` | `smb_signing_enabled`, optional `target_hosts` | `Get-SmbClientConfiguration` reports both signing settings as disabled. |
+25 roles under `ansible/roles/ad_*` in `ThruntOps-vulnerabilities` (as of this writing — check the [external matrix](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) for the current, authoritative list):
 
-`AD-CRED-01` and `AD-CRED-02` share `roles/ludus_ad_vuln_credentials` because both source functions operate on the same object (a user's password/description) — everything else gets its own role.
+| Role | Provisioned condition |
+|---|---|
+| `ad_acl_delegation` | Delegates named `ActiveDirectoryRights` to one principal on one explicit object DN. |
+| `ad_adminsdholder_delegation` | Delegates a directory write right on AdminSDHolder. |
+| `ad_asrep_roast_user` | Disables Kerberos pre-authentication for explicitly listed users. |
+| `ad_credential_reuse` | Sets a declared password on a selected AD user (shares a privileged account's password). |
+| `ad_cross_forest_trust` | Adds a declared foreign member to a selected group across an existing trust. |
+| `ad_dcsync_delegation` | Delegates the three directory-replication extended rights at the domain root. |
+| `ad_default_password` | Resets explicitly listed users to one lab-only password. |
+| `ad_dnsadmins_membership` | Adds declared principals to `DnsAdmins`. |
+| `ad_gmsa_account` | Creates a GMSA (after verifying the KDS root key) with explicit SPNs/authorized hosts. |
+| `ad_gmsa_password_read` | Adds declared principals to a GMSA's managed-password retrieval list. |
+| `ad_gpo_write_delegation` | Delegates GPO edit/security-modification rights to a declared principal. |
+| `ad_kerberoast_account` | Sets a lab password + requestable SPNs on an existing service account. |
+| `ad_laps_read_delegation` | Delegates read access to LAPS password attributes on a computer/OU DN. |
+| `ad_password_in_description` | Writes a lab-only value to a user's readable `description` attribute. |
+| `ad_password_in_sysvol` | Writes declared lab-only content to a SYSVOL path. |
+| `ad_password_spraying` | Resets ≥2 explicitly listed users to one shared lab password. |
+| `ad_pre2k_legacy_access` | Adds declared principals to `Pre-Windows 2000 Compatible Access`. |
+| `ad_pre2k_machine_account` | Creates a computer account with an explicit legacy lab password. |
+| `ad_rdp_adcs` | Adds domain principals to the local RDP group on the ADCS host. |
+| `ad_rdp_domain_controller` | Adds domain principals to Remote Desktop Users on a DC. |
+| `ad_reset_password_delegation` | Delegates the Reset Password extended right on one target object. |
+| `ad_shadow_credentials` | Delegates a directory write right enabling shadow-credentials abuse. |
+| `ad_unconstrained_delegation` | Marks a declared computer account for unconstrained delegation. |
+| `ad_weak_password_policy` | Sets the default domain password policy to declared weak values. |
+| `ad_weak_user_credentials` | Creates absent AD users from a `name`/`password` list. |
+
+ADCS-specific scenarios (`adcs_esc1_...` through `adcs_esc16_...`, plus `adcs_rdp_low_privilege`) live in the same repo and are documented separately in [ADCS Attack Paths](adcs.md).
 
 ## Role Interface
 
-There is no single `ludus_ad_vulnerable` role or top-level enable dictionary. Each scenario role defaults to inert (empty list / `enabled: false`) and is opted into a range purely by being present in that VM's `roles:` list in `ranges/*.yml` — the same pattern already used for `ludus_wazuh_agent`, `ludus_sysmon_windows`, etc.
+Each role defaults to inert and is opted into a range purely by being present in that VM's `roles:` list in `ranges/*.yml` — the same pattern already used for `ludus_wazuh_agent`, `ludus_sysmon_windows`, etc. Variables are role-prefixed scalars/lists (e.g. `ad_kerberoast_account_user`, `ad_kerberoast_account_password`, `ad_kerberoast_account_spns`), not a shared nested dict — see each role's own `README.md` for its exact variables.
 
-Example — only `ludus_ad_vuln_kerberoast` and `ludus_ad_vuln_dnsadmins` enabled for a given DC:
+Example — only `ad_kerberoast_account` and `ad_dnsadmins_membership` enabled for a given DC:
 
 ```yaml
 roles:
   - ludus_ad_content
-  - ludus_ad_vuln_kerberoast
-  - ludus_ad_vuln_dnsadmins
+  - ad_kerberoast_account
+  - ad_dnsadmins_membership
 role_vars:
-  kerberoast_accounts:
-    - name: svc_backup
-      account_type: user
-      password: "L4bK3rb!"
-      spns:
-        - "MSSQLSvc/db01.thruntops.domain:1433"
-  dnsadmins_members:
+  ad_kerberoast_account_target_profile: windows-standard-2022
+  ad_kerberoast_account_user: svc_backup
+  ad_kerberoast_account_password: "L4bK3rb!"
+  ad_kerberoast_account_spns:
+    - "MSSQLSvc/db01.thruntops.domain:1433"
+  ad_dnsadmins_membership_members:
     - thruntops\primary_user06
 ```
 
-Each role's own `defaults/main.yml` ships an empty/disabled default (e.g. `kerberoast_accounts: []`) so adding the role with no `role_vars` override is a no-op. The primary DC should run `ludus_ad_content` before any `ludus_ad_vuln_*` role; host-scoped roles such as `ludus_ad_vuln_smb_signing` are only added to the `roles:` list of the specific Windows VMs they should target.
-
-## Implementation Order
-
-1. `AD-BASE-01`: declare deterministic identities in the range and confirm `ludus_ad_content` creates them.
-2. `ludus_ad_vuln_kerberoast`, `ludus_ad_vuln_asrep_roast`, and `ludus_ad_vuln_credentials` (AD-CRED-02): per-account scenarios with no domain-wide ACL changes.
-3. `ludus_ad_vuln_acls` and `ludus_ad_vuln_dnsadmins`: explicit privilege-path scenarios.
-4. `ludus_ad_vuln_dcsync`, `ludus_ad_vuln_password_policy`, and `ludus_ad_vuln_smb_signing`: high-impact scenarios, added to ranges separately and tested last.
+The primary DC should run `ludus_ad_content` (base users/groups) before any scenario role. Host-scoped roles (e.g. `ad_rdp_adcs`) are only added to the specific Windows VMs they target.
 
 ## Non-Goals
 
-- Do not copy the script's random counts, global state, or silent failure handling.
-- Do not make domain-wide policy changes merely because another scenario role is present.
+- Do not design or maintain a parallel scenario list here — `ThruntOps-vulnerabilities` owns that.
+- Do not consolidate scenario roles back into a single role for convenience — the granularity lets ranges select an exact subset.
 - Do not place lab passwords in role defaults; define them in the selected range's `role_vars`.
-- Do not consolidate scenario roles back into a single `ludus_ad_vulnerable` role for convenience — the granularity is intentional so ranges can select an exact subset.

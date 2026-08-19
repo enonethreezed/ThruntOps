@@ -141,4 +141,4 @@ ludus range status
 
 - `wazuh-dual.yml` deploys Wazuh all-in-one via `wazuh-install.sh -a` (also available as `wazuh-base.yml` and `wazuh-adcs.yml` — see `wazuh.sh`)
 - Unlike Splunk ([ThruntOps-m13](splunk.md#notes)), the Wazuh agent reads the Sysmon event channel correctly on every endpoint, including domain-member workstations and the ADCS VM — confirmed during validation.
-- Fase 2 will add ADCS, WEB (IIS + MSSQL), GitLab CE, and OPS VM.
+- Fase 2 will add ADCS, MSSQL, and OPS VM.
