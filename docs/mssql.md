@@ -9,7 +9,7 @@ nav_order: 12
 
 Attack surface and planned scenarios for an MSSQL instance.
 
-Fase 2 reference material. MSSQL is not part of the validated Fase 1 core SIEM ranges, and no VM has been assigned to host it yet — the previous plan combined it with a WEB/IIS server, which has been dropped from the roadmap (see [Vulnerabilities](vulnerabilities.md#notes)).
+Fase 2 reference material. MSSQL is not part of the validated Fase 1 core SIEM ranges, and no VM has been assigned to host it yet — the previous plan combined it with a WEB/IIS server, which has been dropped from the roadmap.
 {: .label .label-yellow }
 
 ---
@@ -128,8 +128,7 @@ Compromise primary_user01 (shares domainadmin password)
 - [x] T-SQL: `secondary\DBA` → db_datareader on ThruntOps DB (`ludus_mssql_config` role)
 
 **MSSQL standalone TTPs:**
-- [x] Document xp_cmdshell scenario in `docs/vulnerabilities.md`
-- [x] Document NTLM capture via xp_dirtree in `docs/vulnerabilities.md`
-- [x] Document DBA group → sysadmin escalation in `docs/vulnerabilities.md`
+- [x] xp_cmdshell, NTLM capture (xp_dirtree), and DBA group → sysadmin scenarios documented above
 - [ ] Assign a VM to host MSSQL
 - [ ] Verify end-to-end once a host is assigned
+- [ ] Add the corresponding role(s) to [`ThruntOps-vulnerabilities`](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) if not already present

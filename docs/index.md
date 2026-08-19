@@ -43,4 +43,4 @@ bash splunk.sh --dual
 
 → [Installation](install.md) · [Users](users.md) · [Coverage](coverage.md)
 
-> Fase 2 reference docs are preserved and accessible: [ADCS](adcs.md) · [Vulnerabilities](vulnerabilities.md) · [Vulnerable-AD Matrix](vulnerable-ad-matrix.md) · [MSSQL](mssql.md)
+> Fase 2 reference docs are preserved and accessible: [ADCS](adcs.md) · [MSSQL](mssql.md) · [Vulnerability role matrix](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) (external)
