@@ -2,7 +2,7 @@
 galaxy_info:
   role_name: ludus_ops
   author: enonethreezed
-  description: Operations tooling — Apache Guacamole (remote access) + Infection Monkey (BAS)
+  description: Operations tooling — Apache Guacamole (remote access)
   license: MIT
   min_ansible_version: "2.9"
 dependencies: []

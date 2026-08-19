@@ -28,7 +28,6 @@ The entire lab is built on Ludus — a Proxmox-based cyber range automation plat
 
 - [`ludus-local-users`](https://github.com/Cyblex-Consulting/ludus-local-users) — Local user management on Windows VMs
 - [`ludus-ad-content`](https://github.com/Cyblex-Consulting/ludus-ad-content) — Active Directory users, groups, and OUs
-- [`ludus-gitlab-ce`](https://github.com/Cyblex-Consulting/ludus-gitlab-ce) — GitLab CE deployment
 
 ---
 
@@ -53,15 +52,10 @@ Splunk Enterprise and Universal Forwarder used in the `splunk-dual.yml` profile.
 
 ## Applications & Services
 
-### GitLab CE
-[gitlab.com](https://gitlab.com)
-
-Self-hosted Git repository and CI/CD platform. Used as an attack surface for pipeline poisoning, secret leakage, and SUID privilege escalation scenarios.
-
 ### Microsoft SQL Server
 [microsoft.com](https://www.microsoft.com/en-us/sql-server)
 
-SQL Server 2019 used as the backend for the vulnerable web application and as an independent attack surface (xp_cmdshell, NTLM capture, DBA privilege escalation).
+SQL Server 2019 planned as an independent attack surface (xp_cmdshell, NTLM capture, DBA privilege escalation) — see [MSSQL TTPs](docs/mssql.md).
 
 ### Microsoft Active Directory & ADCS
 [microsoft.com](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/)
@@ -87,20 +81,10 @@ Python library for network protocol interaction. Used for NTLM relay (ntlmrelayx
 
 Unauthenticated NTLM coercion tool used for ESC8 and ESC11 attack paths.
 
-### Infection Monkey
-[github.com/guardicore/monkey](https://github.com/guardicore/monkey) — Guardicore / Akamai
-
-Automated breach and attack simulation (BAS) platform deployed on the ops VM. Used to generate realistic attack telemetry for detection engineering.
-
-### Sigma
-[github.com/SigmaHQ/sigma](https://github.com/SigmaHQ/sigma) — SigmaHQ community
-
-Generic SIEM detection rule format. Used for writing and converting portable detection rules against lab telemetry.
-
 ### GTFOBins
 [gtfobins.github.io](https://gtfobins.github.io)
 
-Reference for Unix binary exploitation (SUID, capabilities, sudo). The privilege escalation scenarios on the `ops` and `gitlab` VMs are based on GTFOBins techniques.
+Reference for Unix binary exploitation (SUID, capabilities, sudo). The privilege escalation scenarios on the `ops` VM are based on GTFOBins techniques.
 
 ### Sysmon (Linux)
 [github.com/Sysinternals/SysmonForLinux](https://github.com/Sysinternals/SysmonForLinux) — Microsoft Sysinternals

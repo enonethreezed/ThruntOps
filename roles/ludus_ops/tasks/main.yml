@@ -53,7 +53,3 @@
 - name: (ops) Deploy Guacamole
   ansible.builtin.include_tasks: guacamole.yml
   when: ludus_ops_deploy_guacamole
-
-- name: (ops) Deploy Infection Monkey
-  ansible.builtin.include_tasks: monkey.yml
-  when: ludus_ops_deploy_monkey

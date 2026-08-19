@@ -23,7 +23,7 @@ Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). The validated profile
 | [Wazuh](https://enonethreezed.github.io/ThruntOps/wazuh) | `wazuh-{base,dual,adcs}.yml` | Wazuh all-in-one | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
 | [Splunk](https://enonethreezed.github.io/ThruntOps/splunk) | `splunk-{base,dual,adcs}.yml` | Splunk Enterprise | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
 
-`--base` is a single AD domain + 1 workstation, `--dual` adds a second AD domain + workstation (the validated profile above), and `--adcs` swaps the second domain for a dedicated ADCS VM on the single domain. All profiles share the same AD forest naming (`thruntops.domain` [+ `secondary.thruntops.domain` on dual]) and only provision Ludus's default accounts. Fase 2 will add WEB, GitLab, and OPS infrastructure.
+`--base` is a single AD domain + 1 workstation, `--dual` adds a second AD domain + workstation (the validated profile above), and `--adcs` swaps the second domain for a dedicated ADCS VM on the single domain. All profiles share the same AD forest naming (`thruntops.domain` [+ `secondary.thruntops.domain` on dual]) and only provision Ludus's default accounts. Fase 2 will add MSSQL and OPS infrastructure.
 
 ## Users
 
@@ -39,7 +39,5 @@ See the [Installation guide](https://enonethreezed.github.io/ThruntOps/install) 
 
 ## Roadmap
 
-- Vulnerable web application covering OWASP Top 10
-- GitLab CI/CD pipeline to WEB (automated deploy on push)
-- Sigma rules + Atomic Red Team detection pipeline — see [docs](https://enonethreezed.github.io/ThruntOps/sigma)
+- MSSQL as a standalone vulnerability vector (xp_cmdshell, NTLM capture, DBA → sysadmin escalation) — see [MSSQL TTPs](https://enonethreezed.github.io/ThruntOps/mssql)
 - Reduce resource requirements to support lower-spec hosts (target: 32 GB RAM)

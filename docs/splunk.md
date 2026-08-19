@@ -152,4 +152,4 @@ By default Splunk runs under the free license (500 MB/day ingest limit). To appl
 
 - `splunk-dual.yml` deploys Splunk Enterprise version `10.2.1` (also available as `splunk-base.yml` and `splunk-adcs.yml` — see `splunk.sh`)
 - **Known issue (ThruntOps-m13):** the Splunk Universal Forwarder fails to read the `Microsoft-Windows-Sysmon/Operational` event channel on domain-member Windows machines (workstations and the ADCS VM) with `ACCESS_DENIED` — confirmed across all three profiles during validation. Domain controllers are unaffected. Only Sysmon telemetry is impacted; the rest of the Windows/Security event log forwarding works normally. Root cause not yet fixed.
-- Fase 2 will add ADCS, WEB (IIS + MSSQL), GitLab CE, and OPS VM.
+- Fase 2 will add ADCS, MSSQL, and OPS VM.

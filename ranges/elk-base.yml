@@ -29,7 +29,6 @@ ludus:
     role_vars:
       ludus_elastic_password: "thisisapassword"
       ludus_elastic_stack_version: "9.4.0"
-      ludus_ops_deploy_monkey: false
       ludus_ops_manage_localuser_ssh: false
 
   - vm_name: "{{ range_id }}-ad-dc-win2022-server-x64"

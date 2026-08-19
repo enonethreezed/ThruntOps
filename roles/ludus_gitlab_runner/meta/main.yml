@@ -1,5 +1,0 @@
-galaxy_info:
-  role_name: ludus_gitlab_runner
-  author: ThruntOps
-  description: GitLab shell runner + thruntops-web project setup for CI/CD pipeline poisoning scenarios
-  min_ansible_version: "2.9"

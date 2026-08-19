@@ -135,4 +135,4 @@ ludus range status
 
 - `elk-dual.yml` deploys Elastic Stack version `9.4.0` (also available as `elk-base.yml` and `elk-adcs.yml` — see `elastic.sh`)
 - Elastic Agent is pinned to `9.4.0` via `ludus_elastic_agent_version` (role_vars on each Windows VM) to match the stack version — `badsectorlabs.ludus_elastic_agent` defaults to `9.3.1` otherwise
-- Fase 2 will add ADCS, WEB (IIS + MSSQL), GitLab CE, and OPS VM.
+- Fase 2 will add ADCS, MSSQL, and OPS VM.
