@@ -165,14 +165,18 @@ else
   if ! echo "$agents_response" | jq -e '.data.affected_items' >/dev/null 2>&1; then
     bad "Could not get the agent list"
   else
-    echo "$agents_response" | jq -r '.data.affected_items[] | [.name, (.status // "unknown")] | @tsv' \
-    | while IFS=$'\t' read -r name status; do
-      if [[ "$status" == "active" ]]; then
-        echo "  ✓ ${name} — active"
-      else
-        echo "  ✗ ${name} — ${status}"
-      fi
-    done
+    agent_lines=$(echo "$agents_response" | jq -r '.data.affected_items[] | [.name, (.status // "unknown")] | @tsv')
+    if [[ -z "$agent_lines" ]]; then
+      bad "No agents enrolled"
+    else
+      while IFS=$'\t' read -r name status; do
+        if [[ "$status" == "active" ]]; then
+          ok "${name} — active"
+        else
+          bad "${name} — ${status}"
+        fi
+      done <<< "$agent_lines"
+    fi
   fi
 fi
 

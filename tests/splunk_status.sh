@@ -3,7 +3,7 @@
 if [[ -z "${RANGE_PREFIX:-}" ]]; then
   RANGE_NUM=$(ludus range status --json 2>/dev/null | jq -r '.rangeNumber // .range_number // empty' 2>/dev/null)
   if [[ -z "$RANGE_NUM" ]]; then
-    echo "Error: no se pudo autodetectar el prefijo de red. Define RANGE_PREFIX, p.ej.: RANGE_PREFIX=10.1 $0"
+    echo "Error: could not autodetect the network prefix. Set RANGE_PREFIX, e.g.: RANGE_PREFIX=10.1 $0"
     exit 1
   fi
   RANGE_PREFIX="10.${RANGE_NUM}"
@@ -68,7 +68,7 @@ for HOST in "${EXPECTED[@]}"; do
 done
 
 echo ""
-echo "--- Resumen ---"
+echo "--- Summary ---"
 ok=0; missing=0
 for HOST in "${EXPECTED[@]}"; do
   matched=""
@@ -83,4 +83,4 @@ for HOST in "${EXPECTED[@]}"; do
 done
 echo "  online:  $ok"
 echo "  missing: $missing"
-echo "  Total esperados: ${#EXPECTED[@]}"
+echo "  Total expected: ${#EXPECTED[@]}"

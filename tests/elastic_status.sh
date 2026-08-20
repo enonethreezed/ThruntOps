@@ -3,7 +3,7 @@
 if [[ -z "${RANGE_PREFIX:-}" ]]; then
   RANGE_NUM=$(ludus range status --json 2>/dev/null | jq -r '.rangeNumber // .range_number // empty' 2>/dev/null)
   if [[ -z "$RANGE_NUM" ]]; then
-    echo "Error: no se pudo autodetectar el prefijo de red. Define RANGE_PREFIX, p.ej.: RANGE_PREFIX=10.1 $0"
+    echo "Error: could not autodetect the network prefix. Set RANGE_PREFIX, e.g.: RANGE_PREFIX=10.1 $0"
     exit 1
   fi
   RANGE_PREFIX="10.${RANGE_NUM}"
@@ -19,7 +19,7 @@ response=$(curl -sk --max-time 10 \
   "${KIBANA_URL}/api/fleet/agents?perPage=100")
 
 if ! echo "$response" | jq -e '.items' > /dev/null 2>&1; then
-  echo "Error al contactar con Fleet API:"
+  echo "Error contacting the Fleet API:"
   echo "$response" | jq '.' 2>/dev/null || echo "$response"
   exit 1
 fi
@@ -49,7 +49,7 @@ echo "$response" | jq -r '
 done
 
 echo ""
-echo "--- Resumen ---"
+echo "--- Summary ---"
 echo "$response" | jq -r '[ .items[] | select(.active == true and .status != "uninstalled") ] | group_by(.local_metadata.host.hostname // .id) | .[] | sort_by(.last_checkin) | last | .status // "unknown"' | sort | uniq -c | while read -r count status; do
   echo "  $status: $count"
 done
