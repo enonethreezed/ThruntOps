@@ -22,7 +22,7 @@ ludus:
     linux: true
     testing:
       snapshot: false
-      block_internet: false
+      block_internet: true
     roles:
       - ludus_splunk
       - ludus_ops
