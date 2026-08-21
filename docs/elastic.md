@@ -93,9 +93,9 @@ graph TB
 ## Deployment
 
 ```bash
-bash elastic.sh --dual   # 2 AD + 2 workstations
-bash elastic.sh --base   # 1 AD + 1 workstation
-bash elastic.sh --adcs   # 1 AD + ADCS + 1 workstation
+./siem.sh elastic deploy --dual   # 2 AD + 2 workstations
+./siem.sh elastic deploy --base   # 1 AD + 1 workstation
+./siem.sh elastic deploy --adcs   # 1 AD + ADCS + 1 workstation
 ```
 
 Or step by step:
@@ -114,7 +114,7 @@ ludus range logs -f
 All three profiles have passed the post-deploy validation checklist on Ludus 2, run with the matching flag:
 
 ```bash
-RANGE_PREFIX=10.<range> tests/elastic_checklist.sh --base   # or --dual / --adcs
+RANGE_PREFIX=10.<range> ./siem.sh elastic check --base   # or --dual / --adcs
 ```
 
 Or manually, confirm all agents enrolled in Fleet:
@@ -133,6 +133,6 @@ ludus range status
 
 ## Notes
 
-- `elk-dual.yml` deploys Elastic Stack version `9.4.0` (also available as `elk-base.yml` and `elk-adcs.yml` — see `elastic.sh`)
+- `elk-dual.yml` deploys Elastic Stack version `9.4.0` (also available as `elk-base.yml` and `elk-adcs.yml` — see `siem.sh`)
 - Elastic Agent is pinned to `9.4.0` via `ludus_elastic_agent_version` (role_vars on each Windows VM) to match the stack version — `badsectorlabs.ludus_elastic_agent` defaults to `9.3.1` otherwise
 - Fase 2 will add ADCS, MSSQL, and OPS VM.

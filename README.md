@@ -15,7 +15,7 @@ Validation completed via a from-scratch deploy (destroy + deploy) of every profi
 
 ## Profiles
 
-Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). The validated profiles run on VLAN 20 (`10.<range>.20.0/24`). Each SIEM has three atomic profiles, deployed via its own script (`elastic.sh`, `wazuh.sh`, `splunk.sh`) with `--base`, `--dual`, or `--adcs`:
+Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). The validated profiles run on VLAN 20 (`10.<range>.20.0/24`). Each SIEM has three atomic profiles, deployed via the unified `siem.sh <elastic|wazuh|splunk> deploy` command with `--base`, `--dual`, or `--adcs`:
 
 | Profile | Config | SIEM | VMs | Validation |
 |---|---|---|---|---|

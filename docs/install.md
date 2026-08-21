@@ -123,17 +123,17 @@ ludus ansible roles list
 
 ## 5. Deploy the Range
 
-Each SIEM has its own script (`elastic.sh`, `wazuh.sh`, `splunk.sh`) that destroys any existing range, applies the config, and deploys in one step. Each accepts one of three profile flags:
+The unified `siem.sh` script (`./siem.sh <elastic|wazuh|splunk> deploy <profile>`) destroys any existing range, applies the config, and deploys in one step. Each accepts one of three profile flags:
 
 - `--base` — 1 AD + 1 workstation
 - `--dual` — 2 AD + 2 workstations
 - `--adcs` — 1 AD + ADCS + 1 workstation
 
 ```bash
-bash elastic.sh --dual   # ranges/elk-dual.yml
-bash elastic.sh --adcs   # ranges/elk-adcs.yml
-bash wazuh.sh --dual     # ranges/wazuh-dual.yml
-bash splunk.sh --dual    # ranges/splunk-dual.yml
+./siem.sh elastic deploy --dual   # ranges/elk-dual.yml
+./siem.sh elastic deploy --adcs   # ranges/elk-adcs.yml
+./siem.sh wazuh deploy --dual     # ranges/wazuh-dual.yml
+./siem.sh splunk deploy --dual    # ranges/splunk-dual.yml
 ```
 
 Or step by step:
@@ -182,7 +182,7 @@ Check that all Universal Forwarders are connected via Splunk Web at `http://<ran
 Run the Wazuh agent status check:
 
 ```bash
-bash tests/wazuh_status.sh
+./siem.sh wazuh status
 ```
 
 All agents should appear with status `active`.

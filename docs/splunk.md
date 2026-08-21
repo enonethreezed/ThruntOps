@@ -93,9 +93,9 @@ graph TB
 ## Deployment
 
 ```bash
-bash splunk.sh --dual   # 2 AD + 2 workstations
-bash splunk.sh --base   # 1 AD + 1 workstation
-bash splunk.sh --adcs   # 1 AD + ADCS + 1 workstation
+./siem.sh splunk deploy --dual   # 2 AD + 2 workstations
+./siem.sh splunk deploy --base   # 1 AD + 1 workstation
+./siem.sh splunk deploy --adcs   # 1 AD + ADCS + 1 workstation
 ```
 
 Or step by step:
@@ -114,7 +114,7 @@ ludus range logs -f
 All three profiles have passed the post-deploy validation checklist on Ludus 2, run with the matching flag:
 
 ```bash
-RANGE_PREFIX=10.<range> tests/splunk_checklist.sh --base   # or --dual / --adcs
+RANGE_PREFIX=10.<range> ./siem.sh splunk check --base   # or --dual / --adcs
 ```
 
 Or manually, confirm the Universal Forwarders are connected:
@@ -150,6 +150,6 @@ By default Splunk runs under the free license (500 MB/day ingest limit). To appl
 
 ## Notes
 
-- `splunk-dual.yml` deploys Splunk Enterprise version `10.2.1` (also available as `splunk-base.yml` and `splunk-adcs.yml` — see `splunk.sh`)
+- `splunk-dual.yml` deploys Splunk Enterprise version `10.2.1` (also available as `splunk-base.yml` and `splunk-adcs.yml` — see `siem.sh`)
 - **Known issue (ThruntOps-m13):** the Splunk Universal Forwarder fails to read the `Microsoft-Windows-Sysmon/Operational` event channel on domain-member Windows machines (workstations and the ADCS VM) with `ACCESS_DENIED` — confirmed across all three profiles during validation. Domain controllers are unaffected. Only Sysmon telemetry is impacted; the rest of the Windows/Security event log forwarding works normally. Root cause not yet fixed.
 - Fase 2 will add ADCS, MSSQL, and OPS VM.

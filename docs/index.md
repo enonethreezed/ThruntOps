@@ -22,16 +22,16 @@ All 9 atomized profiles (base/dual/adcs × Elastic/Splunk/Wazuh) have passed a f
 | [Splunk](splunk.md) | `splunk-{base,dual,adcs}.yml` | Splunk Enterprise | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
 | [Wazuh](wazuh.md) | `wazuh-{base,dual,adcs}.yml` | Wazuh all-in-one | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
 
-Each SIEM has three atomic profiles, deployed via its own script:
+Each SIEM has three atomic profiles, deployed via the unified `siem.sh` script:
 
 - `--base` — 1 AD + 1 workstation
 - `--dual` — 2 AD + 2 workstations (the validated profile above)
 - `--adcs` — 1 AD + dedicated ADCS VM + 1 workstation
 
 ```bash
-bash elastic.sh --dual
-bash wazuh.sh --dual
-bash splunk.sh --dual
+./siem.sh elastic deploy --dual
+./siem.sh wazuh deploy --dual
+./siem.sh splunk deploy --dual
 ```
 
 ## Phases

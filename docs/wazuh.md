@@ -97,9 +97,9 @@ The Wazuh REST API user (`wazuh`) and dashboard user (`wazuh-wui`) are stored in
 ## Deployment
 
 ```bash
-bash wazuh.sh --dual   # 2 AD + 2 workstations
-bash wazuh.sh --base   # 1 AD + 1 workstation
-bash wazuh.sh --adcs   # 1 AD + ADCS + 1 workstation
+./siem.sh wazuh deploy --dual   # 2 AD + 2 workstations
+./siem.sh wazuh deploy --base   # 1 AD + 1 workstation
+./siem.sh wazuh deploy --adcs   # 1 AD + ADCS + 1 workstation
 ```
 
 Or step by step:
@@ -118,13 +118,13 @@ ludus range logs -f
 All three profiles have passed the post-deploy validation checklist on Ludus 2, run with the matching flag:
 
 ```bash
-RANGE_PREFIX=10.<range> tests/wazuh_checklist.sh --base   # or --dual / --adcs
+RANGE_PREFIX=10.<range> ./siem.sh wazuh check --base   # or --dual / --adcs
 ```
 
 Or manually, confirm agents are enrolled, active, and reporting Sysmon:
 
 ```bash
-bash tests/wazuh_status.sh
+./siem.sh wazuh status
 ```
 
 Expected output: every agent in the deployed profile with status `active` (2 for `--base`, 4 for `--dual`, 3 for `--adcs`).
@@ -139,6 +139,6 @@ ludus range status
 
 ## Notes
 
-- `wazuh-dual.yml` deploys Wazuh all-in-one via `wazuh-install.sh -a` (also available as `wazuh-base.yml` and `wazuh-adcs.yml` — see `wazuh.sh`)
+- `wazuh-dual.yml` deploys Wazuh all-in-one via `wazuh-install.sh -a` (also available as `wazuh-base.yml` and `wazuh-adcs.yml` — see `siem.sh`)
 - Unlike Splunk ([ThruntOps-m13](splunk.md#notes)), the Wazuh agent reads the Sysmon event channel correctly on every endpoint, including domain-member workstations and the ADCS VM — confirmed during validation.
 - Fase 2 will add ADCS, MSSQL, and OPS VM.
