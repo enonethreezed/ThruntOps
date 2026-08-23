@@ -1,44 +1,54 @@
--- Seed Guacamole connections for ThruntOps lab
--- Runs once on first DB init (idempotent via DO block)
+-- Seed/update Guacamole connections for ThruntOps lab
+-- Upserts by connection_name on every deploy, so a corrected value here
+-- (hostname, port, username...) always converges even if the guac-db
+-- docker volume survived a previous deploy on this VM.
 
 DO $$
+DECLARE
+  conn_id INTEGER;
 BEGIN
 {% for conn in ludus_ops_guacamole_connections %}
-  IF NOT EXISTS (
-    SELECT 1 FROM guacamole_connection WHERE connection_name = '{{ conn.name }}'
-  ) THEN
+  SELECT connection_id INTO conn_id
+  FROM guacamole_connection
+  WHERE connection_name = '{{ conn.name }}' AND parent_id IS NULL;
+
+  IF conn_id IS NULL THEN
     INSERT INTO guacamole_connection (connection_name, protocol)
-    VALUES ('{{ conn.name }}', '{{ conn.protocol }}');
+    VALUES ('{{ conn.name }}', '{{ conn.protocol }}')
+    RETURNING connection_id INTO conn_id;
+  ELSE
+    UPDATE guacamole_connection SET protocol = '{{ conn.protocol }}' WHERE connection_id = conn_id;
+  END IF;
 
-    INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
-    SELECT connection_id, 'hostname', '{{ conn.hostname }}'
-    FROM guacamole_connection WHERE connection_name = '{{ conn.name }}';
+  INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+  VALUES (conn_id, 'hostname', '{{ conn.hostname }}')
+  ON CONFLICT (connection_id, parameter_name) DO UPDATE SET parameter_value = EXCLUDED.parameter_value;
 
-    INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
-    SELECT connection_id, 'port', '{{ conn.port }}'
-    FROM guacamole_connection WHERE connection_name = '{{ conn.name }}';
+  INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+  VALUES (conn_id, 'port', '{{ conn.port }}')
+  ON CONFLICT (connection_id, parameter_name) DO UPDATE SET parameter_value = EXCLUDED.parameter_value;
 
-    INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
-    SELECT connection_id, 'username', '{{ conn.username }}'
-    FROM guacamole_connection WHERE connection_name = '{{ conn.name }}';
+  INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+  VALUES (conn_id, 'username', '{{ conn.username }}')
+  ON CONFLICT (connection_id, parameter_name) DO UPDATE SET parameter_value = EXCLUDED.parameter_value;
 
 {% if conn.password %}
-    INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
-    SELECT connection_id, 'password', '{{ conn.password }}'
-    FROM guacamole_connection WHERE connection_name = '{{ conn.name }}';
-
+  INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+  VALUES (conn_id, 'password', '{{ conn.password }}')
+  ON CONFLICT (connection_id, parameter_name) DO UPDATE SET parameter_value = EXCLUDED.parameter_value;
+{% else %}
+  DELETE FROM guacamole_connection_parameter WHERE connection_id = conn_id AND parameter_name = 'password';
 {% endif %}
+
 {% if conn.protocol == 'rdp' %}
-    INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
-    SELECT connection_id, 'security', 'nla'
-    FROM guacamole_connection WHERE connection_name = '{{ conn.name }}';
+  INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+  VALUES (conn_id, 'security', 'nla')
+  ON CONFLICT (connection_id, parameter_name) DO UPDATE SET parameter_value = EXCLUDED.parameter_value;
 
-    INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
-    SELECT connection_id, 'ignore-cert', 'true'
-    FROM guacamole_connection WHERE connection_name = '{{ conn.name }}';
-
+  INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+  VALUES (conn_id, 'ignore-cert', 'true')
+  ON CONFLICT (connection_id, parameter_name) DO UPDATE SET parameter_value = EXCLUDED.parameter_value;
 {% endif %}
-  END IF;
 {% endfor %}
 
   -- Grant guacadmin access to all connections

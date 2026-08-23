@@ -8,46 +8,49 @@ ludus_ops_guacamole_admin_password: "guacadmin"
 ludus_ops_manage_localuser_ssh: true
 
 # Lab connections pre-loaded into Guacamole
+# Hostnames are templated against the deploying range's own network
+# (10.{{ range_second_octet }}.20.x — VLAN 20, per the ranges/*.yml layout);
+# they must NOT be hardcoded, or they point at a subnet that doesn't exist.
 ludus_ops_guacamole_connections:
   - name: "DC01-2022 (RDP)"
     protocol: rdp
-    hostname: "10.2.50.11"
+    hostname: "10.{{ range_second_octet }}.20.11"
     port: 3389
     username: "thruntops\\domainuser"
     password: ""
   - name: "DC01-SEC (RDP)"
     protocol: rdp
-    hostname: "10.2.50.12"
+    hostname: "10.{{ range_second_octet }}.20.12"
     port: 3389
     username: "secondary\\domainuser"
     password: ""
   - name: "ADCS (RDP)"
     protocol: rdp
-    hostname: "10.2.50.13"
+    hostname: "10.{{ range_second_octet }}.20.13"
     port: 3389
     username: "thruntops\\primary_user04"
     password: ""
   - name: "WIN11-22H2-1 (RDP)"
     protocol: rdp
-    hostname: "10.2.50.21"
+    hostname: "10.{{ range_second_octet }}.20.21"
     port: 3389
     username: "basicuser"
     password: ""
   - name: "WIN11-22H2-2 (RDP)"
     protocol: rdp
-    hostname: "10.2.50.22"
+    hostname: "10.{{ range_second_octet }}.20.22"
     port: 3389
     username: "basicuser"
     password: ""
   - name: "SIEM (SSH)"
     protocol: ssh
-    hostname: "10.2.50.1"
+    hostname: "10.{{ range_second_octet }}.20.1"
     port: 22
     username: "localuser"
     password: ""
   - name: "ops (SSH)"
     protocol: ssh
-    hostname: "10.2.50.2"
+    hostname: "10.{{ range_second_octet }}.20.2"
     port: 22
     username: "localuser"
     password: ""
