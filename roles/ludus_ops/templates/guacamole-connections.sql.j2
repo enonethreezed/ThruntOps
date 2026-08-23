@@ -51,6 +51,14 @@ BEGIN
 {% endif %}
 {% endfor %}
 
+  -- Prune connections no longer in ludus_ops_guacamole_connections (e.g. retired VMs)
+  DELETE FROM guacamole_connection
+  WHERE parent_id IS NULL
+    AND connection_name NOT IN (
+{% for conn in ludus_ops_guacamole_connections %}      '{{ conn.name }}'{% if not loop.last %},{% endif %}
+{% endfor %}
+    );
+
   -- Grant guacadmin access to all connections
   INSERT INTO guacamole_connection_permission (entity_id, connection_id, permission)
   SELECT e.entity_id, c.connection_id, 'READ'
