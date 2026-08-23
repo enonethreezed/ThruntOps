@@ -23,12 +23,6 @@ The entire lab is built on Ludus — a Proxmox-based cyber range automation plat
 - [`ludus_adcs`](https://github.com/badsectorlabs/ludus_adcs) — Active Directory Certificate Services with ESC misconfigurations
 - [`ludus_mssql`](https://github.com/badsectorlabs/ludus_mssql) — SQL Server installation
 
-### Cyblex Consulting
-[github.com/Cyblex-Consulting](https://github.com/Cyblex-Consulting)
-
-- [`ludus-local-users`](https://github.com/Cyblex-Consulting/ludus-local-users) — Local user management on Windows VMs
-- [`ludus-ad-content`](https://github.com/Cyblex-Consulting/ludus-ad-content) — Active Directory users, groups, and OUs
-
 ---
 
 ## SIEM Platforms
