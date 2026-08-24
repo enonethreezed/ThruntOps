@@ -32,6 +32,14 @@ BEGIN
   VALUES (conn_id, 'username', '{{ conn.username }}')
   ON CONFLICT (connection_id, parameter_name) DO UPDATE SET parameter_value = EXCLUDED.parameter_value;
 
+{% if conn.domain is defined %}
+  INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
+  VALUES (conn_id, 'domain', '{{ conn.domain }}')
+  ON CONFLICT (connection_id, parameter_name) DO UPDATE SET parameter_value = EXCLUDED.parameter_value;
+{% else %}
+  DELETE FROM guacamole_connection_parameter WHERE connection_id = conn_id AND parameter_name = 'domain';
+{% endif %}
+
 {% if conn.password %}
   INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
   VALUES (conn_id, 'password', '{{ conn.password }}')
@@ -42,7 +50,7 @@ BEGIN
 
 {% if conn.protocol == 'rdp' %}
   INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)
-  VALUES (conn_id, 'security', 'nla')
+  VALUES (conn_id, 'security', 'any')
   ON CONFLICT (connection_id, parameter_name) DO UPDATE SET parameter_value = EXCLUDED.parameter_value;
 
   INSERT INTO guacamole_connection_parameter (connection_id, parameter_name, parameter_value)

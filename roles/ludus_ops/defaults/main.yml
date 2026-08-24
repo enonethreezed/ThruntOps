@@ -16,31 +16,36 @@ ludus_ops_guacamole_connections:
     protocol: rdp
     hostname: "10.{{ range_second_octet }}.20.11"
     port: 3389
-    username: "thruntops\\domainuser"
+    domain: "thruntops"
+    username: "domainuser"
     password: ""
   - name: "DC01-SEC (RDP)"
     protocol: rdp
     hostname: "10.{{ range_second_octet }}.20.12"
     port: 3389
-    username: "secondary\\domainuser"
+    domain: "secondary"
+    username: "domainuser"
     password: ""
   - name: "ADCS (RDP)"
     protocol: rdp
     hostname: "10.{{ range_second_octet }}.20.13"
     port: 3389
-    username: "thruntops\\primary_user04"
+    domain: "thruntops"
+    username: "primary_user04"
     password: ""
   - name: "WIN11-22H2-1 (RDP)"
     protocol: rdp
     hostname: "10.{{ range_second_octet }}.20.21"
     port: 3389
-    username: "thruntops\\domainuser"
+    domain: "thruntops"
+    username: "domainuser"
     password: "password"
   - name: "WIN11-22H2-2 (RDP)"
     protocol: rdp
     hostname: "10.{{ range_second_octet }}.20.22"
     port: 3389
-    username: "thruntops\\domainuser"
+    domain: "thruntops"
+    username: "domainuser"
     password: "password"
   - name: "SIEM (SSH)"
     protocol: ssh
