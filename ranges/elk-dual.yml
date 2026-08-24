@@ -9,7 +9,7 @@ defaults:
   snapshot_with_RAM: true
   stale_hours: 0
   timezone: "Europe/Madrid"
-  enable_dynamic_wallpaper: true
+  enable_dynamic_wallpaper: false
 
 ludus:
   - vm_name: "{{ range_id }}-elastic"
