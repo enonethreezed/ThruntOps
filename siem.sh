@@ -6,7 +6,10 @@
 # Usage:
 #   ./siem.sh <elastic|wazuh|splunk> deploy <--base|--dual|--adcs>
 #   ./siem.sh <elastic|wazuh|splunk> check  <--base|--dual|--adcs>
-#   ./siem.sh <elastic|wazuh|splunk> status [range_id]   # range_id: splunk only
+#   ./siem.sh <elastic|wazuh>        status
+#   ./siem.sh splunk                 status <--base|--dual|--adcs>
+#   # splunk status needs the profile to know which hosts to expect;
+#   # elastic/wazuh list whatever's actually enrolled in Fleet/Wazuh.
 #
 # Requires: curl, jq. Optional: ldapwhoami (ldap-utils package) for the
 # domain user check; python3 for the splunk status column parsing.
@@ -17,7 +20,9 @@
 set -uo pipefail
 
 usage() {
-  echo "Usage: $0 <elastic|wazuh|splunk> <deploy|check|status> [--base|--dual|--adcs]"
+  echo "Usage: $0 <elastic|wazuh|splunk> <deploy|check> --base|--dual|--adcs"
+  echo "       $0 <elastic|wazuh> status"
+  echo "       $0 splunk status --base|--dual|--adcs"
   exit 1
 }
 
@@ -35,7 +40,12 @@ case "$ACTION" in
     case "$EXTRA" in --base|--dual|--adcs) ;; *) usage ;; esac
     PROFILE="$EXTRA"
     ;;
-  status) ;;
+  status)
+    if [[ "$SIEM" == "splunk" ]]; then
+      case "$EXTRA" in --base|--dual|--adcs) ;; *) usage ;; esac
+      PROFILE="$EXTRA"
+    fi
+    ;;
   *) usage ;;
 esac
 
@@ -472,22 +482,20 @@ check_splunk_sysmon() {
 }
 
 status_splunk() {
-  local range_id="${1:-}"
+  set_vm_patterns
+  local range_id
+  range_id=$(ludus range status --json 2>/dev/null | jq -r '.rangeID // .range_id // empty' 2>/dev/null)
   if [[ -z "$range_id" ]]; then
-    range_id=$(ludus range status --json 2>/dev/null | jq -r '.rangeID // .range_id // empty' 2>/dev/null)
-    if [[ -z "$range_id" ]]; then
-      echo "Usage: $0 splunk status <range_id>"
-      echo "  range_id: your Ludus range prefix (e.g. tla)"
-      exit 1
-    fi
+    echo "Could not autodetect the range ID from 'ludus range status --json'."
+    exit 1
   fi
 
-  local expected=(
-    "${range_id}-DC01-2022"
-    "${range_id}-DC01-SEC"
-    "${range_id}-WIN11-22H2-1"
-    "${range_id}-WIN11-22H2-2"
-  )
+  local expected=()
+  for entry in "${VM_PATTERNS[@]}"; do
+    local label="${entry%%:*}"
+    [[ "$label" == "splunk" ]] && continue
+    expected+=("${range_id}-${label}")
+  done
 
   local search="search index=* earliest=-${LOOKBACK} | stats latest(_time) as last_seen count by host | eval last_seen=strftime(last_seen, \"%Y-%m-%dT%H:%M:%S\") | fields host last_seen count"
   local resp
@@ -572,7 +580,7 @@ case "$ACTION" in
     case "$SIEM" in
       elastic) status_elastic ;;
       wazuh)   status_wazuh ;;
-      splunk)  status_splunk "$EXTRA" ;;
+      splunk)  status_splunk ;;
     esac
     ;;
 esac
