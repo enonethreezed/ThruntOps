@@ -4,8 +4,8 @@ defaults:
   ad_domain_user: domainuser
   ad_domain_user_password: password
   ad_domain_safe_mode_password: password
-  ad_domain_functional_level: Win2012R2
-  ad_forest_functional_level: Win2012R2
+  ad_domain_functional_level: Win2025
+  ad_forest_functional_level: Win2025
   snapshot_with_RAM: true
   stale_hours: 0
   timezone: "Europe/Madrid"
