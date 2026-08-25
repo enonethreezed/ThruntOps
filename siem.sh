@@ -4,12 +4,14 @@
 # status.
 #
 # Usage:
-#   ./siem.sh <elastic|wazuh|splunk> deploy <--base|--dual|--adcs>
-#   ./siem.sh <elastic|wazuh|splunk> check  <--base|--dual|--adcs>
+#   ./siem.sh <elastic|wazuh|splunk> deploy <--base|--dual|--adcs>[-2025|-2019]
+#   ./siem.sh <elastic|wazuh|splunk> check  <--base|--dual|--adcs>[-2025|-2019]
 #   ./siem.sh <elastic|wazuh>        status
-#   ./siem.sh splunk                 status <--base|--dual|--adcs>
+#   ./siem.sh splunk                 status <--base|--dual|--adcs>[-2025|-2019]
 #   # splunk status needs the profile to know which hosts to expect;
 #   # elastic/wazuh list whatever's actually enrolled in Fleet/Wazuh.
+#   # Profile suffix selects the AD DC Windows Server version: no suffix =
+#   # 2022 (default), -2025 = Windows Server 2025, -2019 = Windows Server 2019.
 #
 # Requires: curl, jq. Optional: ldapwhoami (ldap-utils package) for the
 # domain user check; python3 for the splunk status column parsing.
@@ -20,11 +22,13 @@
 set -uo pipefail
 
 usage() {
-  echo "Usage: $0 <elastic|wazuh|splunk> <deploy|check> --base|--dual|--adcs"
+  echo "Usage: $0 <elastic|wazuh|splunk> <deploy|check> --base|--dual|--adcs[-2025|-2019]"
   echo "       $0 <elastic|wazuh> status"
-  echo "       $0 splunk status --base|--dual|--adcs"
+  echo "       $0 splunk status --base|--dual|--adcs[-2025|-2019]"
   exit 1
 }
+
+PROFILE_RE='^--(base|dual|adcs)(-2025|-2019)?$'
 
 SIEM="${1:-}"
 ACTION="${2:-}"
@@ -37,12 +41,12 @@ esac
 
 case "$ACTION" in
   deploy|check)
-    case "$EXTRA" in --base|--dual|--adcs) ;; *) usage ;; esac
+    [[ "$EXTRA" =~ $PROFILE_RE ]] || usage
     PROFILE="$EXTRA"
     ;;
   status)
     if [[ "$SIEM" == "splunk" ]]; then
-      case "$EXTRA" in --base|--dual|--adcs) ;; *) usage ;; esac
+      [[ "$EXTRA" =~ $PROFILE_RE ]] || usage
       PROFILE="$EXTRA"
     fi
     ;;
@@ -96,22 +100,28 @@ resolve_range_prefix() {
 }
 
 set_vm_patterns() {
+  local win_year="2022"
+  local base_profile="$PROFILE"
   case "$PROFILE" in
+    *-2025) win_year="2025"; base_profile="${PROFILE%-2025}" ;;
+    *-2019) win_year="2019"; base_profile="${PROFILE%-2019}" ;;
+  esac
+  case "$base_profile" in
     --base)
       VM_PATTERNS=(
         "${SIEM}:-${SIEM}$"
-        "DC01-2022:-ad-dc-win2022-server-x64$"
+        "DC01-${win_year}:-ad-dc-win${win_year}-server-x64$"
         "WIN11-22H2-1:-ad-win11-22h2-enterprise-x64-1$"
       )
       declare -gA DOMAINS=( ["thruntops.domain"]="$DC1_IP" )
-      WINDOWS_HOSTS_REGEX="(DC01-2022|WIN11-22H2-1)$"
+      WINDOWS_HOSTS_REGEX="(DC01-${win_year}|WIN11-22H2-1)$"
       WINDOWS_HOSTS_COUNT=2
       ;;
     --dual)
       VM_PATTERNS=(
         "${SIEM}:-${SIEM}$"
-        "DC01-2022:-ad-dc-win2022-server-x64$"
-        "DC01-SEC:-ad-dc-win2022-secondary$"
+        "DC01-${win_year}:-ad-dc-win${win_year}-server-x64$"
+        "DC01-SEC:-ad-dc-win${win_year}-secondary$"
         "WIN11-22H2-1:-ad-win11-22h2-enterprise-x64-1$"
         "WIN11-22H2-2:-ad-win11-22h2-enterprise-x64-2$"
       )
@@ -119,18 +129,18 @@ set_vm_patterns() {
         ["thruntops.domain"]="$DC1_IP"
         ["secondary.thruntops.domain"]="$DC2_IP"
       )
-      WINDOWS_HOSTS_REGEX="(DC01-2022|DC01-SEC|WIN11-22H2-1|WIN11-22H2-2)$"
+      WINDOWS_HOSTS_REGEX="(DC01-${win_year}|DC01-SEC|WIN11-22H2-1|WIN11-22H2-2)$"
       WINDOWS_HOSTS_COUNT=4
       ;;
     --adcs)
       VM_PATTERNS=(
         "${SIEM}:-${SIEM}$"
-        "DC01-2022:-ad-dc-win2022-server-x64$"
+        "DC01-${win_year}:-ad-dc-win${win_year}-server-x64$"
         "ADCS:-adcs$"
         "WIN11-22H2-1:-ad-win11-22h2-enterprise-x64-1$"
       )
       declare -gA DOMAINS=( ["thruntops.domain"]="$DC1_IP" )
-      WINDOWS_HOSTS_REGEX="(DC01-2022|ADCS|WIN11-22H2-1)$"
+      WINDOWS_HOSTS_REGEX="(DC01-${win_year}|ADCS|WIN11-22H2-1)$"
       WINDOWS_HOSTS_COUNT=3
       ;;
   esac
