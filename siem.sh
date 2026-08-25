@@ -4,46 +4,39 @@
 # status.
 #
 # Usage:
-#   ./siem.sh <elastic|wazuh|splunk> deploy <--base|--dual|--adcs>[-2025|-2019]
-#   ./siem.sh <elastic|wazuh|splunk> check  <--base|--dual|--adcs>[-2025|-2019]
-#   ./siem.sh <elastic|wazuh>        status
-#   ./siem.sh splunk                 status <--base|--dual|--adcs>[-2025|-2019]
+#   ./siem.sh deploy <elastic|wazuh|splunk> <2019|2022|2025> <base|dual|adcs>
+#   ./siem.sh check  <elastic|wazuh|splunk> <2019|2022|2025> <base|dual|adcs>
+#   ./siem.sh status <elastic|wazuh>
+#   ./siem.sh status splunk <2019|2022|2025> <base|dual|adcs>
 #   # splunk status needs the profile to know which hosts to expect;
 #   # elastic/wazuh list whatever's actually enrolled in Fleet/Wazuh.
-#   # Profile suffix selects the AD DC Windows Server version: no suffix =
-#   # 2022 (default), -2025 = Windows Server 2025, -2019 = Windows Server 2019.
+#   # The year selects the AD DC Windows Server version.
 #
 # Requires: curl, jq. Optional: ldapwhoami (ldap-utils package) for the
 # domain user check; python3 for the splunk status column parsing.
 #
 # Network override via env var if autodetection fails:
-#   RANGE_PREFIX=10.2 ./siem.sh wazuh check --dual
+#   RANGE_PREFIX=10.2 ./siem.sh check wazuh 2022 dual
 
 set -uo pipefail
 
 usage() {
-  echo "Usage: $0 <elastic|wazuh|splunk> <deploy|check> --base|--dual|--adcs[-2025|-2019]"
-  echo "       $0 <elastic|wazuh> status"
-  echo "       $0 splunk status --base|--dual|--adcs[-2025|-2019]"
+  echo "Usage: $0 deploy <elastic|wazuh|splunk> <2019|2022|2025> <base|dual|adcs>"
+  echo "       $0 check  <elastic|wazuh|splunk> <2019|2022|2025> <base|dual|adcs>"
+  echo "       $0 status <elastic|wazuh>"
+  echo "       $0 status splunk <2019|2022|2025> <base|dual|adcs>"
   exit 1
 }
 
-PROFILE_RE='^--(base|dual|adcs)(-2025|-2019)?$'
+ACTION="${1:-}"
+SIEM="${2:-}"
+WIN_YEAR="${3:-}"
+BASE_PROFILE="${4:-}"
 
-# Splits $PROFILE into BASE_PROFILE (--base|--dual|--adcs) and WIN_YEAR
-# (the AD DC Windows Server version; defaults to 2022 with no suffix).
-parse_profile() {
-  WIN_YEAR="2022"
-  BASE_PROFILE="$PROFILE"
-  case "$PROFILE" in
-    *-2025) WIN_YEAR="2025"; BASE_PROFILE="${PROFILE%-2025}" ;;
-    *-2019) WIN_YEAR="2019"; BASE_PROFILE="${PROFILE%-2019}" ;;
-  esac
-}
-
-SIEM="${1:-}"
-ACTION="${2:-}"
-EXTRA="${3:-}"
+case "$ACTION" in
+  deploy|check|status) ;;
+  *) usage ;;
+esac
 
 case "$SIEM" in
   elastic|wazuh|splunk) ;;
@@ -52,16 +45,17 @@ esac
 
 case "$ACTION" in
   deploy|check)
-    [[ "$EXTRA" =~ $PROFILE_RE ]] || usage
-    PROFILE="$EXTRA"
+    case "$WIN_YEAR" in 2019|2022|2025) ;; *) usage ;; esac
+    case "$BASE_PROFILE" in base|dual|adcs) ;; *) usage ;; esac
     ;;
   status)
     if [[ "$SIEM" == "splunk" ]]; then
-      [[ "$EXTRA" =~ $PROFILE_RE ]] || usage
-      PROFILE="$EXTRA"
+      case "$WIN_YEAR" in 2019|2022|2025) ;; *) usage ;; esac
+      case "$BASE_PROFILE" in base|dual|adcs) ;; *) usage ;; esac
+    elif [[ -n "$WIN_YEAR$BASE_PROFILE" ]]; then
+      usage
     fi
     ;;
-  *) usage ;;
 esac
 
 case "$SIEM" in
@@ -78,8 +72,7 @@ LOOKBACK="1h"
 # deploy
 # ==================================================================
 cmd_deploy() {
-  parse_profile
-  local config="ranges/${RANGES_DIR_PREFIX}-${BASE_PROFILE#--}-${WIN_YEAR}.yml"
+  local config="ranges/${RANGES_DIR_PREFIX}-${BASE_PROFILE}-${WIN_YEAR}.yml"
   ludus range destroy --no-prompt && \
   ludus range config set -f "$config" && \
   ludus range deploy && \
@@ -105,17 +98,16 @@ resolve_range_prefix() {
       RANGE_PREFIX="10.${range_num}"
     else
       echo "Could not autodetect the network prefix from 'ludus range status --json'."
-      echo "Set RANGE_PREFIX manually, e.g.: RANGE_PREFIX=10.2 $0 ${SIEM} ${ACTION} ${EXTRA}"
+      echo "Set RANGE_PREFIX manually, e.g.: RANGE_PREFIX=10.2 $0 ${ACTION} ${SIEM} ${WIN_YEAR} ${BASE_PROFILE}"
       exit 1
     fi
   fi
 }
 
 set_vm_patterns() {
-  parse_profile
   local win_year="$WIN_YEAR"
   case "$BASE_PROFILE" in
-    --base)
+    base)
       VM_PATTERNS=(
         "${SIEM}:-${SIEM}$"
         "DC01-${win_year}:-ad-dc-win${win_year}-server-x64$"
@@ -125,7 +117,7 @@ set_vm_patterns() {
       WINDOWS_HOSTS_REGEX="(DC01-${win_year}|WIN11-22H2-1)$"
       WINDOWS_HOSTS_COUNT=2
       ;;
-    --dual)
+    dual)
       VM_PATTERNS=(
         "${SIEM}:-${SIEM}$"
         "DC01-${win_year}:-ad-dc-win${win_year}-server-x64$"
@@ -140,7 +132,7 @@ set_vm_patterns() {
       WINDOWS_HOSTS_REGEX="(DC01-${win_year}|DC01-SEC|WIN11-22H2-1|WIN11-22H2-2)$"
       WINDOWS_HOSTS_COUNT=4
       ;;
-    --adcs)
+    adcs)
       VM_PATTERNS=(
         "${SIEM}:-${SIEM}$"
         "DC01-${win_year}:-ad-dc-win${win_year}-server-x64$"
@@ -582,7 +574,7 @@ case "$ACTION" in
     ;;
   check)
     set_vm_patterns
-    echo "Profile: ${PROFILE#--}  |  Network prefix: ${RANGE_PREFIX}  (${SIEM}: ${RANGE_PREFIX}.20.1)"
+    echo "Profile: ${BASE_PROFILE} ${WIN_YEAR}  |  Network prefix: ${RANGE_PREFIX}  (${SIEM}: ${RANGE_PREFIX}.20.1)"
     check_vms_up
     check_domain_users
     case "$SIEM" in

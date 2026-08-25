@@ -10,7 +10,7 @@ nav_order: 5
 Splunk Enterprise SIEM with dual AD domains and workstations. Fase 1 — core infrastructure and agent enrollment.
 {: .fs-6 .fw-300 }
 
-Validated on Ludus 2 across all three profiles (`--base`, `--dual`, `--adcs`): a from-scratch deploy (destroy + deploy) succeeds, domain authentication works, Splunk is reachable, and every Universal Forwarder reports telemetry.
+Validated on Ludus 2 across all three profiles (`base`, `dual`, `adcs`): a from-scratch deploy (destroy + deploy) succeeds, domain authentication works, Splunk is reachable, and every Universal Forwarder reports telemetry.
 {: .label .label-green }
 
 ---
@@ -37,7 +37,7 @@ All VMs run on VLAN 20.
 
 > IP prefix depends on the Ludus range network (e.g. `10.1.0.0/16` → `10.1.20.x`).
 
-Table shows `--dual` (5 VMs). `--base` drops the secondary domain (3 VMs: `splunk`, `DC01-2022`, `WIN11-22H2-1`). `--adcs` swaps the secondary domain for a dedicated ADCS VM at `.20.13` (4 VMs: `splunk`, `DC01-2022`, `ADCS`, `WIN11-22H2-1`) — single domain only.
+Table shows `dual` (5 VMs). `base` drops the secondary domain (3 VMs: `splunk`, `DC01-2022`, `WIN11-22H2-1`). `adcs` swaps the secondary domain for a dedicated ADCS VM at `.20.13` (4 VMs: `splunk`, `DC01-2022`, `ADCS`, `WIN11-22H2-1`) — single domain only.
 
 ---
 
@@ -93,9 +93,9 @@ graph TB
 ## Deployment
 
 ```bash
-./siem.sh splunk deploy --dual   # 2 AD + 2 workstations
-./siem.sh splunk deploy --base   # 1 AD + 1 workstation
-./siem.sh splunk deploy --adcs   # 1 AD + ADCS + 1 workstation
+./siem.sh deploy splunk 2022 dual   # 2 AD + 2 workstations
+./siem.sh deploy splunk 2022 base   # 1 AD + 1 workstation
+./siem.sh deploy splunk 2022 adcs   # 1 AD + ADCS + 1 workstation
 ```
 
 Or step by step:
@@ -114,14 +114,14 @@ ludus range logs -f
 All three profiles have passed the post-deploy validation checklist on Ludus 2, run with the matching flag:
 
 ```bash
-RANGE_PREFIX=10.<range> ./siem.sh splunk check --base   # or --dual / --adcs
+RANGE_PREFIX=10.<range> ./siem.sh check splunk 2022 base   # or dual / adcs
 ```
 
 Or manually, confirm the Universal Forwarders are connected:
 
 **Splunk Web → Settings → Forwarding and receiving → Forwarder management**
 
-Every Windows VM in the deployed profile should appear (2 for `--base`, 4 for `--dual`, 3 for `--adcs`).
+Every Windows VM in the deployed profile should appear (2 for `base`, 4 for `dual`, 3 for `adcs`).
 
 Check range status:
 

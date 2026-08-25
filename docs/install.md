@@ -123,17 +123,17 @@ ludus ansible roles list
 
 ## 5. Deploy the Range
 
-The unified `siem.sh` script (`./siem.sh <elastic|wazuh|splunk> deploy <profile>`) destroys any existing range, applies the config, and deploys in one step. Each accepts one of three profile flags:
+The unified `siem.sh` script (`./siem.sh deploy <elastic|wazuh|splunk> <year> <profile>`) destroys any existing range, applies the config, and deploys in one step. `year` is one of `2019`, `2022`, `2025` (selects the AD DC Windows Server version); `profile` is one of:
 
-- `--base` — 1 AD + 1 workstation
-- `--dual` — 2 AD + 2 workstations
-- `--adcs` — 1 AD + ADCS + 1 workstation
+- `base` — 1 AD + 1 workstation
+- `dual` — 2 AD + 2 workstations
+- `adcs` — 1 AD + ADCS + 1 workstation
 
 ```bash
-./siem.sh elastic deploy --dual   # ranges/elk-dual-2022.yml
-./siem.sh elastic deploy --adcs   # ranges/elk-adcs-2022.yml
-./siem.sh wazuh deploy --dual     # ranges/wazuh-dual-2022.yml
-./siem.sh splunk deploy --dual    # ranges/splunk-dual-2022.yml
+./siem.sh deploy elastic 2022 dual   # ranges/elk-dual-2022.yml
+./siem.sh deploy elastic 2022 adcs   # ranges/elk-adcs-2022.yml
+./siem.sh deploy wazuh   2022 dual   # ranges/wazuh-dual-2022.yml
+./siem.sh deploy splunk  2022 dual   # ranges/splunk-dual-2022.yml
 ```
 
 Or step by step:
@@ -182,7 +182,7 @@ Check that all Universal Forwarders are connected via Splunk Web at `http://<ran
 Run the Wazuh agent status check:
 
 ```bash
-./siem.sh wazuh status
+./siem.sh status wazuh
 ```
 
 All agents should appear with status `active`.

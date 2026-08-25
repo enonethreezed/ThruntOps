@@ -10,7 +10,7 @@ nav_order: 3
 Elastic Stack SIEM with dual AD domains and workstations. Fase 1 — core infrastructure and agent enrollment.
 {: .fs-6 .fw-300 }
 
-Validated on Ludus 2 across all three profiles (`--base`, `--dual`, `--adcs`): a from-scratch deploy (destroy + deploy) succeeds, domain authentication works, Kibana/Fleet is reachable, and every endpoint enrolls.
+Validated on Ludus 2 across all three profiles (`base`, `dual`, `adcs`): a from-scratch deploy (destroy + deploy) succeeds, domain authentication works, Kibana/Fleet is reachable, and every endpoint enrolls.
 {: .label .label-green }
 
 ---
@@ -37,7 +37,7 @@ All VMs run on VLAN 20.
 
 > IP prefix depends on the Ludus range network (e.g. `10.1.0.0/16` → `10.1.20.x`).
 
-Table shows `--dual` (5 VMs). `--base` drops the secondary domain (3 VMs: `elastic`, `DC01-2022`, `WIN11-22H2-1`). `--adcs` swaps the secondary domain for a dedicated ADCS VM at `.20.13` (4 VMs: `elastic`, `DC01-2022`, `ADCS`, `WIN11-22H2-1`) — single domain only.
+Table shows `dual` (5 VMs). `base` drops the secondary domain (3 VMs: `elastic`, `DC01-2022`, `WIN11-22H2-1`). `adcs` swaps the secondary domain for a dedicated ADCS VM at `.20.13` (4 VMs: `elastic`, `DC01-2022`, `ADCS`, `WIN11-22H2-1`) — single domain only.
 
 ---
 
@@ -93,9 +93,9 @@ graph TB
 ## Deployment
 
 ```bash
-./siem.sh elastic deploy --dual   # 2 AD + 2 workstations
-./siem.sh elastic deploy --base   # 1 AD + 1 workstation
-./siem.sh elastic deploy --adcs   # 1 AD + ADCS + 1 workstation
+./siem.sh deploy elastic 2022 dual   # 2 AD + 2 workstations
+./siem.sh deploy elastic 2022 base   # 1 AD + 1 workstation
+./siem.sh deploy elastic 2022 adcs   # 1 AD + ADCS + 1 workstation
 ```
 
 Or step by step:
@@ -114,14 +114,14 @@ ludus range logs -f
 All three profiles have passed the post-deploy validation checklist on Ludus 2, run with the matching flag:
 
 ```bash
-RANGE_PREFIX=10.<range> ./siem.sh elastic check --base   # or --dual / --adcs
+RANGE_PREFIX=10.<range> ./siem.sh check elastic 2022 base   # or dual / adcs
 ```
 
 Or manually, confirm all agents enrolled in Fleet:
 
 **Kibana → Management → Fleet → Agents**
 
-Every Windows VM in the deployed profile should show status `Healthy` (2 for `--base`, 4 for `--dual`, 3 for `--adcs`).
+Every Windows VM in the deployed profile should show status `Healthy` (2 for `base`, 4 for `dual`, 3 for `adcs`).
 
 Check range status:
 
