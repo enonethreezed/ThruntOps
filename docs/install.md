@@ -130,16 +130,16 @@ The unified `siem.sh` script (`./siem.sh <elastic|wazuh|splunk> deploy <profile>
 - `--adcs` — 1 AD + ADCS + 1 workstation
 
 ```bash
-./siem.sh elastic deploy --dual   # ranges/elk-dual.yml
-./siem.sh elastic deploy --adcs   # ranges/elk-adcs.yml
-./siem.sh wazuh deploy --dual     # ranges/wazuh-dual.yml
-./siem.sh splunk deploy --dual    # ranges/splunk-dual.yml
+./siem.sh elastic deploy --dual   # ranges/elk-dual-2022.yml
+./siem.sh elastic deploy --adcs   # ranges/elk-adcs-2022.yml
+./siem.sh wazuh deploy --dual     # ranges/wazuh-dual-2022.yml
+./siem.sh splunk deploy --dual    # ranges/splunk-dual-2022.yml
 ```
 
 Or step by step:
 
 ```bash
-ludus range config set -f ranges/elk-dual.yml
+ludus range config set -f ranges/elk-dual-2022.yml
 ludus range deploy
 ludus range logs -f
 ```

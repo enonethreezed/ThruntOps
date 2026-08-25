@@ -51,9 +51,9 @@ ThruntOps Fase 1 uses Ludus default credentials. No custom user population is de
 
 | User | Password | Service | URL |
 |---|---|---|---|
-| `elastic` | set in `elk-dual.yml` | Kibana / Fleet API | `https://<range_ip>.20.1:5601` |
-| `admin` (Splunk) | set in `splunk-dual.yml` | Splunk Web | `http://<range_ip>.20.1:8000` |
-| `admin` (Wazuh) | set in `wazuh-dual.yml` | Wazuh Dashboard | `https://<range_ip>.20.1` |
+| `elastic` | set in `elk-dual-2022.yml` | Kibana / Fleet API | `https://<range_ip>.20.1:5601` |
+| `admin` (Splunk) | set in `splunk-dual-2022.yml` | Splunk Web | `http://<range_ip>.20.1:8000` |
+| `admin` (Wazuh) | set in `wazuh-dual-2022.yml` | Wazuh Dashboard | `https://<range_ip>.20.1` |
 
 ---
 

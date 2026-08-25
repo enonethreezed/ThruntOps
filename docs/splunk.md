@@ -76,7 +76,7 @@ graph TB
 
 | Service | URL | User | Password |
 |---|---|---|---|
-| Splunk Web | `http://<range_ip>.20.1:8000` | `admin` | set in `splunk-dual.yml` → `ludus_splunk_admin_password` |
+| Splunk Web | `http://<range_ip>.20.1:8000` | `admin` | set in `splunk-dual-2022.yml` → `ludus_splunk_admin_password` |
 
 ### Local & Domain — Ludus defaults
 
@@ -102,7 +102,7 @@ Or step by step:
 
 ```bash
 ludus range destroy
-ludus range config set -f ranges/splunk-dual.yml
+ludus range config set -f ranges/splunk-dual-2022.yml
 ludus range deploy
 ludus range logs -f
 ```
@@ -141,7 +141,7 @@ By default Splunk runs under the free license (500 MB/day ingest limit). To appl
    ```bash
    scp Splunk.License ludus-admin@<ludus-host>:~/
    ```
-4. Set `ludus_splunk_license_src` in `splunk-dual.yml` (or the profile you're using):
+4. Set `ludus_splunk_license_src` in `splunk-dual-2022.yml` (or the profile you're using):
    ```yaml
    ludus_splunk_license_src: "/home/ludus-admin/Splunk.License"
    ```
@@ -150,6 +150,6 @@ By default Splunk runs under the free license (500 MB/day ingest limit). To appl
 
 ## Notes
 
-- `splunk-dual.yml` deploys Splunk Enterprise version `10.2.1` (also available as `splunk-base.yml` and `splunk-adcs.yml` — see `siem.sh`)
+- `splunk-dual-2022.yml` deploys Splunk Enterprise version `10.2.1` (also available as `splunk-base-2022.yml` and `splunk-adcs-2022.yml` — see `siem.sh`)
 - **Known issue (ThruntOps-m13):** the Splunk Universal Forwarder fails to read the `Microsoft-Windows-Sysmon/Operational` event channel on domain-member Windows machines (workstations and the ADCS VM) with `ACCESS_DENIED` — confirmed across all three profiles during validation. Domain controllers are unaffected. Only Sysmon telemetry is impacted; the rest of the Windows/Security event log forwarding works normally. Root cause not yet fixed.
 - Fase 2 will add ADCS, MSSQL, and OPS VM.

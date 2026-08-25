@@ -76,7 +76,7 @@ graph TB
 
 | Service | URL | User | Password |
 |---|---|---|---|
-| Elastic / Kibana | `https://<range_ip>.20.1:5601` | `elastic` | set in `elk-dual.yml` → `ludus_elastic_password` |
+| Elastic / Kibana | `https://<range_ip>.20.1:5601` | `elastic` | set in `elk-dual-2022.yml` → `ludus_elastic_password` |
 
 ### Local & Domain — Ludus defaults
 
@@ -102,7 +102,7 @@ Or step by step:
 
 ```bash
 ludus range destroy
-ludus range config set -f ranges/elk-dual.yml
+ludus range config set -f ranges/elk-dual-2022.yml
 ludus range deploy
 ludus range logs -f
 ```
@@ -133,6 +133,6 @@ ludus range status
 
 ## Notes
 
-- `elk-dual.yml` deploys Elastic Stack version `9.4.0` (also available as `elk-base.yml` and `elk-adcs.yml` — see `siem.sh`)
+- `elk-dual-2022.yml` deploys Elastic Stack version `9.4.0` (also available as `elk-base-2022.yml` and `elk-adcs-2022.yml` — see `siem.sh`)
 - Elastic Agent is pinned to `9.4.0` via `ludus_elastic_agent_version` (role_vars on each Windows VM) to match the stack version — `badsectorlabs.ludus_elastic_agent` defaults to `9.3.1` otherwise
 - Fase 2 will add ADCS, MSSQL, and OPS VM.

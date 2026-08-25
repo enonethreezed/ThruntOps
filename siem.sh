@@ -30,6 +30,17 @@ usage() {
 
 PROFILE_RE='^--(base|dual|adcs)(-2025|-2019)?$'
 
+# Splits $PROFILE into BASE_PROFILE (--base|--dual|--adcs) and WIN_YEAR
+# (the AD DC Windows Server version; defaults to 2022 with no suffix).
+parse_profile() {
+  WIN_YEAR="2022"
+  BASE_PROFILE="$PROFILE"
+  case "$PROFILE" in
+    *-2025) WIN_YEAR="2025"; BASE_PROFILE="${PROFILE%-2025}" ;;
+    *-2019) WIN_YEAR="2019"; BASE_PROFILE="${PROFILE%-2019}" ;;
+  esac
+}
+
 SIEM="${1:-}"
 ACTION="${2:-}"
 EXTRA="${3:-}"
@@ -67,7 +78,8 @@ LOOKBACK="1h"
 # deploy
 # ==================================================================
 cmd_deploy() {
-  local config="ranges/${RANGES_DIR_PREFIX}-${PROFILE#--}.yml"
+  parse_profile
+  local config="ranges/${RANGES_DIR_PREFIX}-${BASE_PROFILE#--}-${WIN_YEAR}.yml"
   ludus range destroy --no-prompt && \
   ludus range config set -f "$config" && \
   ludus range deploy && \
@@ -100,13 +112,9 @@ resolve_range_prefix() {
 }
 
 set_vm_patterns() {
-  local win_year="2022"
-  local base_profile="$PROFILE"
-  case "$PROFILE" in
-    *-2025) win_year="2025"; base_profile="${PROFILE%-2025}" ;;
-    *-2019) win_year="2019"; base_profile="${PROFILE%-2019}" ;;
-  esac
-  case "$base_profile" in
+  parse_profile
+  local win_year="$WIN_YEAR"
+  case "$BASE_PROFILE" in
     --base)
       VM_PATTERNS=(
         "${SIEM}:-${SIEM}$"

@@ -5,7 +5,7 @@ nav_order: 9
 ---
 
 {: .warning }
-**Fase 2 — ADCS validated on Ludus 2 across all three SIEM profiles.** `elk-adcs.yml`, `wazuh-adcs.yml`, and `splunk-adcs.yml` each add a dedicated ADCS VM to a single-domain profile. A from-scratch deploy (destroy + deploy) was confirmed clean for all three; the Elastic variant was additionally validated with Fleet online, ADCS web enrollment reachable, Certipy enumeration, and ESC1 certificate issuance.
+**Fase 2 — ADCS validated on Ludus 2 across all three SIEM profiles.** `elk-adcs-2022.yml`, `wazuh-adcs-2022.yml`, and `splunk-adcs-2022.yml` each add a dedicated ADCS VM to a single-domain profile. A from-scratch deploy (destroy + deploy) was confirmed clean for all three; the Elastic variant was additionally validated with Fleet online, ADCS web enrollment reachable, Certipy enumeration, and ESC1 certificate issuance.
 
 {: .warning }
 **Known gap (ThruntOps-xtx), narrower than first thought:** `badsectorlabs.ludus_adcs` creates its own ESC13/ESC14/ESC15/ESC16 users (`esc13group`, `esc14user`, `esc14target`, `esc16user`, etc.) as part of the role itself — confirmed working during the base/dual/adcs validation round, no range-config content needed. The real gap is just `pkiadmin` and `primary_user04` (previously seeded via `ludus_ad_content` in the pre-atomization `elastic-adcs.yml`, not recreated in the atomized profiles); whether `esc5user`/`esc7_camgr_user`/`esc7_certmgr_user`/`esc9user` are also self-provisioned by the role is unconfirmed. See the [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) in `ThruntOps-vulnerabilities` for the N-roles model this content should move to.
@@ -520,7 +520,7 @@ certipy auth \
 
 ## Notes
 
-- ADCS attack paths are currently implemented in `ranges/elk-adcs.yml`, `ranges/wazuh-adcs.yml`, and `ranges/splunk-adcs.yml`
+- ADCS attack paths are currently implemented in `ranges/elk-adcs-2022.yml`, `ranges/wazuh-adcs-2022.yml`, and `ranges/splunk-adcs-2022.yml` (also available as `-2025`/`-2019` variants)
 - `primary_user04` has RDP on ADCS — useful for local enumeration and ESC5 interactive access
 - Certificate authentication requires PKINIT support on the DC — available on all Windows Server 2016+ DCs
 - For ESC8 and ESC11 (PetitPotam), the Kali VM must be deployed: `bash scripts/add-kali.sh`

@@ -76,8 +76,8 @@ graph TB
 
 | Service | URL | User | Password |
 |---|---|---|---|
-| Wazuh Dashboard | `https://<range_ip>.20.1` | `admin` | set in `wazuh-dual.yml` → `wazuh_admin_password` |
-| Wazuh REST API | `https://<range_ip>.20.1:55000` | `wazuh` | set in `wazuh-dual.yml` → `wazuh_api_password` |
+| Wazuh Dashboard | `https://<range_ip>.20.1` | `admin` | set in `wazuh-dual-2022.yml` → `wazuh_admin_password` |
+| Wazuh REST API | `https://<range_ip>.20.1:55000` | `wazuh` | set in `wazuh-dual-2022.yml` → `wazuh_api_password` |
 
 ### Local & Domain — Ludus defaults
 
@@ -106,7 +106,7 @@ Or step by step:
 
 ```bash
 ludus range destroy
-ludus range config set -f ranges/wazuh-dual.yml
+ludus range config set -f ranges/wazuh-dual-2022.yml
 ludus range deploy
 ludus range logs -f
 ```
@@ -139,6 +139,6 @@ ludus range status
 
 ## Notes
 
-- `wazuh-dual.yml` deploys Wazuh all-in-one via `wazuh-install.sh -a` (also available as `wazuh-base.yml` and `wazuh-adcs.yml` — see `siem.sh`)
+- `wazuh-dual-2022.yml` deploys Wazuh all-in-one via `wazuh-install.sh -a` (also available as `wazuh-base-2022.yml` and `wazuh-adcs-2022.yml` — see `siem.sh`)
 - Unlike Splunk ([ThruntOps-m13](splunk.md#notes)), the Wazuh agent reads the Sysmon event channel correctly on every endpoint, including domain-member workstations and the ADCS VM — confirmed during validation.
 - Fase 2 will add ADCS, MSSQL, and OPS VM.
