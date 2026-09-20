@@ -29,7 +29,7 @@ Full Ludus documentation at [docs.ludus.cloud](https://docs.ludus.cloud). Projec
 
 - x86_64 CPU with VMX/SVM (hardware virtualization enabled in BIOS)
 - Debian 12/13 or Proxmox 8/9
-- Minimum 48 GB RAM, 200 GB storage (NVMe recommended)
+- Minimum 32 GB RAM, 200 GB storage (NVMe recommended)
 - Wired ethernet (WiFi not supported)
 - Root access + internet connectivity
 - Docker must NOT be installed on the host
@@ -71,9 +71,11 @@ ludus templates list
 Build required templates (each can take 20–60 minutes):
 
 ```bash
-ludus templates build -n debian-12-x64-server-template
-ludus templates build -n win2022-server-x64-template
-ludus templates build -n win11-22h2-x64-enterprise-template
+ludus templates build -n debian-12-x64-server-template          # Elastic SIEM VM
+ludus templates build -n ubuntu-24.04-x64-server-template       # Wazuh / Splunk SIEM VM
+ludus templates build -n win2022-server-x64-template            # AD DC
+ludus templates build -n win11-22h2-x64-enterprise-template     # Workstation
+ludus templates build -n kali-x64-desktop-template              # Attacker VM
 ```
 
 Monitor build progress:
@@ -92,20 +94,19 @@ ludus templates list
 
 ## 4. Install Ansible Roles
 
-Install the Galaxy roles and register all local roles with the included script:
+Install the Galaxy roles and register all local plus pinned external roles with the included script:
 
 ```bash
-# Elastic Stack
+# Elastic Stack Galaxy roles
 ludus ansible roles add badsectorlabs.ludus_elastic_container
 ludus ansible roles add badsectorlabs.ludus_elastic_agent
 
-# Splunk (if using Splunk profile)
-# ludus ansible roles add -d roles/ludus_splunk
-# ludus ansible roles add -d roles/ludus_splunk_uf
-
-# All local roles (AD content, local users, etc.)
+# All local roles (AD content, SIEM servers, ops, etc.) and the pinned
+# external ludus_ad role (roles/requirements.yml)
 bash roles/install-roles.sh
 ```
+
+The installer downloads the external `ludus_ad` role from [ThruntOps-vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities) at the exact revision pinned in `roles/requirements.yml`, then registers it with Ludus.
 
 {: .warning }
 After any change to a local role, re-sync with `--force` to overwrite the cached version:
@@ -119,27 +120,28 @@ Verify all roles are installed:
 ludus ansible roles list
 ```
 
+Validate the cross-repository contract (role name, pinned revision, scenario IDs):
+
+```bash
+tests/validate-external-role.sh
+```
+
 ---
 
 ## 5. Deploy the Range
 
-The unified `siem.sh` script (`./siem.sh deploy <elastic|wazuh|splunk> <year> <profile>`) destroys any existing range, applies the config, and deploys in one step. `year` is one of `2019`, `2022`, `2025` (selects the AD DC Windows Server version); `profile` is one of:
-
-- `base` — 1 AD + 1 workstation
-- `dual` — 2 AD + 2 workstations
-- `adcs` — 1 AD + ADCS + 1 workstation
+The unified `siem.sh` script (`./siem.sh <deploy|check|status> <elastic|wazuh|splunk>`) destroys any existing range, applies the matching `ranges/<backend>-base-2022.yml` config, and deploys in one step:
 
 ```bash
-./siem.sh deploy elastic 2022 dual   # ranges/elk-dual-2022.yml
-./siem.sh deploy elastic 2022 adcs   # ranges/elk-adcs-2022.yml
-./siem.sh deploy wazuh   2022 dual   # ranges/wazuh-dual-2022.yml
-./siem.sh deploy splunk  2022 dual   # ranges/splunk-dual-2022.yml
+./siem.sh deploy elastic   # ranges/elk-base-2022.yml
+./siem.sh deploy wazuh     # ranges/wazuh-base-2022.yml
+./siem.sh deploy splunk    # ranges/splunk-base-2022.yml
 ```
 
 Or step by step:
 
 ```bash
-ludus range config set -f ranges/elk-dual-2022.yml
+ludus range config set -f ranges/elk-base-2022.yml
 ludus range deploy
 ludus range logs -f
 ```
@@ -156,28 +158,28 @@ Check final status:
 ludus range status
 ```
 
-All VMs should show `BUILT` and the deployment status should be `SUCCESS`.
+All four VMs (SIEM, `DC01-2022`, `WIN11-22H2-1`, `kali`) should show `BUILT` and the deployment status should be `SUCCESS`.
 
 ---
 
 ## 6. Verify
 
-### Elastic profile
+### Elastic
 
 Open Kibana at `https://<range_ip>.20.1:5601` and navigate to:
 
 **Management → Fleet → Agents**
 
-All four VMs (`DC01-2022`, `DC01-SEC`, `WIN11-22H2-1`, `WIN11-22H2-2`) should show status `Healthy`.
+Both Windows VMs (`DC01-2022`, `WIN11-22H2-1`) should show status `Healthy`.
 
-### Splunk profile
+### Splunk
 
 Check that all Universal Forwarders are connected via Splunk Web at `http://<range_ip>.20.1:8000`:
 
 - **Settings → Forwarding and receiving → Forwarder management** — all forwarders should appear
-- **Search:** `index=windows earliest=-15m` — Windows Event Logs from all domain-joined VMs
+- **Search:** `index=windows earliest=-15m` — Windows Event Logs from both domain-joined VMs
 
-### Wazuh profile
+### Wazuh
 
 Run the Wazuh agent status check:
 
@@ -187,9 +189,16 @@ Run the Wazuh agent status check:
 
 All agents should appear with status `active`.
 
+The post-deploy checklist for any backend:
+
+```bash
+RANGE_PREFIX=10.<range> ./siem.sh check <elastic|wazuh|splunk>
+```
+
 ---
 
 ## Notes
 
 - DCs do not support local SAM accounts — local user provisioning only applies to member machines
 - `ludus ansible roles add` does **not** overwrite an existing role — use `--force` flag to update installed roles
+- The attacker VM is documented in [Kali](kali.md)
