@@ -29,11 +29,11 @@ Deploy validation of the current 2022 baseline is pending.
 
 Provisioned by the pinned external [`ludus_ad`](https://github.com/enonethreezed/ThruntOps-vulnerabilities) role. Scenario IDs are validated against the pinned revision by `tests/validate-external-role.sh`.
 
-| Scenario ID | Provisioned state | Seeded identity |
-|---|---|---|
-| `CRED-ASREP-01` | Account without Kerberos pre-authentication | `asrep.user` |
-| `CRED-KERBEROAST-01` | Service account with harvestable SPN | `svc.web` |
-| `CRED-DESCRIPTION-01` | Credential text exposed in user `description` | `helpdesk.user` |
+| Scenario ID | Provisioned state |
+|---|---|
+| `CRED-ASREP-01` | Account without Kerberos pre-authentication |
+| `CRED-KERBEROAST-01` | Service account with harvestable SPN |
+| `CRED-DESCRIPTION-01` | Credential text exposed in user `description` |
 
 ---
 
@@ -41,9 +41,9 @@ Provisioned by the pinned external [`ludus_ad`](https://github.com/enonethreezed
 
 | Technique | Tooling (Kali) | Target | Outcome |
 |---|---|---|---|
-| AS-REP roasting | `impacket-GetNPUsers` | `asrep.user` | Offline crack of `ASRep2022!` |
-| Kerberoasting | `impacket-GetUserSPNs` | `svc.web` | Offline crack of `Spring2022!` |
-| Credential exposure in descriptions | `net user /domain`, BloodHound | `helpdesk.user` | Plaintext `Welcome2022!` |
+| AS-REP roasting | `impacket-GetNPUsers` | AS-REP roastable account | Offline crack of the account password |
+| Kerberoasting | `impacket-GetUserSPNs` | Service account with SPN | Offline crack of the service password |
+| Credential exposure in descriptions | `net user /domain`, BloodHound | Domain user with leaked `description` | Plaintext credential recovery |
 
 ---
 
