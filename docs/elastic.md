@@ -108,4 +108,3 @@ ludus range status
 
 - `elk-base-2022.yml` deploys Elastic Stack version `9.4.0`
 - Elastic Agent is pinned to `9.4.0` via `ludus_elastic_agent_version` (role_vars on each Windows VM) to match the stack version
-- Vulnerable AD scenarios are provisioned by the pinned external `ludus_ad` role — see [Coverage](coverage.md)

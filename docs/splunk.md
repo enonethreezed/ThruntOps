@@ -105,4 +105,3 @@ ludus range status
 
 ## Notes
 
-- Vulnerable AD scenarios are provisioned by the pinned external `ludus_ad` role — see [Coverage](coverage.md)

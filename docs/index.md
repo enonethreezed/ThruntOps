@@ -36,4 +36,4 @@ AD attack states are provisioned by the pinned external role [`ludus_ad`](https:
 - `CRED-KERBEROAST-01` — service accounts with harvestable SPNs
 - `CRED-DESCRIPTION-01` — credentials exposed in user descriptions
 
-→ [Installation](install.md) · [Users](users.md) · [Coverage](coverage.md) · [Kali](kali.md)
+→ [Installation](install.md) · [Users](users.md) · [Kali](kali.md)

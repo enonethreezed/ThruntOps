@@ -105,4 +105,3 @@ ludus range status
 ## Notes
 
 - Windows agents include Sysmon telemetry via `ludus_sysmon_windows`
-- Vulnerable AD scenarios are provisioned by the pinned external `ludus_ad` role — see [Coverage](coverage.md)

@@ -30,7 +30,7 @@ See the [Users reference](https://enonethreezed.github.io/ThruntOps/users) for t
 
 ## Vulnerable AD Scenarios
 
-Scenario IDs and seeded identities are defined by the pinned [`ludus_ad`](https://github.com/enonethreezed/ThruntOps-vulnerabilities) role (`CRED-ASREP-01`, `CRED-KERBEROAST-01`, `CRED-DESCRIPTION-01`). See [Coverage](https://enonethreezed.github.io/ThruntOps/coverage).
+Scenario IDs are defined by the pinned [`ludus_ad`](https://github.com/enonethreezed/ThruntOps-vulnerabilities) role (`CRED-ASREP-01`, `CRED-KERBEROAST-01`, `CRED-DESCRIPTION-01`).
 
 ## Installation
 
