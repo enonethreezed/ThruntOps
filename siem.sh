@@ -4,34 +4,27 @@
 # status.
 #
 # Usage:
-#   ./siem.sh deploy <elastic|wazuh|splunk> <2019|2022|2025> <base|dual|adcs>
-#   ./siem.sh check  <elastic|wazuh|splunk> <2019|2022|2025> <base|dual|adcs>
-#   ./siem.sh status <elastic|wazuh>
-#   ./siem.sh status splunk <2019|2022|2025> <base|dual|adcs>
-#   # splunk status needs the profile to know which hosts to expect;
-#   # elastic/wazuh list whatever's actually enrolled in Fleet/Wazuh.
-#   # The year selects the AD DC Windows Server version.
+#   ./siem.sh <deploy|check|status> <elastic|wazuh|splunk>
 #
 # Requires: curl, jq. Optional: ldapwhoami (ldap-utils package) for the
 # domain user check; python3 for the splunk status column parsing.
 #
 # Network override via env var if autodetection fails:
-#   RANGE_PREFIX=10.2 ./siem.sh check wazuh 2022 dual
+#   RANGE_PREFIX=10.2 ./siem.sh check wazuh
 
 set -uo pipefail
 
 usage() {
-  echo "Usage: $0 deploy <elastic|wazuh|splunk> <2019|2022|2025> <base|dual|adcs>"
-  echo "       $0 check  <elastic|wazuh|splunk> <2019|2022|2025> <base|dual|adcs>"
-  echo "       $0 status <elastic|wazuh>"
-  echo "       $0 status splunk <2019|2022|2025> <base|dual|adcs>"
+  echo "Usage: $0 <deploy|check|status> <elastic|wazuh|splunk>"
   exit 1
 }
 
 ACTION="${1:-}"
 SIEM="${2:-}"
-WIN_YEAR="${3:-}"
-BASE_PROFILE="${4:-}"
+WIN_YEAR="2022"
+BASE_PROFILE="base"
+
+[[ $# -eq 2 ]] || usage
 
 case "$ACTION" in
   deploy|check|status) ;;
@@ -41,21 +34,6 @@ esac
 case "$SIEM" in
   elastic|wazuh|splunk) ;;
   *) usage ;;
-esac
-
-case "$ACTION" in
-  deploy|check)
-    case "$WIN_YEAR" in 2019|2022|2025) ;; *) usage ;; esac
-    case "$BASE_PROFILE" in base|dual|adcs) ;; *) usage ;; esac
-    ;;
-  status)
-    if [[ "$SIEM" == "splunk" ]]; then
-      case "$WIN_YEAR" in 2019|2022|2025) ;; *) usage ;; esac
-      case "$BASE_PROFILE" in base|dual|adcs) ;; *) usage ;; esac
-    elif [[ -n "$WIN_YEAR$BASE_PROFILE" ]]; then
-      usage
-    fi
-    ;;
 esac
 
 case "$SIEM" in
