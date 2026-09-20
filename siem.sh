@@ -50,7 +50,7 @@ LOOKBACK="1h"
 # deploy
 # ==================================================================
 cmd_deploy() {
-  local config="ranges/${RANGES_DIR_PREFIX}-${BASE_PROFILE}-${WIN_YEAR}.yml"
+  local config="ranges/${RANGES_DIR_PREFIX}-base-2022.yml"
   ludus range destroy --no-prompt && \
   ludus range config set -f "$config" && \
   ludus range deploy && \
@@ -83,45 +83,15 @@ resolve_range_prefix() {
 }
 
 set_vm_patterns() {
-  local win_year="$WIN_YEAR"
-  case "$BASE_PROFILE" in
-    base)
-      VM_PATTERNS=(
-        "${SIEM}:-${SIEM}$"
-        "DC01-${win_year}:-ad-dc-win${win_year}-server-x64$"
-        "WIN11-22H2-1:-ad-win11-22h2-enterprise-x64-1$"
-      )
-      declare -gA DOMAINS=( ["thruntops.domain"]="$DC1_IP" )
-      WINDOWS_HOSTS_REGEX="(DC01-${win_year}|WIN11-22H2-1)$"
-      WINDOWS_HOSTS_COUNT=2
-      ;;
-    dual)
-      VM_PATTERNS=(
-        "${SIEM}:-${SIEM}$"
-        "DC01-${win_year}:-ad-dc-win${win_year}-server-x64$"
-        "DC01-SEC:-ad-dc-win${win_year}-secondary$"
-        "WIN11-22H2-1:-ad-win11-22h2-enterprise-x64-1$"
-        "WIN11-22H2-2:-ad-win11-22h2-enterprise-x64-2$"
-      )
-      declare -gA DOMAINS=(
-        ["thruntops.domain"]="$DC1_IP"
-        ["secondary.thruntops.domain"]="$DC2_IP"
-      )
-      WINDOWS_HOSTS_REGEX="(DC01-${win_year}|DC01-SEC|WIN11-22H2-1|WIN11-22H2-2)$"
-      WINDOWS_HOSTS_COUNT=4
-      ;;
-    adcs)
-      VM_PATTERNS=(
-        "${SIEM}:-${SIEM}$"
-        "DC01-${win_year}:-ad-dc-win${win_year}-server-x64$"
-        "ADCS:-adcs$"
-        "WIN11-22H2-1:-ad-win11-22h2-enterprise-x64-1$"
-      )
-      declare -gA DOMAINS=( ["thruntops.domain"]="$DC1_IP" )
-      WINDOWS_HOSTS_REGEX="(DC01-${win_year}|ADCS|WIN11-22H2-1)$"
-      WINDOWS_HOSTS_COUNT=3
-      ;;
-  esac
+  VM_PATTERNS=(
+    "${SIEM}:-${SIEM}$"
+    "DC01-2022:-ad-dc-win2022-server-x64$"
+    "WIN11-22H2-1:-ad-win11-22h2-enterprise-x64-1$"
+    "kali:-kali$"
+  )
+  declare -gA DOMAINS=( ["thruntops.domain"]="$DC1_IP" )
+  WINDOWS_HOSTS_REGEX="(DC01-2022|WIN11-22H2-1)$"
+  WINDOWS_HOSTS_COUNT=2
 }
 
 check_vms_up() {
