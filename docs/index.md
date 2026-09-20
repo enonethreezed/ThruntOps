@@ -8,39 +8,32 @@ nav_order: 1
 
 # ThruntOps
 
-A Ludus-based lab environment for TTP testing and security research.
+A Ludus-based lab for TTP detection testing: one SIEM, one Active Directory domain, one workstation, one attacker box.
 
-Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). Dual Active Directory domains and a choice of SIEM.
+Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). Single 2022 baseline with a choice of SIEM backend.
 
-All 9 atomized profiles (base/dual/adcs × Elastic/Splunk/Wazuh) have passed a from-scratch deploy validation on Ludus 2: destroy + deploy succeeds, domain users authenticate, SIEM services are reachable, and every endpoint enrolls.
+## Backends
 
-## Profiles
+| Backend | Config | SIEM | VMs |
+|---|---|---|---|
+| [Elastic](elastic.md) | `ranges/elk-base-2022.yml` | Elastic Stack + Fleet | 4 |
+| [Wazuh](wazuh.md) | `ranges/wazuh-base-2022.yml` | Wazuh all-in-one | 4 |
+| [Splunk](splunk.md) | `ranges/splunk-base-2022.yml` | Splunk Enterprise | 4 |
 
-| Profile | Config | SIEM | VMs | Validation |
-|---|---|---|---|---|
-| [Elastic](elastic.md) | `elk-{base,dual,adcs}-{2019,2022,2025}.yml` | Elastic Stack + Fleet | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
-| [Splunk](splunk.md) | `splunk-{base,dual,adcs}-{2019,2022,2025}.yml` | Splunk Enterprise | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
-| [Wazuh](wazuh.md) | `wazuh-{base,dual,adcs}-{2019,2022,2025}.yml` | Wazuh all-in-one | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
-
-Each SIEM has three atomic profiles, in three AD DC Windows Server versions, deployed via the unified `siem.sh` script:
-
-- `base` — 1 AD + 1 workstation
-- `dual` — 2 AD + 2 workstations (the validated profile above)
-- `adcs` — 1 AD + dedicated ADCS VM + 1 workstation
+All backends share the same four-node topology (SIEM, DC01-2022, WIN11-22H2-1, Kali) and are managed with the unified `siem.sh` script:
 
 ```bash
-./siem.sh deploy elastic 2022 dual
-./siem.sh deploy wazuh   2022 dual
-./siem.sh deploy splunk  2022 dual
+./siem.sh deploy elastic
+./siem.sh deploy wazuh
+./siem.sh deploy splunk
 ```
 
-## Phases
+## Vulnerable AD Scenarios
 
-| Phase | Scope | Status |
-|---|---|---|
-| **Fase 1 — Core SIEM** | SIEM + dual AD + workstations + agents | Passed validation on Ludus 2 |
-| **Fase 2 — Vulnerabilities** | ADCS, MSSQL, OPS, vuln scripts | Planned |
+AD attack states are provisioned by the pinned external role [`ludus_ad`](https://github.com/enonethreezed/ThruntOps-vulnerabilities):
 
-→ [Installation](install.md) · [Users](users.md) · [Coverage](coverage.md)
+- `CRED-ASREP-01` — accounts without Kerberos pre-authentication
+- `CRED-KERBEROAST-01` — service accounts with harvestable SPNs
+- `CRED-DESCRIPTION-01` — credentials exposed in user descriptions
 
-> Fase 2 reference docs are preserved and accessible: [ADCS](adcs.md) · [MSSQL](mssql.md) · [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities) (external)
+→ [Installation](install.md) · [Users](users.md) · [Coverage](coverage.md) · [Kali](kali.md)

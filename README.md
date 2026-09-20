@@ -2,42 +2,40 @@
 
 ![ThruntOps](logo.png)
 
-A Ludus-based lab environment for TTP testing and security research.
+A Ludus-based lab for TTP detection testing: one SIEM, one Active Directory domain, one workstation, one attacker box.
 
-## Purpose
+## Scope
 
-ThruntOps exists to provide a controlled environment for testing attack techniques and procedures (TTPs). The design philosophy is breadth over depth: rather than optimizing for a single attack scenario, the lab grows by adding technologies — each one introducing new attack surfaces, protocols, and vectors to test against.
+ThruntOps targets a single 2022 baseline: Windows Server 2022 DC (`thruntops.domain`), a Windows 11 22H2 workstation, and a Kali attacker VM, plus a choice of SIEM backend (Elastic, Wazuh, or Splunk). Vulnerable AD states are provisioned by the pinned external role [`ludus_ad`](https://github.com/enonethreezed/ThruntOps-vulnerabilities).
 
-## Status
-All 9 atomized profiles are validated on Ludus 2: Elastic, Wazuh, and Splunk, each in `base`, `dual`, and `adcs` form (also available in `2025`/`2019` AD DC Windows Server variants).
+Deployed on Proxmox via [Ludus](https://docs.ludus.cloud) on VLAN 20 (`10.<range>.20.0/24`).
 
-Validation completed via a from-scratch deploy (destroy + deploy) of every profile: range deploy succeeds, domain authentication works, SIEM services are reachable, and every endpoint enrolls.
+## Backends
 
-## Profiles
+| Backend | Config | SIEM | VMs |
+|---|---|---|---|
+| [Elastic](https://enonethreezed.github.io/ThruntOps/elastic) | `ranges/elk-base-2022.yml` | Elastic Stack + Fleet | 4 |
+| [Wazuh](https://enonethreezed.github.io/ThruntOps/wazuh) | `ranges/wazuh-base-2022.yml` | Wazuh all-in-one | 4 |
+| [Splunk](https://enonethreezed.github.io/ThruntOps/splunk) | `ranges/splunk-base-2022.yml` | Splunk Enterprise | 4 |
 
-Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). The validated profiles run on VLAN 20 (`10.<range>.20.0/24`). Each SIEM has three atomic profiles, in three AD DC Windows Server versions, deployed via the unified `siem.sh deploy <elastic|wazuh|splunk> <2019|2022|2025> <base|dual|adcs>` command:
+All backends share the same four-node topology and are managed with:
 
-| Profile | Config | SIEM | VMs | Validation |
-|---|---|---|---|---|
-| [Elastic](https://enonethreezed.github.io/ThruntOps/elastic) | `elk-{base,dual,adcs}-{2019,2022,2025}.yml` | Elastic Stack + Fleet | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
-| [Wazuh](https://enonethreezed.github.io/ThruntOps/wazuh) | `wazuh-{base,dual,adcs}-{2019,2022,2025}.yml` | Wazuh all-in-one | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
-| [Splunk](https://enonethreezed.github.io/ThruntOps/splunk) | `splunk-{base,dual,adcs}-{2019,2022,2025}.yml` | Splunk Enterprise | 3 / 5 / 4 VMs | Passed on Ludus 2 — base, dual, adcs |
-
-`base` is a single AD domain + 1 workstation, `dual` adds a second AD domain + workstation (the validated profile above), and `adcs` swaps the second domain for a dedicated ADCS VM on the single domain. All profiles share the same AD forest naming (`thruntops.domain` [+ `secondary.thruntops.domain` on dual]) and only provision Ludus's default accounts. Fase 2 will add MSSQL and OPS infrastructure.
+```bash
+./siem.sh <deploy|check|status> <elastic|wazuh|splunk>
+```
 
 ## Users
 
 See the [Users reference](https://enonethreezed.github.io/ThruntOps/users) for the full credentials reference.
 
-## Vulnerabilities
+## Vulnerable AD Scenarios
 
-See the [Vulnerabilities matrix](https://github.com/enonethreezed/ThruntOps-vulnerabilities) for the full attack surface reference.
+Scenario IDs and seeded identities are defined by the pinned [`ludus_ad`](https://github.com/enonethreezed/ThruntOps-vulnerabilities) role (`CRED-ASREP-01`, `CRED-KERBEROAST-01`, `CRED-DESCRIPTION-01`). See [Coverage](https://enonethreezed.github.io/ThruntOps/coverage).
 
 ## Installation
 
 See the [Installation guide](https://enonethreezed.github.io/ThruntOps/install) for full setup instructions.
 
-## Roadmap
+## Status
 
-- MSSQL as a standalone vulnerability vector (xp_cmdshell, NTLM capture, DBA → sysadmin escalation) — see [MSSQL TTPs](https://enonethreezed.github.io/ThruntOps/mssql)
-- Reduce resource requirements to support lower-spec hosts (target: 32 GB RAM)
+Static build: ranges, roles, installer, and cross-repo contract validation pass. Deploy validation pending.
