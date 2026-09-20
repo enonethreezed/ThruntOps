@@ -21,6 +21,7 @@
       add: "{{ item.groups | default(['Domain Users']) }}"
   loop: "{{ thruntops_ad_content.users | default([]) }}"
   when: thruntops_ad_content.users is defined
+  no_log: true
 
 - name: Add domain users to Remote Desktop Users group
   ansible.windows.win_group_membership:
