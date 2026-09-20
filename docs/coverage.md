@@ -4,102 +4,61 @@ layout: default
 nav_order: 10
 ---
 
-{: .note }
-**Fase 1 active:** SIEM agent enrollment on DC01-2022, DC01-SEC, WIN11-22H2-1, WIN11-22H2-2. All other categories below require Fase 2 (ADCS, MSSQL, OPS VMs). AD, Linux PrivEsc, and Reverse Shell techniques are tracked in the external [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities) matrix and are not yet implemented as ThruntOps roles.
-
 # Lab Coverage
 {: .no_toc }
 
-All attack techniques, vulnerability classes, and test scenarios available in ThruntOps.
+Infrastructure, vulnerable states, attack techniques, and detection outcomes available in ThruntOps.
 {: .fs-6 .fw-300 }
 
 ---
 
-```mermaid
-mindmap
-  root((ThruntOps))
-    Active Directory
-      Credential Reuse
-      RDP to DC
-      RDP to ADCS
-    ADCS / PKI
-      ESC1 Enrollee SAN
-      ESC2 Any Purpose EKU
-      ESC3 Cert Request Agent
-      ESC4 Template Write
-      ESC5 PKI Object Control
-      ESC6 EDITF SubjectAltName
-      ESC7 CA Officer
-      ESC8 NTLM Relay HTTP
-      ESC9 GenericWrite no SAN
-      ESC11 NTLM Relay RPC
-      ESC13 OID Group Link
-      ESC14 Weak Mapping
-      ESC15 Schema v1
-      ESC16 SecurityExtension Off
-    MSSQL
-      xp_cmdshell RCE
-      NTLM Hash Capture
-      DBA to Sysadmin
-    Linux PrivEsc ops
-      sudo ansible-playbook
-      sudo ansible-test
-      sudo certbot
-      sudo watch
-      cap_gdb
-    Reverse Shells
-      Linux PHP Ruby Python
-      Linux Node tclsh Perl
-      Windows PowerShell mshta
-      Windows certutil cscript wscript
-    LOLBins Windows
-      Module installed
-      Checklist TBD
-```
+## Infrastructure
 
----
-
-## Summary
-
-| Category | Techniques | VM | Docs |
-|---|---|---|---|
-| **Active Directory** | Credential reuse, RDP to DC, RDP to ADCS | DC01-2022, DC01-SEC, WIN11 | [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities) |
-| **ADCS / PKI** | ESC1–ESC16 | ADCS | [ADCS Attack Paths](adcs.md) |
-| **MSSQL** | xp_cmdshell, NTLM capture, DBA→sysadmin | TBD | [MSSQL TTPs](mssql.md) |
-| **Linux PrivEsc — ops** | sudo (ansible-playbook, ansible-test, certbot, watch), cap_gdb | ops | [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities) |
-| **Reverse Shells — Linux** | PHP, Ruby, Python, Node.js, tclsh, Perl | ops | [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities) |
-| **Reverse Shells — Windows** | PowerShell, mshta, certutil, cscript, wscript | WIN11 | [Vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities) |
-| **LOLBins — Windows** | Module installed for user08 on WIN11-22H2-1/2 | WIN11-22H2-1/2 | — |
-
----
-
-## ADCS Quick Reference
-
-| ESC | Condition | Entry Point |
+| Layer | Component | Status |
 |---|---|---|
-| ESC1 | Enrollee supplies SAN + Client Auth EKU | `domainuser` |
-| ESC2 | Any Purpose EKU | `domainuser` |
-| ESC3 | Certificate Request Agent EKU | `domainuser` |
-| ESC4 | Write permission on template | `domainuser` |
-| ESC5 | Control of PKI AD object | `esc5user` |
-| ESC6 | EDITF_ATTRIBUTESUBJECTALTNAME2 on CA | `domainuser` |
-| ESC7 | ManageCA / ManageCertificates | `esc7_camgr_user`, `esc7_certmgr_user` |
-| ESC8 | NTLM relay → ADCS HTTP enrollment | PetitPotam coercion |
-| ESC9 | GenericWrite on victim + no SAN security | `domainuser` → `esc9user` |
-| ESC11 | NTLM relay → ADCS RPC (ICertPassage) | PetitPotam coercion |
-| ESC13 | OID group link escalation | `esc13user` |
-| ESC14 | Weak explicit mapping | `domainuser` |
-| ESC15 | Schema version 1 SAN bypass | `domainuser` |
-| ESC16 | GenericWrite → SecurityExtension disabled | `domainuser` → `esc16user` |
+| SIEM | Elastic Stack + Fleet / Wazuh all-in-one / Splunk Enterprise + UF | Deployable via `siem.sh` |
+| Directory | Windows Server 2022 DC — `thruntops.domain` | Deployable via `siem.sh` |
+| Endpoint | Windows 11 22H2 workstation (domain member) | Deployable via `siem.sh` |
+| Attacker | Kali Linux desktop | Deployable via `siem.sh` |
+
+Deploy validation of the current 2022 baseline is pending.
 
 ---
 
-## Linux PrivEsc Quick Reference
+## Vulnerable states
 
-| Technique | VM | Entry | Target |
+Provisioned by the pinned external [`ludus_ad`](https://github.com/enonethreezed/ThruntOps-vulnerabilities) role. Scenario IDs are validated against the pinned revision by `tests/validate-external-role.sh`.
+
+| Scenario ID | Provisioned state | Seeded identity |
+|---|---|---|
+| `CRED-ASREP-01` | Account without Kerberos pre-authentication | `asrep.user` |
+| `CRED-KERBEROAST-01` | Service account with harvestable SPN | `svc.web` |
+| `CRED-DESCRIPTION-01` | Credential text exposed in user `description` | `helpdesk.user` |
+
+---
+
+## Techniques
+
+| Technique | Tooling (Kali) | Target | Outcome |
 |---|---|---|---|
-| sudo ansible-playbook | ops | `primary_user06` (no sudo on most) | root shell |
-| sudo ansible-test | ops | `primary_user06` | root shell |
-| sudo certbot | ops | `primary_user06` | root shell |
-| sudo watch | ops | `primary_user06` | root shell |
-| cap_gdb | ops | `primary_user06` | root shell (CAP_SETUID) |
+| AS-REP roasting | `impacket-GetNPUsers` | `asrep.user` | Offline crack of `ASRep2022!` |
+| Kerberoasting | `impacket-GetUserSPNs` | `svc.web` | Offline crack of `Spring2022!` |
+| Credential exposure in descriptions | `net user /domain`, BloodHound | `helpdesk.user` | Plaintext `Welcome2022!` |
+
+---
+
+## Detection outcomes
+
+Each backend should surface the corresponding telemetry:
+
+| Scenario | Elastic | Wazuh | Splunk |
+|---|---|---|---|
+| AS-REP roast | Kerberos `4768` (pre-auth disabled) | Rule for 4768 without pre-auth | `index=windows` 4768 |
+| Kerberoast | Kerberos `4769` (RC4 encryption) | Rule for 4769 RC4 | `index=windows` 4769 |
+| Description recon | LDAP read events | LDAP query alerts | LDAP telemetry |
+
+---
+
+## Notes
+
+- Attack surface growth is tracked in the [`ludus_ad`](https://github.com/enonethreezed/ThruntOps-vulnerabilities) scenario catalog
