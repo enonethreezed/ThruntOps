@@ -31,7 +31,7 @@ See the [Users reference](https://enonethreezed.github.io/ThruntOps/users) for t
 
 ## Vulnerabilities
 
-See the [Vulnerabilities matrix](https://github.com/enonethreezed/ThruntOps-vulnerabilities/blob/main/ansible/vulnerability-matrix.md) for the full attack surface reference.
+See the [Vulnerabilities matrix](https://github.com/enonethreezed/ThruntOps-vulnerabilities) for the full attack surface reference.
 
 ## Installation
 
