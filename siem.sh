@@ -21,8 +21,6 @@ usage() {
 
 ACTION="${1:-}"
 SIEM="${2:-}"
-WIN_YEAR="2022"
-BASE_PROFILE="base"
 
 [[ $# -eq 2 ]] || usage
 
@@ -76,7 +74,7 @@ resolve_range_prefix() {
       RANGE_PREFIX="10.${range_num}"
     else
       echo "Could not autodetect the network prefix from 'ludus range status --json'."
-      echo "Set RANGE_PREFIX manually, e.g.: RANGE_PREFIX=10.2 $0 ${ACTION} ${SIEM} ${WIN_YEAR} ${BASE_PROFILE}"
+      echo "Set RANGE_PREFIX manually, e.g.: RANGE_PREFIX=10.2 $0 ${ACTION} ${SIEM}"
       exit 1
     fi
   fi
@@ -513,7 +511,6 @@ if [[ "$ACTION" != "deploy" ]]; then
   WAZUH_URL="https://${RANGE_PREFIX}.20.1:55000"
   SPLUNK_URL="https://${RANGE_PREFIX}.20.1:8089"
   DC1_IP="${RANGE_PREFIX}.20.11"
-  DC2_IP="${RANGE_PREFIX}.20.12"
 fi
 
 case "$ACTION" in
@@ -522,7 +519,7 @@ case "$ACTION" in
     ;;
   check)
     set_vm_patterns
-    echo "Profile: ${BASE_PROFILE} ${WIN_YEAR}  |  Network prefix: ${RANGE_PREFIX}  (${SIEM}: ${RANGE_PREFIX}.20.1)"
+    echo "Profile: base 2022  |  Network prefix: ${RANGE_PREFIX}  (${SIEM}: ${RANGE_PREFIX}.20.1)"
     check_vms_up
     check_domain_users
     case "$SIEM" in
