@@ -64,3 +64,15 @@ ludus:
       - badsectorlabs.ludus_elastic_agent
     role_vars:
       ludus_elastic_agent_version: "9.4.0"
+
+  - vm_name: "{{ range_id }}-kali"
+    hostname: "{{ range_id }}-kali"
+    template: kali-x64-desktop-template
+    vlan: 20
+    ip_last_octet: 250
+    ram_gb: 4
+    cpus: 4
+    linux: true
+    testing:
+      snapshot: false
+      block_internet: false
