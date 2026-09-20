@@ -12,7 +12,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-for role_dir in "$ROLES_DIR"/ludus_*/; do
+for role_dir in "$ROLES_DIR"/ludus_*/ "$ROLES_DIR"/thruntops_*/; do
     role="$(basename "$role_dir")"
     echo -n "Adding $role ... "
     if ludus ansible role add -d "$role_dir" --force 2>&1; then

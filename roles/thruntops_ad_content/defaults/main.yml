@@ -1,0 +1,24 @@
+---
+thruntops_ad_content_groups: []
+
+thruntops_ad_content_users:
+  - name: asrep.user
+    firstname: ASREP
+    surname: User
+    display_name: AS-REP Lab User
+    password: "ASRep2022!"
+    description: AS-REP credential-access scenario target
+  - name: svc.web
+    firstname: Web
+    surname: Service
+    display_name: Web Service Account
+    password: "Spring2022!"
+    description: Kerberoasting credential-access scenario target
+  - name: helpdesk.user
+    firstname: Helpdesk
+    surname: User
+    display_name: Helpdesk Lab User
+    password: "Welcome2022!"
+    description: "Temporary password: Welcome2022!"
+
+thruntops_ad_content_rdp_members: []
