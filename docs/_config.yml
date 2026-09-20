@@ -1,5 +1,5 @@
 title: ThruntOps
-description: TTP testing lab — vulnerability reference
+description: Ludus TTP detection lab
 remote_theme: just-the-docs/just-the-docs
 
 color_scheme: dark
@@ -13,7 +13,7 @@ plugins:
 nav_external_links:
   - title: GitHub
     url: https://github.com/enonethreezed/ThruntOps
-  - title: Vulnerabilities
+  - title: ludus_ad role
     url: https://github.com/enonethreezed/ThruntOps-vulnerabilities
 
 footer_content: "ThruntOps — MIT License"
