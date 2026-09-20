@@ -1,0 +1,6 @@
+---
+roles:
+  - name: ludus_ad
+    src: https://github.com/enonethreezed/ThruntOps-vulnerabilities.git
+    scm: git
+    version: d9b62b0dc1512a5acb0437406c6a51c4f693300a
