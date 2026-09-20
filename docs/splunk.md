@@ -1,17 +1,14 @@
 ---
-title: Splunk Profile
+title: Splunk Backend
 layout: default
 nav_order: 5
 ---
 
-# Splunk Profile
+# Splunk Backend
 {: .no_toc }
 
-Splunk Enterprise SIEM with dual AD domains and workstations. Fase 1 — core infrastructure and agent enrollment.
+Splunk Enterprise SIEM with a single 2022 AD domain, a Windows 11 workstation, and a Kali attacker VM.
 {: .fs-6 .fw-300 }
-
-Validated on Ludus 2 across all three profiles (`base`, `dual`, `adcs`): a from-scratch deploy (destroy + deploy) succeeds, domain authentication works, Splunk is reachable, and every Universal Forwarder reports telemetry.
-{: .label .label-green }
 
 ---
 
@@ -31,13 +28,10 @@ All VMs run on VLAN 20.
 |---|---|---|---|
 | .20.1 | splunk | Ubuntu 24.04 | SIEM — Splunk Enterprise |
 | .20.11 | DC01-2022 | Windows Server 2022 | Primary DC — `thruntops.domain` |
-| .20.12 | DC01-SEC | Windows Server 2022 | Primary DC — `secondary.thruntops.domain` |
 | .20.21 | WIN11-22H2-1 | Windows 11 22H2 | Workstation — `thruntops.domain` |
-| .20.22 | WIN11-22H2-2 | Windows 11 22H2 | Workstation — `secondary.thruntops.domain` |
+| .20.250 | kali | Kali Linux | Attacker box |
 
 > IP prefix depends on the Ludus range network (e.g. `10.1.0.0/16` → `10.1.20.x`).
-
-Table shows `dual` (5 VMs). `base` drops the secondary domain (3 VMs: `splunk`, `DC01-2022`, `WIN11-22H2-1`). `adcs` swaps the secondary domain for a dedicated ADCS VM at `.20.13` (4 VMs: `splunk`, `DC01-2022`, `ADCS`, `WIN11-22H2-1`) — single domain only.
 
 ---
 
@@ -46,28 +40,18 @@ Table shows `dual` (5 VMs). `base` drops the secondary domain (3 VMs: `splunk`, 
 ```mermaid
 graph TB
     subgraph VLAN20["VLAN 20"]
-
-        subgraph primary["thruntops.domain"]
+        subgraph domain["thruntops.domain"]
             DC1["🖥 DC01-2022\n.20.11\nPrimary DC"]
             W1["🖥 WIN11-22H2-1\n.20.21\nWorkstation"]
         end
-
-        subgraph secondary["secondary.thruntops.domain"]
-            DC2["🖥 DC01-SEC\n.20.12\nPrimary DC"]
-            W2["🖥 WIN11-22H2-2\n.20.22\nWorkstation"]
-        end
-
-        SPLUNK["🐧 splunk\n.20.1\nSplunk Enterprise"]
+        SPLUNK["🐧 splunk\n.20.1\nSplunk SIEM"]
+        KALI["🗡 kali\n.20.250\nAttacker"]
     end
 
-    DC1 <-->|"domain trust"| DC2
     W1 -->|"member"| DC1
-    W2 -->|"member"| DC2
-
-    SPLUNK -.->|"UF :9997"| DC1
-    SPLUNK -.->|"UF :9997"| DC2
-    SPLUNK -.->|"UF :9997"| W1
-    SPLUNK -.->|"UF :9997"| W2
+    SPLUNK -.->|"Universal Forwarder"| DC1
+    SPLUNK -.->|"Universal Forwarder"| W1
+    KALI -.->|"attack traffic"| DC1
 ```
 
 ---
@@ -76,33 +60,23 @@ graph TB
 
 | Service | URL | User | Password |
 |---|---|---|---|
-| Splunk Web | `http://<range_ip>.20.1:8000` | `admin` | set in `splunk-dual-2022.yml` → `ludus_splunk_admin_password` |
+| Splunk Web | `http://<range_ip>.20.1:8000` | `admin` | `thisisapassword` (set in `ranges/splunk-base-2022.yml`) |
 
-### Local & Domain — Ludus defaults
-
-| User | Password | Scope |
-|---|---|---|
-| `localuser` | `password` (template default) | Local Admin (Windows) / SSH login (Linux) — all VMs |
-| `THRUNTOPS\domainadmin` | `password` | Domain Admin — thruntops.domain |
-| `THRUNTOPS\domainuser` | `password` | Domain User — thruntops.domain |
-| `SECONDARY\domainadmin` | `password` | Domain Admin — secondary.thruntops.domain |
-| `SECONDARY\domainuser` | `password` | Domain User — secondary.thruntops.domain |
+Domain and local accounts use Ludus defaults — see [Users](users.md).
 
 ---
 
 ## Deployment
 
 ```bash
-./siem.sh deploy splunk 2022 dual   # 2 AD + 2 workstations
-./siem.sh deploy splunk 2022 base   # 1 AD + 1 workstation
-./siem.sh deploy splunk 2022 adcs   # 1 AD + ADCS + 1 workstation
+./siem.sh deploy splunk   # ranges/splunk-base-2022.yml
 ```
 
 Or step by step:
 
 ```bash
 ludus range destroy
-ludus range config set -f ranges/splunk-dual-2022.yml
+ludus range config set -f ranges/splunk-base-2022.yml
 ludus range deploy
 ludus range logs -f
 ```
@@ -111,17 +85,15 @@ ludus range logs -f
 
 ## Verify
 
-All three profiles have passed the post-deploy validation checklist on Ludus 2, run with the matching flag:
-
 ```bash
-RANGE_PREFIX=10.<range> ./siem.sh check splunk 2022 base   # or dual / adcs
+./siem.sh check splunk
+./siem.sh status splunk
 ```
 
-Or manually, confirm the Universal Forwarders are connected:
+Or manually via Splunk Web:
 
-**Splunk Web → Settings → Forwarding and receiving → Forwarder management**
-
-Every Windows VM in the deployed profile should appear (2 for `base`, 4 for `dual`, 3 for `adcs`).
+- **Settings → Forwarding and receiving → Forwarder management** — both Windows VMs should appear
+- **Search:** `index=windows earliest=-15m` — Windows Event Logs from `DC01-2022` and `WIN11-22H2-1`
 
 Check range status:
 
@@ -131,25 +103,6 @@ ludus range status
 
 ---
 
-## Developer License
-
-By default Splunk runs under the free license (500 MB/day ingest limit). To apply a developer license (50 GB/day):
-
-1. Download your license from [dev.splunk.com](https://dev.splunk.com)
-2. Place the file at the repo root as `Splunk.License` (already in `.gitignore`)
-3. Copy it to the Ludus server:
-   ```bash
-   scp Splunk.License ludus-admin@<ludus-host>:~/
-   ```
-4. Set `ludus_splunk_license_src` in `splunk-dual-2022.yml` (or the profile you're using):
-   ```yaml
-   ludus_splunk_license_src: "/home/ludus-admin/Splunk.License"
-   ```
-
----
-
 ## Notes
 
-- `splunk-dual-2022.yml` deploys Splunk Enterprise version `10.2.1` (also available as `splunk-base-2022.yml` and `splunk-adcs-2022.yml` — see `siem.sh`)
-- **Known issue (ThruntOps-m13):** the Splunk Universal Forwarder fails to read the `Microsoft-Windows-Sysmon/Operational` event channel on domain-member Windows machines (workstations and the ADCS VM) with `ACCESS_DENIED` — confirmed across all three profiles during validation. Domain controllers are unaffected. Only Sysmon telemetry is impacted; the rest of the Windows/Security event log forwarding works normally. Root cause not yet fixed.
-- Fase 2 will add ADCS, MSSQL, and OPS VM.
+- Vulnerable AD scenarios are provisioned by the pinned external `ludus_ad` role — see [Coverage](coverage.md)
