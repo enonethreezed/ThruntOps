@@ -4,8 +4,8 @@
     name: "{{ item.name }}"
     scope: global
     state: present
-  loop: "{{ ludus_ad.groups | default([]) }}"
-  when: ludus_ad is defined and ludus_ad.groups is defined
+  loop: "{{ thruntops_ad_content.groups | default([]) }}"
+  when: thruntops_ad_content.groups is defined
 
 - name: Create domain users
   microsoft.ad.user:
@@ -19,12 +19,12 @@
     password_never_expires: true
     groups:
       add: "{{ item.groups | default(['Domain Users']) }}"
-  loop: "{{ ludus_ad.users | default([]) }}"
-  when: ludus_ad is defined and ludus_ad.users is defined
+  loop: "{{ thruntops_ad_content.users | default([]) }}"
+  when: thruntops_ad_content.users is defined
 
 - name: Add domain users to Remote Desktop Users group
   ansible.windows.win_group_membership:
     name: Remote Desktop Users
-    members: "{{ ludus_ad.rdp_members }}"
+    members: "{{ thruntops_ad_content.rdp_members }}"
     state: present
-  when: ludus_ad is defined and ludus_ad.rdp_members is defined
+  when: thruntops_ad_content.rdp_members is defined
