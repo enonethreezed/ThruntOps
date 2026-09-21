@@ -94,19 +94,16 @@ ludus templates list
 
 ## 4. Install Ansible Roles
 
-Install the Galaxy roles and register all local plus pinned external roles with the included script:
+Install the Galaxy roles and register all local roles with the included script:
 
 ```bash
 # Elastic Stack Galaxy roles
 ludus ansible roles add badsectorlabs.ludus_elastic_container
 ludus ansible roles add badsectorlabs.ludus_elastic_agent
 
-# All local roles (AD content, SIEM servers, ops, etc.) and the pinned
-# external ludus_ad role (roles/requirements.yml)
+# All local roles (AD content, SIEM servers, ops, etc.)
 bash roles/install-roles.sh
 ```
-
-The installer downloads the external `ludus_ad` role from [ThruntOps-vulnerabilities](https://github.com/enonethreezed/ThruntOps-vulnerabilities) at the exact revision pinned in `roles/requirements.yml`, then registers it with Ludus.
 
 {: .warning }
 After any change to a local role, re-sync with `--force` to overwrite the cached version:
@@ -118,12 +115,6 @@ Verify all roles are installed:
 
 ```bash
 ludus ansible roles list
-```
-
-Validate the cross-repository contract (role name, pinned revision, scenario IDs):
-
-```bash
-tests/validate-external-role.sh
 ```
 
 ---

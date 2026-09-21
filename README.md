@@ -6,7 +6,7 @@ A Ludus-based lab for TTP detection testing: one SIEM, one Active Directory doma
 
 ## Scope
 
-ThruntOps targets a single 2022 baseline: Windows Server 2022 DC (`thruntops.domain`), a Windows 11 22H2 workstation, and a Kali attacker VM, plus a choice of SIEM backend (Elastic, Wazuh, or Splunk). Vulnerable AD states are provisioned by the pinned external role [`ludus_ad`](https://github.com/enonethreezed/ThruntOps-vulnerabilities).
+ThruntOps targets a single 2022 baseline: Windows Server 2022 DC (`thruntops.domain`), a Windows 11 22H2 workstation, and a Kali attacker VM, plus a choice of SIEM backend (Elastic, Wazuh, or Splunk). Vulnerable AD states are provisioned in-repo, applied manually after the base lab is deployed.
 
 Deployed on Proxmox via [Ludus](https://docs.ludus.cloud) on VLAN 20 (`10.<range>.20.0/24`).
 
@@ -27,10 +27,6 @@ All backends share the same four-node topology and are managed with:
 ## Users
 
 See the [Users reference](https://enonethreezed.github.io/ThruntOps/users) for the full credentials reference.
-
-## Vulnerable AD Scenarios
-
-Scenario IDs are defined by the pinned [`ludus_ad`](https://github.com/enonethreezed/ThruntOps-vulnerabilities) role (`CRED-ASREP-01`, `CRED-KERBEROAST-01`, `CRED-DESCRIPTION-01`).
 
 ## Installation
 

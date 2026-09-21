@@ -1,19 +1,4 @@
 ---
-- name: Validate AD identity seed contract
-  ansible.builtin.assert:
-    that:
-      - thruntops_ad_content_users | length > 0
-      - >-
-        required_identity in
-        (thruntops_ad_content_users | map(attribute='name') | list)
-    fail_msg: "Missing required AD scenario identity: {{ required_identity }}"
-  loop:
-    - asrep.user
-    - svc.web
-    - helpdesk.user
-  loop_control:
-    loop_var: required_identity
-
 - name: Validate AD identity attributes
   ansible.builtin.assert:
     that:

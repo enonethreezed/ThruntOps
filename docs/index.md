@@ -28,12 +28,4 @@ All backends share the same four-node topology (SIEM, DC01-2022, WIN11-22H2-1, K
 ./siem.sh deploy splunk
 ```
 
-## Vulnerable AD Scenarios
-
-AD attack states are provisioned by the pinned external role [`ludus_ad`](https://github.com/enonethreezed/ThruntOps-vulnerabilities):
-
-- `CRED-ASREP-01` — accounts without Kerberos pre-authentication
-- `CRED-KERBEROAST-01` — service accounts with harvestable SPNs
-- `CRED-DESCRIPTION-01` — credentials exposed in user descriptions
-
 → [Installation](install.md) · [Users](users.md) · [Kali](kali.md)
