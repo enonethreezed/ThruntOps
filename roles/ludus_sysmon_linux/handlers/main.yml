@@ -1,5 +1,0 @@
----
-- name: restart sysmon
-  ansible.builtin.service:
-    name: sysmon
-    state: restarted
