@@ -4,8 +4,8 @@ thruntops_ad_kerberoasting_enabled: false
 thruntops_ad_kerberoasting_username: svc.backup
 thruntops_ad_kerberoasting_password: "password1"
 thruntops_ad_kerberoasting_description: >-
-  Kerberoasting credential-access scenario target (ThruntOps-lrd.10):
-  SPN-bearing service account, local Administrator on WIN11-22H2-1.
+  Backup agent service account. Temporary password:
+  {{ thruntops_ad_kerberoasting_password }}
 thruntops_ad_kerberoasting_spn:
   - backupagent/win11-22h2-1.thruntops.domain
 thruntops_ad_kerberoasting_domain_netbios: THRUNTOPS
