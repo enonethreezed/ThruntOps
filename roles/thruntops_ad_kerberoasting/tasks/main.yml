@@ -36,6 +36,9 @@
     update_password: on_create
     spn:
       set: "{{ thruntops_ad_kerberoasting_spn }}"
+    attributes:
+      set:
+        msDS-SupportedEncryptionTypes: 4  # RC4-HMAC only — forces a crackable etype 23 TGS-REP
   no_log: true
   when: inventory_hostname is search('-ad-dc-win2022-server-x64$')
 
@@ -56,6 +59,26 @@
     fail_msg: >-
       Postcondition failed: {{ thruntops_ad_kerberoasting_username }} has no
       SPN registered.
+  when: inventory_hostname is search('-ad-dc-win2022-server-x64$')
+
+- name: Validate postcondition — RC4 is the only supported encryption type
+  ansible.windows.win_powershell:
+    parameters:
+      Identity: "{{ thruntops_ad_kerberoasting_username }}"
+    script: |
+      param($Identity)
+      (Get-ADUser -Identity $Identity -Properties msDS-SupportedEncryptionTypes).'msDS-SupportedEncryptionTypes'
+  register: kerberoasting_etype_postcondition
+  when: inventory_hostname is search('-ad-dc-win2022-server-x64$')
+
+- name: Assert the target account is RC4-only (etype 23)
+  ansible.builtin.assert:
+    that:
+      - kerberoasting_etype_postcondition.output[0] | int == 4
+    fail_msg: >-
+      Postcondition failed: {{ thruntops_ad_kerberoasting_username }} does not
+      have msDS-SupportedEncryptionTypes set to RC4-only (4); roasted TGS may
+      come back as AES, not etype 23.
   when: inventory_hostname is search('-ad-dc-win2022-server-x64$')
 
 # --- Workstation: grant local admin rights ---
