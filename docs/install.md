@@ -121,7 +121,7 @@ ludus ansible roles list
 
 ## 5. Deploy the Range
 
-The unified `siem.sh` script (`./siem.sh <deploy|check|status> <elastic|wazuh|splunk>`) destroys any existing range, applies the matching `ranges/<backend>-base-2022.yml` config, and deploys in one step:
+The unified `siem.sh` script (`./siem.sh <deploy|start|stop|check|status> <elastic|wazuh|splunk>`) destroys any existing range, applies the matching `ranges/<backend>-base-2022.yml` config, and deploys in one step:
 
 ```bash
 ./siem.sh deploy elastic   # ranges/elk-base-2022.yml

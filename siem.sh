@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Unified control script for the three validated SIEM stacks (elastic, wazuh,
-# splunk): range deploy, post-deploy checklist, and live agent/forwarder
-# status.
+# splunk): range deploy, power on/off, post-deploy checklist, and live
+# agent/forwarder status.
 #
 # Usage:
-#   ./siem.sh <deploy|check|status> <elastic|wazuh|splunk>
+#   ./siem.sh <deploy|start|stop|check|status> <elastic|wazuh|splunk>
 #
 # Requires: curl, jq. Optional: ldapwhoami (ldap-utils package) for the
 # domain user check; python3 for the splunk status column parsing.
@@ -15,7 +15,7 @@
 set -uo pipefail
 
 usage() {
-  echo "Usage: $0 <deploy|check|status> <elastic|wazuh|splunk>"
+  echo "Usage: $0 <deploy|start|stop|check|status> <elastic|wazuh|splunk>"
   exit 1
 }
 
@@ -25,7 +25,7 @@ SIEM="${2:-}"
 [[ $# -eq 2 ]] || usage
 
 case "$ACTION" in
-  deploy|check|status) ;;
+  deploy|start|stop|check|status) ;;
   *) usage ;;
 esac
 
@@ -53,6 +53,17 @@ cmd_deploy() {
   ludus range config set -f "$config" && \
   ludus range deploy && \
   ludus range logs -f
+}
+
+# ==================================================================
+# start / stop
+# ==================================================================
+cmd_start() {
+  ludus power on
+}
+
+cmd_stop() {
+  ludus power off
 }
 
 # ==================================================================
@@ -505,7 +516,7 @@ status_splunk() {
 # ==================================================================
 # main
 # ==================================================================
-if [[ "$ACTION" != "deploy" ]]; then
+if [[ "$ACTION" != "deploy" && "$ACTION" != "start" && "$ACTION" != "stop" ]]; then
   resolve_range_prefix
   KIBANA_URL="https://${RANGE_PREFIX}.20.1:5601"
   WAZUH_URL="https://${RANGE_PREFIX}.20.1:55000"
@@ -516,6 +527,12 @@ fi
 case "$ACTION" in
   deploy)
     cmd_deploy
+    ;;
+  start)
+    cmd_start
+    ;;
+  stop)
+    cmd_stop
     ;;
   check)
     set_vm_patterns

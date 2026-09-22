@@ -21,7 +21,7 @@ Deployed on Proxmox via [Ludus](https://docs.ludus.cloud) on VLAN 20 (`10.<range
 All backends share the same four-node topology and are managed with:
 
 ```bash
-./siem.sh <deploy|check|status> <elastic|wazuh|splunk>
+./siem.sh <deploy|start|stop|check|status> <elastic|wazuh|splunk>
 ```
 
 ## Users
