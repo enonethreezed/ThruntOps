@@ -1,0 +1,58 @@
+---
+# Base provisioning for Kali, not scenario-specific: gives Kerberos-aware
+# tooling (impacket, netexec, kinit) a working path to the KDC. Needed by
+# every Kerberos-based Credential Access scenario, not just Kerberoasting.
+
+- name: Find the domain controller's IP from inventory
+  ansible.builtin.set_fact:
+    ludus_kali_krb5_dc_ip: "{{ hostvars[item].ansible_host }}"
+  loop: "{{ groups['all'] }}"
+  when: item is search(ludus_kali_krb5_dc_host_pattern)
+
+- name: Confirm the domain controller was found in inventory
+  ansible.builtin.assert:
+    that:
+      - ludus_kali_krb5_dc_ip is defined
+    fail_msg: >-
+      Could not find a host matching '{{ ludus_kali_krb5_dc_host_pattern }}'
+      in the inventory to use as the KDC.
+
+- name: Prepend the domain controller as the primary nameserver (immediate effect)
+  ansible.builtin.lineinfile:
+    path: /etc/resolv.conf
+    line: "nameserver {{ ludus_kali_krb5_dc_ip }}"
+    insertbefore: BOF
+    firstmatch: true
+
+- name: Prepend the domain controller to the persisted interface DNS config
+  ansible.builtin.replace:
+    path: /etc/network/interfaces
+    regexp: '^(\s*dns-nameservers\s+)(?!.*{{ ludus_kali_krb5_dc_ip }})(.*)$'
+    replace: '\1{{ ludus_kali_krb5_dc_ip }} \2'
+
+- name: Write /etc/krb5.conf
+  ansible.builtin.copy:
+    dest: /etc/krb5.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [libdefaults]
+          default_realm = {{ ludus_kali_krb5_realm }}
+          dns_lookup_realm = true
+          dns_lookup_kdc = true
+          rdns = false
+
+- name: Validate postcondition — the realm resolves via DNS
+  ansible.builtin.command:
+    cmd: "getent hosts {{ ludus_kali_krb5_realm | lower }}"
+  register: ludus_kali_krb5_postcondition
+  changed_when: false
+
+- name: Assert the realm resolves to the domain controller
+  ansible.builtin.assert:
+    that:
+      - ludus_kali_krb5_dc_ip in ludus_kali_krb5_postcondition.stdout
+    fail_msg: >-
+      Postcondition failed: {{ ludus_kali_krb5_realm | lower }} does not
+      resolve to {{ ludus_kali_krb5_dc_ip }} from Kali.

@@ -1,0 +1,3 @@
+---
+ludus_kali_krb5_realm: THRUNTOPS.DOMAIN
+ludus_kali_krb5_dc_host_pattern: '-ad-dc-win2022-server-x64$'

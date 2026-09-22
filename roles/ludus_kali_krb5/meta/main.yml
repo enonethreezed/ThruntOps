@@ -1,0 +1,13 @@
+galaxy_info:
+  role_name: ludus_kali_krb5
+  author: ThruntOps
+  description: >-
+    Point Kali's DNS resolver at the domain controller and configure
+    /etc/krb5.conf, so Kerberos-based tooling (impacket, nxc, kinit) can
+    resolve and reach the KDC.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+
+dependencies: []

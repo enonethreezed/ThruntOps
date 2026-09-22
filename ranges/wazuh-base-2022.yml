@@ -78,3 +78,5 @@ ludus:
     testing:
       snapshot: false
       block_internet: false
+    roles:
+      - ludus_kali_krb5
