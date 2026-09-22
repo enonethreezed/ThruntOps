@@ -1,0 +1,52 @@
+---
+- name: Confirm the scenario is explicitly enabled
+  ansible.builtin.assert:
+    that:
+      - ad_asrep_roasting_enabled | bool
+    fail_msg: >-
+      ad_asrep_roasting_enabled is false. Set it to true to provision this
+      scenario.
+
+- name: Validate scenario identity
+  ansible.builtin.assert:
+    that:
+      - ad_asrep_roasting_username | length > 0
+      - ad_asrep_roasting_password | length > 0
+    fail_msg: ad_asrep_roasting_username and ad_asrep_roasting_password must be set.
+  no_log: true
+
+- name: Create the AS-REP roasting target user
+  microsoft.ad.user:
+    name: "{{ ad_asrep_roasting_username }}"
+    password: "{{ ad_asrep_roasting_password }}"
+    description: "{{ ad_asrep_roasting_description }}"
+    state: present
+    enabled: true
+    password_never_expires: true
+    update_password: on_create
+  no_log: true
+
+- name: Disable Kerberos preauthentication on the target user
+  ansible.windows.win_powershell:
+    parameters:
+      Identity: "{{ ad_asrep_roasting_username }}"
+    script: |
+      param($Identity)
+      Set-ADAccountControl -Identity $Identity -DoesNotRequirePreAuth $true
+
+- name: Validate postcondition — preauthentication is disabled
+  ansible.windows.win_powershell:
+    parameters:
+      Identity: "{{ ad_asrep_roasting_username }}"
+    script: |
+      param($Identity)
+      (Get-ADUser -Identity $Identity -Properties DoesNotRequirePreAuth).DoesNotRequirePreAuth
+  register: asrep_postcondition
+
+- name: Assert the target user does not require Kerberos preauthentication
+  ansible.builtin.assert:
+    that:
+      - asrep_postcondition.output[0] | bool
+    fail_msg: >-
+      Postcondition failed: {{ ad_asrep_roasting_username }} still requires
+      Kerberos preauthentication.

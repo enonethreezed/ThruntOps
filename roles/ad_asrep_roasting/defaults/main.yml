@@ -1,0 +1,8 @@
+---
+ad_asrep_roasting_enabled: false
+
+ad_asrep_roasting_username: user.asrep
+ad_asrep_roasting_password: "password1"
+ad_asrep_roasting_description: >-
+  AS-REP Roasting credential-access scenario target (ThruntOps-lrd.1):
+  Kerberos preauthentication disabled.
