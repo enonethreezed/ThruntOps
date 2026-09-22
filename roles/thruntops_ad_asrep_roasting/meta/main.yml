@@ -1,5 +1,5 @@
 galaxy_info:
-  role_name: ad_asrep_roasting
+  role_name: thruntops_ad_asrep_roasting
   author: ThruntOps
   description: >-
     Provision an AD user with Kerberos preauthentication disabled
