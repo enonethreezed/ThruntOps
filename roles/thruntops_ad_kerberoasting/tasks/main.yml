@@ -1,0 +1,89 @@
+---
+# This role is assigned to two hosts: the domain controller (creates the
+# SPN-bearing account) and the workstation (grants it local admin rights).
+# Tasks are scoped to the right host by inventory_hostname pattern, matching
+# the vm_name patterns siem.sh uses to identify these same two VMs.
+
+- name: Confirm the scenario is explicitly enabled
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_kerberoasting_enabled | bool
+    fail_msg: >-
+      thruntops_ad_kerberoasting_enabled is false. Set it to true to
+      provision this scenario.
+
+- name: Validate scenario identity
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_kerberoasting_username | length > 0
+      - thruntops_ad_kerberoasting_password | length > 0
+      - thruntops_ad_kerberoasting_spn | length > 0
+    fail_msg: >-
+      thruntops_ad_kerberoasting_username, thruntops_ad_kerberoasting_password
+      and thruntops_ad_kerberoasting_spn must be set.
+  no_log: true
+
+# --- Domain controller: create the SPN-bearing service account ---
+
+- name: Create the Kerberoasting target service account
+  microsoft.ad.user:
+    name: "{{ thruntops_ad_kerberoasting_username }}"
+    password: "{{ thruntops_ad_kerberoasting_password }}"
+    description: "{{ thruntops_ad_kerberoasting_description }}"
+    state: present
+    enabled: true
+    password_never_expires: true
+    update_password: on_create
+    spn:
+      set: "{{ thruntops_ad_kerberoasting_spn }}"
+  no_log: true
+  when: inventory_hostname is search('-ad-dc-win2022-server-x64$')
+
+- name: Validate postcondition — SPN is registered
+  ansible.windows.win_powershell:
+    parameters:
+      Identity: "{{ thruntops_ad_kerberoasting_username }}"
+    script: |
+      param($Identity)
+      (Get-ADUser -Identity $Identity -Properties servicePrincipalName).servicePrincipalName.Count
+  register: kerberoasting_spn_postcondition
+  when: inventory_hostname is search('-ad-dc-win2022-server-x64$')
+
+- name: Assert the target account has a registered SPN
+  ansible.builtin.assert:
+    that:
+      - kerberoasting_spn_postcondition.output[0] | int > 0
+    fail_msg: >-
+      Postcondition failed: {{ thruntops_ad_kerberoasting_username }} has no
+      SPN registered.
+  when: inventory_hostname is search('-ad-dc-win2022-server-x64$')
+
+# --- Workstation: grant local admin rights ---
+
+- name: Add the target account to the local Administrators group
+  ansible.windows.win_group_membership:
+    name: Administrators
+    members:
+      - "{{ thruntops_ad_kerberoasting_domain_netbios }}\\{{ thruntops_ad_kerberoasting_username }}"
+    state: present
+  when: inventory_hostname is search('-ad-win11-22h2-enterprise-x64-1$')
+
+- name: Validate postcondition — local admin membership
+  ansible.windows.win_powershell:
+    parameters:
+      DomainAccount: "{{ thruntops_ad_kerberoasting_domain_netbios }}\\{{ thruntops_ad_kerberoasting_username }}"
+    script: |
+      param($DomainAccount)
+      [bool](Get-LocalGroupMember -Group Administrators | Where-Object { $_.Name -eq $DomainAccount })
+  register: kerberoasting_admin_postcondition
+  when: inventory_hostname is search('-ad-win11-22h2-enterprise-x64-1$')
+
+- name: Assert the target account is a local administrator
+  ansible.builtin.assert:
+    that:
+      - kerberoasting_admin_postcondition.output[0] | bool
+    fail_msg: >-
+      Postcondition failed: {{ thruntops_ad_kerberoasting_domain_netbios }}\
+      {{ thruntops_ad_kerberoasting_username }} is not a local administrator
+      on this host.
+  when: inventory_hostname is search('-ad-win11-22h2-enterprise-x64-1$')
