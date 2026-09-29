@@ -1,0 +1,19 @@
+---
+thruntops_ad_targeted_kerberoasting_enabled: false
+
+thruntops_ad_targeted_kerberoasting_victim_username: admin.tier0
+thruntops_ad_targeted_kerberoasting_victim_password: "trustno1"
+thruntops_ad_targeted_kerberoasting_victim_description: >-
+  Tier-0 administrator account.
+
+thruntops_ad_targeted_kerberoasting_delegate_username: svc.helpdesk
+thruntops_ad_targeted_kerberoasting_delegate_password: "welcome1"
+thruntops_ad_targeted_kerberoasting_delegate_description: >-
+  Helpdesk account with delegated write access for account support tasks.
+
+thruntops_ad_targeted_kerberoasting_admin_group: "Domain Admins"
+thruntops_ad_targeted_kerberoasting_domain_netbios: THRUNTOPS
+
+# schemaIDGUID of the servicePrincipalName attribute (well-known, fixed
+# across all AD schemas — not range- or domain-specific).
+thruntops_ad_targeted_kerberoasting_spn_attribute_guid: f3a64788-5306-11d1-a9c5-0000f80367c1

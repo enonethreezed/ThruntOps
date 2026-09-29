@@ -1,0 +1,15 @@
+galaxy_info:
+  role_name: thruntops_ad_targeted_kerberoasting
+  author: ThruntOps
+  description: >-
+    Provision a Domain Admins victim with no SPN and a delegated helpdesk
+    account with WriteProperty on servicePrincipalName over it (Targeted
+    Kerberoasting target)
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Windows
+      versions:
+        - "2022"
+
+dependencies: []

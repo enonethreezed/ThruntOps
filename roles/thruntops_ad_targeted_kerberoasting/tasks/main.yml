@@ -1,0 +1,168 @@
+---
+# Runs entirely on the domain controller: creates the Tier-0 victim (no SPN,
+# RC4-only, member of Domain Admins) and a delegated helpdesk account with
+# WriteProperty scoped to servicePrincipalName on the victim's object. The
+# attacker sets the SPN themselves using that delegated write — provisioning
+# only creates the ACE misconfiguration.
+
+- name: Confirm the scenario is explicitly enabled
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_targeted_kerberoasting_enabled | bool
+    fail_msg: >-
+      thruntops_ad_targeted_kerberoasting_enabled is false. Set it to true to
+      provision this scenario.
+
+- name: Validate scenario identities
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_targeted_kerberoasting_victim_username | length > 0
+      - thruntops_ad_targeted_kerberoasting_victim_password | length > 0
+      - thruntops_ad_targeted_kerberoasting_delegate_username | length > 0
+      - thruntops_ad_targeted_kerberoasting_delegate_password | length > 0
+    fail_msg: Victim and delegate usernames/passwords must be set.
+  no_log: true
+
+- name: Create the Tier-0 victim account
+  microsoft.ad.user:
+    name: "{{ thruntops_ad_targeted_kerberoasting_victim_username }}"
+    password: "{{ thruntops_ad_targeted_kerberoasting_victim_password }}"
+    description: "{{ thruntops_ad_targeted_kerberoasting_victim_description }}"
+    state: present
+    enabled: true
+    password_never_expires: true
+    update_password: on_create
+    groups:
+      add:
+        - "{{ thruntops_ad_targeted_kerberoasting_admin_group }}"
+    attributes:
+      set:
+        msDS-SupportedEncryptionTypes: 4  # RC4-HMAC only — forces a crackable etype 23 TGS-REP once SPN'd
+  no_log: true
+
+- name: Create the delegated helpdesk account
+  microsoft.ad.user:
+    name: "{{ thruntops_ad_targeted_kerberoasting_delegate_username }}"
+    password: "{{ thruntops_ad_targeted_kerberoasting_delegate_password }}"
+    description: "{{ thruntops_ad_targeted_kerberoasting_delegate_description }}"
+    state: present
+    enabled: true
+    password_never_expires: true
+    update_password: on_create
+  no_log: true
+
+- name: Grant the helpdesk account WriteProperty on the victim's servicePrincipalName
+  ansible.windows.win_powershell:
+    parameters:
+      VictimIdentity: "{{ thruntops_ad_targeted_kerberoasting_victim_username }}"
+      DelegateAccount: "{{ thruntops_ad_targeted_kerberoasting_domain_netbios }}\\{{ thruntops_ad_targeted_kerberoasting_delegate_username }}"
+      AttributeGuid: "{{ thruntops_ad_targeted_kerberoasting_spn_attribute_guid }}"
+    script: |
+      param($VictimIdentity, $DelegateAccount, $AttributeGuid)
+      $victim = Get-ADUser -Identity $VictimIdentity
+      $guid = [GUID]$AttributeGuid
+      $sid = (New-Object System.Security.Principal.NTAccount($DelegateAccount)).Translate([System.Security.Principal.SecurityIdentifier])
+      $acl = Get-Acl -Path "AD:\$($victim.DistinguishedName)"
+
+      $existing = foreach ($ace in $acl.Access) {
+        try { $aceSid = $ace.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]) }
+        catch { continue }
+        if ($aceSid -eq $sid -and $ace.ObjectType -eq $guid -and
+            ($ace.ActiveDirectoryRights -band [System.DirectoryServices.ActiveDirectoryRights]::WriteProperty) -and
+            $ace.AccessControlType -eq 'Allow') { $ace }
+      }
+
+      if (-not $existing) {
+        $rule = New-Object System.DirectoryServices.ActiveDirectoryAccessRule(
+          $sid,
+          [System.DirectoryServices.ActiveDirectoryRights]::WriteProperty,
+          [System.Security.AccessControl.AccessControlType]::Allow,
+          $guid
+        )
+        $acl.AddAccessRule($rule)
+        Set-Acl -Path "AD:\$($victim.DistinguishedName)" -AclObject $acl
+      }
+
+- name: Validate postcondition — victim is a member of the admin group
+  ansible.windows.win_powershell:
+    parameters:
+      Identity: "{{ thruntops_ad_targeted_kerberoasting_victim_username }}"
+      Group: "{{ thruntops_ad_targeted_kerberoasting_admin_group }}"
+    script: |
+      param($Identity, $Group)
+      [bool](Get-ADGroupMember -Identity $Group -Recursive | Where-Object { $_.SamAccountName -eq $Identity })
+  register: targeted_kerberoasting_admin_postcondition
+
+- name: Assert the victim is a member of the admin group
+  ansible.builtin.assert:
+    that:
+      - targeted_kerberoasting_admin_postcondition.output[0] | bool
+    fail_msg: >-
+      Postcondition failed: {{ thruntops_ad_targeted_kerberoasting_victim_username }}
+      is not a member of {{ thruntops_ad_targeted_kerberoasting_admin_group }}.
+
+- name: Validate postcondition — victim has no SPN yet
+  ansible.windows.win_powershell:
+    parameters:
+      Identity: "{{ thruntops_ad_targeted_kerberoasting_victim_username }}"
+    script: |
+      param($Identity)
+      (Get-ADUser -Identity $Identity -Properties servicePrincipalName).servicePrincipalName.Count
+  register: targeted_kerberoasting_spn_postcondition
+
+- name: Assert the victim has no SPN registered
+  ansible.builtin.assert:
+    that:
+      - targeted_kerberoasting_spn_postcondition.output[0] | int == 0
+    fail_msg: >-
+      Postcondition failed: {{ thruntops_ad_targeted_kerberoasting_victim_username }}
+      already has an SPN — the scenario expects the attacker to set it.
+
+- name: Validate postcondition — the delegated write ACE is present
+  ansible.windows.win_powershell:
+    parameters:
+      VictimIdentity: "{{ thruntops_ad_targeted_kerberoasting_victim_username }}"
+      DelegateAccount: "{{ thruntops_ad_targeted_kerberoasting_domain_netbios }}\\{{ thruntops_ad_targeted_kerberoasting_delegate_username }}"
+      AttributeGuid: "{{ thruntops_ad_targeted_kerberoasting_spn_attribute_guid }}"
+    script: |
+      param($VictimIdentity, $DelegateAccount, $AttributeGuid)
+      $victim = Get-ADUser -Identity $VictimIdentity
+      $guid = [GUID]$AttributeGuid
+      $sid = (New-Object System.Security.Principal.NTAccount($DelegateAccount)).Translate([System.Security.Principal.SecurityIdentifier])
+      $acl = Get-Acl -Path "AD:\$($victim.DistinguishedName)"
+
+      $matched = foreach ($ace in $acl.Access) {
+        try { $aceSid = $ace.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]) }
+        catch { continue }
+        if ($aceSid -eq $sid -and $ace.ObjectType -eq $guid -and
+            ($ace.ActiveDirectoryRights -band [System.DirectoryServices.ActiveDirectoryRights]::WriteProperty) -and
+            $ace.AccessControlType -eq 'Allow') { $ace }
+      }
+      [bool]$matched
+  register: targeted_kerberoasting_ace_postcondition
+
+- name: Assert the WriteProperty ACE is present
+  ansible.builtin.assert:
+    that:
+      - targeted_kerberoasting_ace_postcondition.output[0] | bool
+    fail_msg: >-
+      Postcondition failed: {{ thruntops_ad_targeted_kerberoasting_delegate_username }}
+      does not have WriteProperty on servicePrincipalName for
+      {{ thruntops_ad_targeted_kerberoasting_victim_username }}.
+
+- name: Validate postcondition — victim is RC4-only (etype 23 once SPN'd)
+  ansible.windows.win_powershell:
+    parameters:
+      Identity: "{{ thruntops_ad_targeted_kerberoasting_victim_username }}"
+    script: |
+      param($Identity)
+      (Get-ADUser -Identity $Identity -Properties msDS-SupportedEncryptionTypes).'msDS-SupportedEncryptionTypes'
+  register: targeted_kerberoasting_etype_postcondition
+
+- name: Assert the victim is RC4-only
+  ansible.builtin.assert:
+    that:
+      - targeted_kerberoasting_etype_postcondition.output[0] | int == 4
+    fail_msg: >-
+      Postcondition failed: {{ thruntops_ad_targeted_kerberoasting_victim_username }}
+      does not have msDS-SupportedEncryptionTypes set to RC4-only (4).
