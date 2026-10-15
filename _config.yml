@@ -13,7 +13,5 @@ plugins:
 nav_external_links:
   - title: GitHub
     url: https://github.com/enonethreezed/ThruntOps
-  - title: ludus_ad role
-    url: https://github.com/enonethreezed/ThruntOps-vulnerabilities
 
 footer_content: "ThruntOps — MIT License"
