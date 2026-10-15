@@ -1,0 +1,98 @@
+---
+- name: Confirm the scenario is explicitly enabled
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_ntlm_relay_enabled | bool
+    fail_msg: >-
+      thruntops_ad_ntlm_relay_enabled is false. Set it to true to provision this
+      scenario.
+
+- name: Validate scenario identity
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_ntlm_relay_username | length > 0
+      - thruntops_ad_ntlm_relay_password | length > 0
+    fail_msg: >-
+      thruntops_ad_ntlm_relay_username and thruntops_ad_ntlm_relay_password
+      must be set.
+  no_log: true
+
+- name: Create the NTLM relay scenario identity
+  microsoft.ad.user:
+    name: "{{ thruntops_ad_ntlm_relay_username }}"
+    password: "{{ thruntops_ad_ntlm_relay_password }}"
+    description: "{{ thruntops_ad_ntlm_relay_description }}"
+    state: present
+    enabled: true
+    password_never_expires: true
+    update_password: on_create
+  no_log: true
+  when: inventory_hostname is search(thruntops_ad_ntlm_relay_domain_controller_pattern)
+
+- name: Disable LDAP signing requirement on the domain controller
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters
+    name: LDAPServerIntegrity
+    type: dword
+    data: "{{ thruntops_ad_ntlm_relay_ldap_signing_level }}"
+  when: inventory_hostname is search(thruntops_ad_ntlm_relay_domain_controller_pattern)
+
+- name: Disable LDAP channel binding on the domain controller
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters
+    name: LdapEnforceChannelBinding
+    type: dword
+    data: "{{ thruntops_ad_ntlm_relay_ldap_channel_binding }}"
+  when: inventory_hostname is search(thruntops_ad_ntlm_relay_domain_controller_pattern)
+
+- name: Read back LDAP signing configuration
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters
+    name: LDAPServerIntegrity
+  register: ntlm_relay_ldap_signing
+  when: inventory_hostname is search(thruntops_ad_ntlm_relay_domain_controller_pattern)
+
+- name: Assert LDAP signing is not required
+  ansible.builtin.assert:
+    that:
+      - ntlm_relay_ldap_signing.value | int == thruntops_ad_ntlm_relay_ldap_signing_level | int
+      - thruntops_ad_ntlm_relay_ldap_signing_level | int < 2
+    fail_msg: LDAPServerIntegrity must be less than 2 for the LDAP relay scenario.
+  when: inventory_hostname is search(thruntops_ad_ntlm_relay_domain_controller_pattern)
+
+- name: Read back LDAP channel binding configuration
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\NTDS\Parameters
+    name: LdapEnforceChannelBinding
+  register: ntlm_relay_ldap_channel_binding
+  when: inventory_hostname is search(thruntops_ad_ntlm_relay_domain_controller_pattern)
+
+- name: Assert LDAP channel binding is disabled
+  ansible.builtin.assert:
+    that:
+      - ntlm_relay_ldap_channel_binding.value | int == 0
+    fail_msg: LdapEnforceChannelBinding must be 0 for the LDAP relay scenario.
+  when: inventory_hostname is search(thruntops_ad_ntlm_relay_domain_controller_pattern)
+
+- name: Disable required SMB signing on the member workstation
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters
+    name: RequireSecuritySignature
+    type: dword
+    data: "{{ thruntops_ad_ntlm_relay_smb_require_signing }}"
+  when: inventory_hostname is search(thruntops_ad_ntlm_relay_workstation_pattern)
+
+- name: Read back SMB signing configuration
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters
+    name: RequireSecuritySignature
+  register: ntlm_relay_smb_signing
+  when: inventory_hostname is search(thruntops_ad_ntlm_relay_workstation_pattern)
+
+- name: Assert SMB signing is not required
+  ansible.builtin.assert:
+    that:
+      - ntlm_relay_smb_signing.value | int == thruntops_ad_ntlm_relay_smb_require_signing | int
+      - thruntops_ad_ntlm_relay_smb_require_signing | int == 0
+    fail_msg: RequireSecuritySignature must be 0 for the SMB relay scenario.
+  when: inventory_hostname is search(thruntops_ad_ntlm_relay_workstation_pattern)

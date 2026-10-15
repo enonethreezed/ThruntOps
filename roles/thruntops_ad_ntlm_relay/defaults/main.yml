@@ -1,0 +1,17 @@
+---
+thruntops_ad_ntlm_relay_enabled: false
+
+thruntops_ad_ntlm_relay_username: user.ntlmrelay
+thruntops_ad_ntlm_relay_password: "password1"
+thruntops_ad_ntlm_relay_description: >-
+  NTLM relay credential-access scenario identity (ThruntOps-lrd.3).
+
+thruntops_ad_ntlm_relay_domain_controller_pattern: '-ad-dc-win2022-server-x64$'
+thruntops_ad_ntlm_relay_workstation_pattern: '-ad-win11-22h2-enterprise-x64-1$'
+
+# Deliberately weaken LDAP relay protections on the domain controller.
+thruntops_ad_ntlm_relay_ldap_signing_level: 1
+thruntops_ad_ntlm_relay_ldap_channel_binding: 0
+
+# Do not require SMB signing on the member workstation, making it a relay target.
+thruntops_ad_ntlm_relay_smb_require_signing: 0

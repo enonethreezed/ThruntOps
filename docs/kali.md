@@ -23,3 +23,6 @@ capture credentials, or execute exploitation workflows.
 The Active Directory vulnerability role configures vulnerable directory state
 on the domain controller. Tools on Kali are used manually to inspect and test
 that state after provisioning.
+
+See [AD Vulnerability Scenarios](vulnerabilities.md) for scenario explanations,
+Kali-based test commands, and references to the relevant tool documentation.

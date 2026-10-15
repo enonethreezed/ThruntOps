@@ -28,4 +28,4 @@ All backends share the same four-node topology (SIEM, DC01-2022, WIN11-22H2-1, K
 ./siem.sh deploy splunk
 ```
 
-→ [Installation](install.md) · [Users](users.md) · [Kali](kali.md)
+→ [Installation](install.md) · [Users](users.md) · [Kali](kali.md) · [AD Vulnerability Scenarios](vulnerabilities.md)
