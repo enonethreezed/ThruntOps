@@ -1,0 +1,54 @@
+---
+- name: Confirm the scenario is explicitly enabled
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_coercion_enabled | bool
+    fail_msg: >-
+      thruntops_ad_coercion_enabled is false. Set it to true to provision this
+      scenario.
+
+- name: Validate scenario identity
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_coercion_username | length > 0
+      - thruntops_ad_coercion_password | length > 0
+    fail_msg: >-
+      thruntops_ad_coercion_username and thruntops_ad_coercion_password must be
+      set.
+  no_log: true
+
+- name: Create the low-privilege authentication coercion account
+  microsoft.ad.user:
+    name: "{{ thruntops_ad_coercion_username }}"
+    password: "{{ thruntops_ad_coercion_password }}"
+    description: "{{ thruntops_ad_coercion_description }}"
+    state: present
+    enabled: true
+    password_never_expires: true
+    update_password: on_create
+  no_log: true
+  when: inventory_hostname is search(thruntops_ad_coercion_domain_controller_pattern)
+
+- name: Start Print Spooler automatically on the domain controller
+  ansible.windows.win_service:
+    name: Spooler
+    start_mode: auto
+    state: started
+  when: inventory_hostname is search(thruntops_ad_coercion_domain_controller_pattern)
+
+- name: Read back Print Spooler state
+  ansible.windows.win_service_info:
+    name: Spooler
+  register: coercion_spooler_service
+  when: inventory_hostname is search(thruntops_ad_coercion_domain_controller_pattern)
+
+- name: Assert Print Spooler is running and enabled at startup
+  ansible.builtin.assert:
+    that:
+      - coercion_spooler_service.services | length == 1
+      - coercion_spooler_service.services[0].state == 'started'
+      - coercion_spooler_service.services[0].start_mode == 'auto'
+    fail_msg: >-
+      Print Spooler must be running and configured for automatic startup for
+      the MS-RPRN coercion scenario.
+  when: inventory_hostname is search(thruntops_ad_coercion_domain_controller_pattern)

