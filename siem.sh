@@ -391,7 +391,7 @@ check_splunk_endpoints() {
   SPLUNK_EXPECTED=()
   for entry in "${VM_PATTERNS[@]}"; do
     local label="${entry%%:*}"
-    [[ "$label" == "splunk" ]] && continue
+    [[ "$label" == "splunk" || "$label" == "kali" ]] && continue
     SPLUNK_EXPECTED+=("${range_id}-${label}")
   done
 
