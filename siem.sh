@@ -5,6 +5,7 @@
 #
 # Usage:
 #   ./siem.sh <deploy|start|stop|check|status> <elastic|wazuh|splunk>
+#   ./siem.sh deploy splunk --license <local-license-file>
 #
 # Requires: curl, jq. Optional: ldapwhoami (ldap-utils package) for the
 # domain user check; python3 for the splunk status column parsing.
@@ -15,14 +16,15 @@
 set -uo pipefail
 
 usage() {
-  echo "Usage: $0 <deploy|start|stop|check|status> <elastic|wazuh|splunk>"
+  echo "Usage: $0 <deploy|start|stop|check|status> <elastic|wazuh|splunk> [--license <file>]"
+  echo "       --license is supported only with 'deploy splunk'"
   exit 1
 }
 
 ACTION="${1:-}"
 SIEM="${2:-}"
 
-[[ $# -eq 2 ]] || usage
+[[ $# -ge 2 && $# -le 4 ]] || usage
 
 case "$ACTION" in
   deploy|start|stop|check|status) ;;
@@ -33,6 +35,16 @@ case "$SIEM" in
   elastic|wazuh|splunk) ;;
   *) usage ;;
 esac
+
+LICENSE_FILE=""
+if [[ $# -gt 2 ]]; then
+  [[ "$ACTION" == "deploy" && "$SIEM" == "splunk" && $# -eq 4 && "$3" == "--license" ]] || usage
+  LICENSE_FILE="$4"
+  [[ -n "$LICENSE_FILE" && -f "$LICENSE_FILE" && -r "$LICENSE_FILE" ]] || {
+    echo "License file is missing or unreadable: $LICENSE_FILE" >&2
+    exit 1
+  }
+fi
 
 case "$SIEM" in
   elastic) RANGES_DIR_PREFIX="elk";    API_USER="elastic"; API_PASS="thisisapassword" ;;
@@ -49,10 +61,26 @@ LOOKBACK="1h"
 # ==================================================================
 cmd_deploy() {
   local config="ranges/${RANGES_DIR_PREFIX}-base-2022.yml"
-  ludus range destroy --no-prompt && \
-  ludus range config set -f "$config" && \
-  ludus range deploy && \
-  ludus range logs -f
+  ludus range destroy --no-prompt || return $?
+  ludus range config set -f "$config" || return $?
+  ludus range deploy || return $?
+  ludus range logs -f || return $?
+
+  if [[ -n "$LICENSE_FILE" ]]; then
+    resolve_range_prefix
+    SPLUNK_URL="https://${RANGE_PREFIX}.20.1:8089"
+    echo "Installing Splunk license through the Splunk REST API (${SPLUNK_URL})."
+    local response
+    if ! response=$(curl -skSf -u "${API_USER}:${API_PASS}" \
+      --data-urlencode "payload@${LICENSE_FILE}" \
+      "${SPLUNK_URL}/services/licenser/licenses?output_mode=json" 2>&1); then
+      echo "Failed to upload the Splunk license through the REST API:" >&2
+      echo "$response" >&2
+      return 1
+    fi
+    echo "Splunk license upload completed."
+    [[ -z "$response" ]] || echo "$response"
+  fi
 }
 
 # ==================================================================

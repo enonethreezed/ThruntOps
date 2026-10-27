@@ -70,7 +70,14 @@ Domain and local accounts use Ludus defaults — see [Users](users.md).
 
 ```bash
 ./siem.sh deploy splunk   # ranges/splunk-base-2022.yml
+./siem.sh deploy splunk --license /path/to/Splunk.License
 ```
+
+The optional `--license` argument accepts a local Splunk license file. After
+deployment completes, `siem.sh` posts its XML contents to the Splunk Enterprise
+REST API at port 8089 using the configured Splunk admin credentials. The API
+user must have the `license_edit` capability. The license is not copied to the
+Ludus server.
 
 Or step by step:
 
@@ -104,4 +111,3 @@ ludus range status
 ---
 
 ## Notes
-

@@ -22,6 +22,7 @@ All backends share the same four-node topology and are managed with:
 
 ```bash
 ./siem.sh <deploy|start|stop|check|status> <elastic|wazuh|splunk>
+./siem.sh deploy splunk --license /path/to/Splunk.License
 ```
 
 ## Users
