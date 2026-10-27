@@ -35,6 +35,14 @@
     timeout: 60
   when: splunk_install is changed
 
+- name: (splunk_uf/win) Grant Splunk Forwarder access to Windows event channels
+  ansible.windows.win_group_membership:
+    name: Event Log Readers
+    members:
+      - 'NT SERVICE\SplunkForwarder'
+    state: present
+  notify: restart splunkforwarder
+
 - name: (splunk_uf/win) Configure outputs.conf
   ansible.windows.win_copy:
     dest: "C:\\Program Files\\SplunkUniversalForwarder\\etc\\system\\local\\outputs.conf"
