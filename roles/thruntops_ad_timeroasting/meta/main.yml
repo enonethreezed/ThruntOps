@@ -1,0 +1,14 @@
+galaxy_info:
+  role_name: thruntops_ad_timeroasting
+  author: ThruntOps
+  description: >-
+    Provision a computer account with a deliberately weak password as an
+    isolated Active Directory Timeroasting target.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Windows
+      versions:
+        - "2022"
+
+dependencies: []

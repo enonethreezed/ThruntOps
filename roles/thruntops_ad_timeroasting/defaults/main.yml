@@ -1,0 +1,8 @@
+---
+thruntops_ad_timeroasting_enabled: false
+
+thruntops_ad_timeroasting_computer_name: computer.timeroasting
+thruntops_ad_timeroasting_computer_password: "password1"
+thruntops_ad_timeroasting_computer_description: >-
+  Timeroasting credential-access scenario target (ThruntOps-lrd.8):
+  deliberately weak computer account password for isolated lab testing.

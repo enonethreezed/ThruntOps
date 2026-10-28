@@ -14,6 +14,37 @@ part of the range deployment. Run them only in an isolated ThruntOps range.
 The project uses hands-on Kali commands and published tool/technique references
 for these exercises. It does **not** use Atomic Red Team.
 
+## Apply a scenario to a deployed range
+
+Use the separate CLI from the repository root. It requires the Ludus CLI to be
+configured and Python 3 with PyYAML available. Install the Python dependency in
+a virtual environment if it is not already present:
+
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install -r scripts/requirements.txt
+python3 scripts/thruntops-scenarios.py list
+python3 scripts/thruntops-scenarios.py --range <range_id> status
+python3 scripts/thruntops-scenarios.py --range <range_id> apply
+# Or name scenarios directly; ADCS entries include adcs-esc1, adcs-esc10-case1, etc.
+python3 scripts/thruntops-scenarios.py --range <range_id> apply asrep adcs-esc1
+# Timeroasting is available as: apply timeroasting
+```
+
+`apply` presents a menu, previews the selected roles and target VMs, and requires
+the operator to type `APPLY`. It registers missing local roles, installs the
+upstream `badsectorlabs.ludus_adcs` role at version `1.6.0` when needed, updates
+the selected range configuration, then invokes Ludus with `--only-roles` and
+`--limit`. It does not call `siem.sh deploy` or destroy/recreate VMs.
+
+The selected roles remain in the range configuration. The CLI does not offer a
+disable/reset command: setting a role variable to `false` does not undo changes
+already made on Windows, and the upstream ADCS role is explicitly non-idempotent.
+Restore a suitable VM snapshot or perform scenario-specific cleanup to return to
+baseline. If the role run fails, inspect Ludus logs before retrying; the updated
+configuration is kept so the selected state is visible.
+
 ## Lab values
 
 Replace `<range>` with the range's subnet number. Kali is `10.<range>.20.250`,
@@ -50,6 +81,28 @@ and test it offline with a password-recovery tool. The default profile password
 is `password1`.
 
 **References:** [Impacket GetNPUsers](https://github.com/fortra/impacket/blob/master/examples/GetNPUsers.py) · [The Hacker Recipes: AS-REP roasting](https://www.thehacker.recipes/ad/movement/kerberos/roasting/asreproast)
+
+## Timeroasting
+
+**What it is:** Microsoft's SNTP extension allows an unauthenticated request to
+the domain controller to obtain a response authenticated with a computer
+account's password hash. This profile creates the enabled computer account
+`computer.timeroasting$` with the deliberately weak default password
+`password1`. The role sets that password only when the account has no initialized
+password, so applying the profile again does not rotate it.
+
+Apply with `python3 scripts/thruntops-scenarios.py --range <range_id> apply timeroasting`.
+From Kali, run the standalone Timeroast client against `$DC_IP`, then test its
+output offline with Hashcat (mode 31300 is MS-SNTP). Timeroast output identifies
+accounts by RID; map the target RID to the computer account in AD when
+validating the result.
+
+```bash
+python3 timeroast.py "$DC_IP" > timeroast-hashes.txt
+hashcat -m 31300 --username timeroast-hashes.txt /usr/share/wordlists/rockyou.txt
+```
+
+**References:** [The Hacker Recipes: Timeroasting](https://www.thehacker.recipes/ad/movement/kerberos/roasting/timeroast) · [Timeroast tool](https://github.com/bvcyber/Timeroast)
 
 ## Kerberoasting
 

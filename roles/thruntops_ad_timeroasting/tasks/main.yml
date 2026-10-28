@@ -1,0 +1,59 @@
+---
+- name: Confirm the scenario is explicitly enabled
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_timeroasting_enabled | bool
+    fail_msg: >-
+      thruntops_ad_timeroasting_enabled is false. Set it to true to provision
+      this scenario.
+
+- name: Validate scenario identity
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_timeroasting_computer_name | length > 0
+      - thruntops_ad_timeroasting_computer_password | length > 0
+    fail_msg: >-
+      thruntops_ad_timeroasting_computer_name and
+      thruntops_ad_timeroasting_computer_password must be set.
+  no_log: true
+
+- name: Create the Timeroasting target computer account
+  microsoft.ad.computer:
+    name: "{{ thruntops_ad_timeroasting_computer_name }}"
+    description: "{{ thruntops_ad_timeroasting_computer_description }}"
+    enabled: true
+    state: present
+  no_log: true
+
+- name: Set the weak computer account password if it has not been initialized
+  ansible.windows.win_powershell:
+    parameters:
+      ComputerName: "{{ thruntops_ad_timeroasting_computer_name }}"
+      AccountPassword: "{{ thruntops_ad_timeroasting_computer_password }}"
+    script: |
+      param($ComputerName, $AccountPassword)
+      $computer = Get-ADComputer -Identity $ComputerName -Properties pwdLastSet
+      if ([int64]$computer.pwdLastSet -eq 0) {
+        $securePassword = ConvertTo-SecureString $AccountPassword -AsPlainText -Force
+        Set-ADAccountPassword -Identity $computer.DistinguishedName -Reset -NewPassword $securePassword
+        Set-ADComputer -Identity $computer.DistinguishedName -Enabled $true
+      }
+  no_log: true
+
+- name: Validate postcondition — target computer account is enabled with a password
+  ansible.windows.win_powershell:
+    parameters:
+      ComputerName: "{{ thruntops_ad_timeroasting_computer_name }}"
+    script: |
+      param($ComputerName)
+      $computer = Get-ADComputer -Identity $ComputerName -Properties Enabled,pwdLastSet
+      [bool]($computer.Enabled -and [int64]$computer.pwdLastSet -gt 0)
+  register: timeroasting_postcondition
+
+- name: Assert the Timeroasting target is ready
+  ansible.builtin.assert:
+    that:
+      - timeroasting_postcondition.output[0] | bool
+    fail_msg: >-
+      Postcondition failed: {{ thruntops_ad_timeroasting_computer_name }} is not
+      enabled with an initialized account password.
