@@ -1,0 +1,10 @@
+galaxy_info:
+  role_name: thruntops_ad_gmsa
+  author: ThruntOps
+  description: >-
+    Provision a gMSA with password retrieval delegated to a low-privilege lab
+    domain user for isolated credential-access testing.
+  license: MIT
+  min_ansible_version: "2.15"
+
+dependencies: []

@@ -1,0 +1,9 @@
+---
+thruntops_ad_gmsa_enabled: false
+
+thruntops_ad_gmsa_identity: svc.gmsa
+thruntops_ad_gmsa_dns_hostname: svc.gmsa.thruntops.domain
+thruntops_ad_gmsa_description: >-
+  gMSA password-retrieval scenario target (ThruntOps-lrd.6).
+thruntops_ad_gmsa_allowed_principal: domainuser
+thruntops_ad_gmsa_domain_controller_pattern: '-ad-dc-win2022-server-x64$'

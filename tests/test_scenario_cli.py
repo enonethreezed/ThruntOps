@@ -33,6 +33,19 @@ def make_range_config(include_workstation=True):
 
 
 class ScenarioConfigTests(unittest.TestCase):
+    def test_gmsa_targets_dc_and_enables_local_role(self):
+        original = make_range_config()
+        updated, roles, limits = scenarios.prepare_config(
+            original, "tst", [scenarios.SCENARIOS["gmsa"]]
+        )
+
+        machine = updated["ludus"][0]
+        self.assertEqual(roles, ["thruntops_ad_gmsa"])
+        self.assertEqual(limits, ["tst-ad-dc-win2022-server-x64"])
+        self.assertIn("thruntops_ad_gmsa", machine["roles"])
+        self.assertTrue(machine["role_vars"]["thruntops_ad_gmsa_enabled"])
+        self.assertEqual(original["ludus"][0]["roles"], [])
+
     def test_dpapi_targets_dc_and_workstation(self):
         original = make_range_config()
         updated, roles, limits = scenarios.prepare_config(

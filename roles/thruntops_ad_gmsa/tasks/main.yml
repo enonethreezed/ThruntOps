@@ -1,0 +1,105 @@
+---
+- name: Confirm the scenario is explicitly enabled
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_gmsa_enabled | bool
+    fail_msg: >-
+      thruntops_ad_gmsa_enabled is false. Set it to true to provision this
+      scenario.
+
+- name: Validate gMSA scenario inputs
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_gmsa_identity | length > 0
+      - thruntops_ad_gmsa_dns_hostname | length > 0
+      - thruntops_ad_gmsa_allowed_principal | length > 0
+    fail_msg: >-
+      gMSA identity, DNS hostname, and allowed password-retrieval principal must
+      be non-empty.
+
+- name: Ensure the domain has a usable KDS root key
+  ansible.windows.win_powershell:
+    error_action: stop
+    script: |
+      $Ansible.Changed = $false
+      $keys = @(Get-KdsRootKey)
+      if ($keys.Count -eq 0) {
+        # This is an isolated single-DC lab. Backdate by 10 hours to bypass the
+        # multi-DC replication safety delay documented for production forests.
+        $effectiveTime = (Get-Date).AddHours(-10)
+        Add-KdsRootKey -EffectiveTime $effectiveTime | Out-Null
+        $Ansible.Changed = $true
+      }
+      [bool](@(Get-KdsRootKey).Count -gt 0)
+  register: gmsa_kds_postcondition
+  when: inventory_hostname is search(thruntops_ad_gmsa_domain_controller_pattern)
+
+- name: Assert that a KDS root key is available
+  ansible.builtin.assert:
+    that:
+      - gmsa_kds_postcondition.output[0] | bool
+    fail_msg: A KDS root key is required to create a gMSA.
+  when: inventory_hostname is search(thruntops_ad_gmsa_domain_controller_pattern)
+
+- name: Create the gMSA and allow the baseline low-privilege user to retrieve its password
+  ansible.windows.win_powershell:
+    error_action: stop
+    parameters:
+      AccountName: "{{ thruntops_ad_gmsa_identity }}"
+      DnsHostname: "{{ thruntops_ad_gmsa_dns_hostname }}"
+      Description: "{{ thruntops_ad_gmsa_description }}"
+      PrincipalName: "{{ thruntops_ad_gmsa_allowed_principal }}"
+    script: |
+      param($AccountName, $DnsHostname, $Description, $PrincipalName)
+      $Ansible.Changed = $false
+      $principal = Get-ADUser -Identity $PrincipalName
+      $account = Get-ADServiceAccount -Identity $AccountName -ErrorAction SilentlyContinue
+      if (-not $account) {
+        New-ADServiceAccount -Name $AccountName -DNSHostName $DnsHostname `
+          -Description $Description -Enabled $true `
+          -PrincipalsAllowedToRetrieveManagedPassword $principal.DistinguishedName
+        $Ansible.Changed = $true
+      } else {
+        $account = Get-ADServiceAccount -Identity $AccountName `
+          -Properties PrincipalsAllowedToRetrieveManagedPassword,Description,DNSHostName
+        $allowed = @($account.PrincipalsAllowedToRetrieveManagedPassword)
+        $expectedAllowed = ($allowed.Count -eq 1 -and $allowed[0] -eq $principal.DistinguishedName)
+        $needsUpdate = (-not $account.Enabled) -or
+          ($account.DNSHostName -ne $DnsHostname) -or
+          ($account.Description -ne $Description) -or
+          (-not $expectedAllowed)
+        if ($needsUpdate) {
+          Set-ADServiceAccount -Identity $AccountName -DNSHostName $DnsHostname `
+            -Description $Description `
+            -PrincipalsAllowedToRetrieveManagedPassword $principal.DistinguishedName
+          if (-not $account.Enabled) {
+            Enable-ADAccount -Identity $AccountName
+          }
+          $Ansible.Changed = $true
+        }
+      }
+  when: inventory_hostname is search(thruntops_ad_gmsa_domain_controller_pattern)
+
+- name: Validate the gMSA and its password-retrieval principal
+  ansible.windows.win_powershell:
+    error_action: stop
+    parameters:
+      AccountName: "{{ thruntops_ad_gmsa_identity }}"
+      PrincipalName: "{{ thruntops_ad_gmsa_allowed_principal }}"
+    script: |
+      param($AccountName, $PrincipalName)
+      $account = Get-ADServiceAccount -Identity $AccountName -Properties PrincipalsAllowedToRetrieveManagedPassword
+      $principal = Get-ADUser -Identity $PrincipalName
+      $allowedPrincipals = @($account.PrincipalsAllowedToRetrieveManagedPassword)
+      [bool]($account.Enabled -and ($allowedPrincipals -contains $principal.DistinguishedName))
+  register: gmsa_postcondition
+  when: inventory_hostname is search(thruntops_ad_gmsa_domain_controller_pattern)
+
+- name: Assert that the gMSA password is readable by the configured lab user
+  ansible.builtin.assert:
+    that:
+      - gmsa_postcondition.output[0] | bool
+    fail_msg: >-
+      Postcondition failed: {{ thruntops_ad_gmsa_allowed_principal }} is not
+      allowed to retrieve the password for {{ thruntops_ad_gmsa_identity }}.
+  when: inventory_hostname is search(thruntops_ad_gmsa_domain_controller_pattern)

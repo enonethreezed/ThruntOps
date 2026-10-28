@@ -32,6 +32,7 @@ python3 scripts/thruntops-scenarios.py --range <range_id> apply asrep adcs-esc1
 # Timeroasting is available as: apply timeroasting
 # Shadow Credentials is available as: apply shadow-credentials
 # DPAPI Secrets is available as: apply dpapi
+# gMSA is available as: apply gmsa
 ```
 
 `apply` presents a menu, previews the selected roles and target VMs, and requires
@@ -159,6 +160,35 @@ workstation snapshot or remove the test user and profile artifacts during
 cleanup.
 
 **References:** [Microsoft DPAPI overview](https://learn.microsoft.com/en-us/windows/win32/secauthn/data-protection) · [ConvertFrom-SecureString](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/convertfrom-securestring)
+
+## Group Managed Service Account (gMSA)
+
+**What it is:** A gMSA password is managed by Active Directory and normally
+readable only by explicitly authorized principals. This profile creates
+`svc.gmsa` and deliberately authorizes the baseline low-privilege `domainuser`
+to retrieve its managed password. It is a password-retrieval misconfiguration,
+not a CVE, and it does not assign a crackable static password to the gMSA.
+
+Apply with
+`python3 scripts/thruntops-scenarios.py --range <range_id> apply gmsa`.
+The profile creates a KDS root key only if the domain lacks one; in this
+single-DC lab it backdates the key by 10 hours to avoid the normal forest
+replication wait. Do not use that shortcut in a multi-DC or production forest.
+
+From Kali, authenticate to LDAP as the configured low-privilege domain user
+with [gMSADumper](https://github.com/micahvandeusen/gMSADumper) to read the
+authorized gMSA password blob:
+
+```bash
+python3 gMSADumper.py -u domainuser -p 'password' \
+  -d thruntops.domain -l "$DC_IP"
+```
+
+Use the baseline credentials configured for the range if they differ from the
+example. Cleanup may remove `svc.gmsa`; retain the KDS root key because it is a
+domain-wide prerequisite that may be shared by other gMSAs.
+
+**References:** [Microsoft gMSA management](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/group-managed-service-accounts/group-managed-service-accounts/manage-group-managed-service-accounts) · [Ansible microsoft.ad.service_account](https://docs.ansible.com/projects/ansible/latest/collections/microsoft/ad/service_account_module.html) · [gMSADumper](https://github.com/micahvandeusen/gMSADumper)
 
 ## Kerberoasting
 

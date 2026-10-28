@@ -121,6 +121,13 @@ SCENARIOS: dict[str, dict[str, Any]] = {
         ("dc", "workstation"),
         "Create a domain identity and a CurrentUser DPAPI-protected secret in its workstation profile.",
     ),
+    "gmsa": local_scenario(
+        "gmsa",
+        "gMSA password access",
+        "thruntops_ad_gmsa",
+        ("dc",),
+        "Create svc.gmsa and deliberately allow the baseline low-privilege domain user to retrieve its managed password.",
+    ),
 }
 
 
