@@ -1,0 +1,107 @@
+---
+- name: Confirm the scenario is explicitly enabled
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_shadow_credentials_enabled | bool
+    fail_msg: >-
+      thruntops_ad_shadow_credentials_enabled is false. Set it to true to
+      provision this scenario.
+
+- name: Validate scenario identities and attribute GUID
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_shadow_credentials_target_username | length > 0
+      - thruntops_ad_shadow_credentials_target_password | length > 0
+      - thruntops_ad_shadow_credentials_actor_username | length > 0
+      - thruntops_ad_shadow_credentials_actor_password | length > 0
+      - thruntops_ad_shadow_credentials_attribute_guid | length > 0
+      - thruntops_ad_shadow_credentials_target_username != thruntops_ad_shadow_credentials_actor_username
+    fail_msg: >-
+      Shadow Credentials requires distinct target and actor identities, non-empty
+      passwords, and an attribute GUID.
+  no_log: true
+
+- name: Create the Shadow Credentials target user
+  microsoft.ad.user:
+    name: "{{ thruntops_ad_shadow_credentials_target_username }}"
+    password: "{{ thruntops_ad_shadow_credentials_target_password }}"
+    description: "{{ thruntops_ad_shadow_credentials_target_description }}"
+    state: present
+    enabled: true
+    password_never_expires: true
+    update_password: on_create
+  no_log: true
+
+- name: Create the low-privilege Shadow Credentials actor
+  microsoft.ad.user:
+    name: "{{ thruntops_ad_shadow_credentials_actor_username }}"
+    password: "{{ thruntops_ad_shadow_credentials_actor_password }}"
+    description: "{{ thruntops_ad_shadow_credentials_actor_description }}"
+    state: present
+    enabled: true
+    password_never_expires: true
+    update_password: on_create
+  no_log: true
+
+- name: Grant the actor WriteProperty only on target msDS-KeyCredentialLink
+  ansible.windows.win_powershell:
+    parameters:
+      TargetName: "{{ thruntops_ad_shadow_credentials_target_username }}"
+      ActorName: "{{ thruntops_ad_shadow_credentials_actor_username }}"
+      AttributeGuid: "{{ thruntops_ad_shadow_credentials_attribute_guid }}"
+    script: |
+      param($TargetName, $ActorName, $AttributeGuid)
+      $target = Get-ADUser -Identity $TargetName
+      $actor = Get-ADUser -Identity $ActorName
+      $actorSid = [System.Security.Principal.SecurityIdentifier]$actor.SID
+      $attributeId = [Guid]$AttributeGuid
+      $aclPath = "AD:\$($target.DistinguishedName)"
+      $acl = Get-Acl -Path $aclPath
+      $existingRule = $acl.Access | Where-Object {
+        $_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -eq $actorSid.Value -and
+        $_.ObjectType -eq $attributeId -and
+        ($_.ActiveDirectoryRights -band [System.DirectoryServices.ActiveDirectoryRights]::WriteProperty) -and
+        $_.AccessControlType -eq [System.Security.AccessControl.AccessControlType]::Allow -and
+        -not $_.IsInherited
+      } | Select-Object -First 1
+      if (-not $existingRule) {
+        $rule = [System.DirectoryServices.ActiveDirectoryAccessRule]::new(
+          $actorSid,
+          [System.DirectoryServices.ActiveDirectoryRights]::WriteProperty,
+          [System.Security.AccessControl.AccessControlType]::Allow,
+          $attributeId
+        )
+        $acl.AddAccessRule($rule)
+        Set-Acl -Path $aclPath -AclObject $acl
+      }
+
+- name: Validate postcondition — actor has the explicit attribute-scoped ACE
+  ansible.windows.win_powershell:
+    parameters:
+      TargetName: "{{ thruntops_ad_shadow_credentials_target_username }}"
+      ActorName: "{{ thruntops_ad_shadow_credentials_actor_username }}"
+      AttributeGuid: "{{ thruntops_ad_shadow_credentials_attribute_guid }}"
+    script: |
+      param($TargetName, $ActorName, $AttributeGuid)
+      $target = Get-ADUser -Identity $TargetName
+      $actor = Get-ADUser -Identity $ActorName
+      $actorSid = [System.Security.Principal.SecurityIdentifier]$actor.SID
+      $attributeId = [Guid]$AttributeGuid
+      $acl = Get-Acl -Path "AD:\$($target.DistinguishedName)"
+      [bool]($acl.Access | Where-Object {
+        $_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -eq $actorSid.Value -and
+        $_.ObjectType -eq $attributeId -and
+        ($_.ActiveDirectoryRights -band [System.DirectoryServices.ActiveDirectoryRights]::WriteProperty) -and
+        $_.AccessControlType -eq [System.Security.AccessControl.AccessControlType]::Allow -and
+        -not $_.IsInherited
+      } | Select-Object -First 1)
+  register: shadow_credentials_postcondition
+
+- name: Assert the explicit Shadow Credentials permission exists
+  ansible.builtin.assert:
+    that:
+      - shadow_credentials_postcondition.output[0] | bool
+    fail_msg: >-
+      Postcondition failed: {{ thruntops_ad_shadow_credentials_actor_username }}
+      does not have an explicit WriteProperty ACE for msDS-KeyCredentialLink on
+      {{ thruntops_ad_shadow_credentials_target_username }}.

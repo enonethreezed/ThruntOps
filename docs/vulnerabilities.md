@@ -30,6 +30,7 @@ python3 scripts/thruntops-scenarios.py --range <range_id> apply
 # Or name scenarios directly; ADCS entries include adcs-esc1, adcs-esc10-case1, etc.
 python3 scripts/thruntops-scenarios.py --range <range_id> apply asrep adcs-esc1
 # Timeroasting is available as: apply timeroasting
+# Shadow Credentials is available as: apply shadow-credentials
 ```
 
 `apply` presents a menu, previews the selected roles and target VMs, and requires
@@ -103,6 +104,33 @@ hashcat -m 31300 --username timeroast-hashes.txt /usr/share/wordlists/rockyou.tx
 ```
 
 **References:** [The Hacker Recipes: Timeroasting](https://www.thehacker.recipes/ad/movement/kerberos/roasting/timeroast) · [Timeroast tool](https://github.com/bvcyber/Timeroast)
+
+## Shadow Credentials
+
+**What it is:** An account that can write another principal's
+`msDS-KeyCredentialLink` attribute can add a key credential and authenticate
+using the corresponding certificate (Key Trust). This profile creates the
+target `user.shadowcred` and low-privilege actor `svc.shadowcred`, then grants
+the actor an explicit `WriteProperty` ACE scoped only to
+`msDS-KeyCredentialLink` on the target. It does not rely on the patched
+implicit-owner behavior for self-created computer accounts.
+
+Apply with:
+`python3 scripts/thruntops-scenarios.py --range <range_id> apply shadow-credentials`.
+From Kali, use PyWhisker to add a key credential as the delegated actor:
+
+```bash
+pywhisker -d thruntops.domain -u svc.shadowcred -p 'password1' \
+  --target user.shadowcred --action add --dc-ip "$DC_IP"
+```
+
+PyWhisker writes the certificate/PFX material locally and reports its path and
+password. Treat those outputs as secrets. The target account password defaults
+to `password1`; the actor password also defaults to `password1`. Remove the
+created key credential after testing (record its Device ID and use PyWhisker's
+`remove` action), or restore the lab snapshot.
+
+**References:** [PyWhisker](https://github.com/ShutdownRepo/pywhisker) · [The Hacker Recipes: Shadow Credentials](https://www.thehacker.recipes/ad/movement/kerberos/shadow-credentials)
 
 ## Kerberoasting
 

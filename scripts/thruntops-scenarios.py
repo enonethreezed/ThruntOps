@@ -79,6 +79,13 @@ SCENARIOS: dict[str, dict[str, Any]] = {
         ("dc",),
         "Create an enabled computer account with a deliberately weak password.",
     ),
+    "shadow-credentials": local_scenario(
+        "shadow-credentials",
+        "Shadow Credentials",
+        "thruntops_ad_shadow_credentials",
+        ("dc",),
+        "Create a low-privilege actor with explicit WriteProperty access limited to the target's msDS-KeyCredentialLink attribute.",
+    ),
     "kerberoasting": local_scenario(
         "kerberoasting",
         "Kerberoasting",

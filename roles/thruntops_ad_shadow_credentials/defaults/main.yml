@@ -1,0 +1,16 @@
+---
+thruntops_ad_shadow_credentials_enabled: false
+
+thruntops_ad_shadow_credentials_target_username: user.shadowcred
+thruntops_ad_shadow_credentials_target_password: "password1"
+thruntops_ad_shadow_credentials_target_description: >-
+  Shadow Credentials scenario target (ThruntOps-lrd.9).
+
+thruntops_ad_shadow_credentials_actor_username: svc.shadowcred
+thruntops_ad_shadow_credentials_actor_password: "password1"
+thruntops_ad_shadow_credentials_actor_description: >-
+  Low-privilege lab identity with narrowly scoped WriteProperty access to
+  msDS-KeyCredentialLink on user.shadowcred.
+
+# Schema GUID for the msDS-KeyCredentialLink attribute in Active Directory.
+thruntops_ad_shadow_credentials_attribute_guid: 5b47d60f-6090-40b2-9f37-2a4de88f3063
