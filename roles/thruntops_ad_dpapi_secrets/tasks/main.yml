@@ -1,0 +1,79 @@
+---
+- name: Confirm the scenario is explicitly enabled
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_dpapi_secrets_enabled | bool
+    fail_msg: >-
+      thruntops_ad_dpapi_secrets_enabled is false. Set it to true to provision
+      this scenario.
+
+- name: Validate DPAPI scenario inputs
+  ansible.builtin.assert:
+    that:
+      - thruntops_ad_dpapi_secrets_username | length > 0
+      - thruntops_ad_dpapi_secrets_password | length > 0
+      - thruntops_ad_dpapi_secrets_payload | length > 0
+      - thruntops_ad_dpapi_secrets_relative_path | length > 0
+    fail_msg: >-
+      DPAPI scenario username, passwords, payload, and relative path must be
+      non-empty.
+  no_log: true
+
+- name: Create the DPAPI scenario domain user
+  microsoft.ad.user:
+    name: "{{ thruntops_ad_dpapi_secrets_username }}"
+    password: "{{ thruntops_ad_dpapi_secrets_password }}"
+    description: "{{ thruntops_ad_dpapi_secrets_description }}"
+    state: present
+    enabled: true
+    password_never_expires: true
+    update_password: on_create
+  no_log: true
+  when: inventory_hostname is search(thruntops_ad_dpapi_secrets_domain_controller_pattern)
+
+- name: Create a DPAPI-protected secret under the target user's profile
+  ansible.windows.win_powershell:
+    parameters:
+      Payload: "{{ thruntops_ad_dpapi_secrets_payload }}"
+      RelativePath: "{{ thruntops_ad_dpapi_secrets_relative_path }}"
+    script: |
+      param($Payload, $RelativePath)
+      $path = Join-Path $env:LOCALAPPDATA $RelativePath
+      $directory = Split-Path -Parent $path
+      New-Item -Path $directory -ItemType Directory -Force | Out-Null
+      $ciphertext = $null
+      if (Test-Path -LiteralPath $path) {
+        try {
+          $storedSecureString = Get-Content -LiteralPath $path -Raw | ConvertTo-SecureString
+          $storedPayload = [System.Net.NetworkCredential]::new('', $storedSecureString).Password
+          if ($storedPayload -eq $Payload) {
+            $ciphertext = Get-Content -LiteralPath $path -Raw
+          }
+        } catch {
+          $ciphertext = $null
+        }
+      }
+      if (-not $ciphertext) {
+        $securePayload = ConvertTo-SecureString -String $Payload -AsPlainText -Force
+        $ciphertext = ConvertFrom-SecureString -SecureString $securePayload
+        Set-Content -LiteralPath $path -Value $ciphertext -Encoding ASCII -NoNewline
+      }
+      [bool]((Get-Content -LiteralPath $path -Raw) -match '^01000000d08c9ddf')
+  register: dpapi_secret_postcondition
+  become: true
+  become_method: ansible.builtin.runas
+  become_user: "{{ thruntops_ad_dpapi_secrets_domain_netbios }}\\{{ thruntops_ad_dpapi_secrets_username }}"
+  become_flags: logon_type=interactive logon_flags=with_profile
+  vars:
+    ansible_become_password: "{{ thruntops_ad_dpapi_secrets_password }}"
+  no_log: true
+  when: inventory_hostname is search(thruntops_ad_dpapi_secrets_workstation_pattern)
+
+- name: Assert the target profile contains a CurrentUser DPAPI blob
+  ansible.builtin.assert:
+    that:
+      - dpapi_secret_postcondition.output[0] | bool
+    fail_msg: >-
+      Postcondition failed: the DPAPI-protected secret was not written under
+      {{ thruntops_ad_dpapi_secrets_username }}'s profile.
+  when: inventory_hostname is search(thruntops_ad_dpapi_secrets_workstation_pattern)

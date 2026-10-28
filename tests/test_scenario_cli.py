@@ -33,6 +33,27 @@ def make_range_config(include_workstation=True):
 
 
 class ScenarioConfigTests(unittest.TestCase):
+    def test_dpapi_targets_dc_and_workstation(self):
+        original = make_range_config()
+        updated, roles, limits = scenarios.prepare_config(
+            original, "tst", [scenarios.SCENARIOS["dpapi"]]
+        )
+
+        self.assertEqual(roles, ["thruntops_ad_dpapi_secrets"])
+        self.assertEqual(
+            limits,
+            [
+                "tst-ad-dc-win2022-server-x64",
+                "tst-ad-win11-22h2-enterprise-x64-1",
+            ],
+        )
+        for machine in updated["ludus"]:
+            self.assertIn("thruntops_ad_dpapi_secrets", machine["roles"])
+            self.assertTrue(
+                machine["role_vars"]["thruntops_ad_dpapi_secrets_enabled"]
+            )
+        self.assertEqual(original["ludus"][0]["roles"], [])
+
     def test_coercion_targets_dc_and_enables_local_role(self):
         original = make_range_config()
         updated, roles, limits = scenarios.prepare_config(

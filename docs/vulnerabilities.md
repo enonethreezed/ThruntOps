@@ -31,6 +31,7 @@ python3 scripts/thruntops-scenarios.py --range <range_id> apply
 python3 scripts/thruntops-scenarios.py --range <range_id> apply asrep adcs-esc1
 # Timeroasting is available as: apply timeroasting
 # Shadow Credentials is available as: apply shadow-credentials
+# DPAPI Secrets is available as: apply dpapi
 ```
 
 `apply` presents a menu, previews the selected roles and target VMs, and requires
@@ -131,6 +132,33 @@ created key credential after testing (record its Device ID and use PyWhisker's
 `remove` action), or restore the lab snapshot.
 
 **References:** [PyWhisker](https://github.com/ShutdownRepo/pywhisker) · [The Hacker Recipes: Shadow Credentials](https://www.thehacker.recipes/ad/movement/kerberos/shadow-credentials)
+
+## DPAPI secrets
+
+**What it is:** Windows DPAPI can protect user data using keys associated with
+the user's profile. This profile creates `user.dpapi` in AD and runs as that
+user on the Windows 11 workstation to store a `CurrentUser`-protected secret at
+`%LOCALAPPDATA%\ThruntOps\dpapi-secret.txt`. The default secret and account
+password are both `password1`.
+
+Apply with
+`python3 scripts/thruntops-scenarios.py --range <range_id> apply dpapi`.
+The file contains a DPAPI-protected `ConvertFrom-SecureString` value, not the
+plaintext. From a PowerShell session running as `THRUNTOPS\user.dpapi`, the
+profile-protected value can be decrypted with:
+
+```powershell
+$blob = Get-Content "$env:LOCALAPPDATA\ThruntOps\dpapi-secret.txt" -Raw
+$secure = ConvertTo-SecureString $blob
+[System.Net.NetworkCredential]::new('', $secure).Password
+```
+
+The profile creates the secret idempotently and uses the target user's loaded
+Windows profile so the DPAPI protection is bound to that user. Restore the
+workstation snapshot or remove the test user and profile artifacts during
+cleanup.
+
+**References:** [Microsoft DPAPI overview](https://learn.microsoft.com/en-us/windows/win32/secauthn/data-protection) · [ConvertFrom-SecureString](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/convertfrom-securestring)
 
 ## Kerberoasting
 

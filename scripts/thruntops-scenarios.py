@@ -114,6 +114,13 @@ SCENARIOS: dict[str, dict[str, Any]] = {
         ("dc",),
         "Enable Print Spooler on the DC and create a low-privilege test identity.",
     ),
+    "dpapi": local_scenario(
+        "dpapi",
+        "DPAPI Secrets",
+        "thruntops_ad_dpapi_secrets",
+        ("dc", "workstation"),
+        "Create a domain identity and a CurrentUser DPAPI-protected secret in its workstation profile.",
+    ),
 }
 
 

@@ -1,0 +1,13 @@
+---
+thruntops_ad_dpapi_secrets_enabled: false
+
+thruntops_ad_dpapi_secrets_username: user.dpapi
+thruntops_ad_dpapi_secrets_password: "password1"
+thruntops_ad_dpapi_secrets_description: >-
+  DPAPI scenario identity (ThruntOps-lrd.5); its profile contains a
+  CurrentUser-protected lab secret.
+thruntops_ad_dpapi_secrets_payload: "password1"
+thruntops_ad_dpapi_secrets_relative_path: ThruntOps/dpapi-secret.txt
+thruntops_ad_dpapi_secrets_domain_netbios: THRUNTOPS
+thruntops_ad_dpapi_secrets_domain_controller_pattern: '-ad-dc-win2022-server-x64$'
+thruntops_ad_dpapi_secrets_workstation_pattern: '-ad-win11-22h2-enterprise-x64-1$'

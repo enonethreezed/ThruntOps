@@ -1,0 +1,9 @@
+galaxy_info:
+  role_name: thruntops_ad_dpapi_secrets
+  author: ThruntOps
+  description: >-
+    Create a domain user and a CurrentUser DPAPI-protected secret in that
+    user's workstation profile for isolated credential-access testing.
+  license: MIT
+  min_ansible_version: "2.15"
+dependencies: []
