@@ -44,7 +44,6 @@ checks do not establish live behavior for every backend or scenario.
 | `ThruntOps-10r` | Open | Validate the aligned lab and close its dependent validation tasks. |
 | `ThruntOps-1ne` | Open | Align AD identity seeding with external scenario principals. |
 | `ThruntOps-bzj` | In progress | Rewrite active project documentation. |
-| `ThruntOps-cuc` | Open | Repair external role references and ownership descriptions. |
 | `ThruntOps-oqc` | In progress | Revalidate the Windows Server 2025 functional-level fix with a live deployment. |
 | `ThruntOps-m13` | In progress | Resolve and validate missing Splunk Sysmon events on Windows member hosts. |
 
