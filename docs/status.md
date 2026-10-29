@@ -38,7 +38,6 @@ checks do not establish live behavior for every backend or scenario.
 |---|---|---|
 | `ThruntOps-on1` | In progress | Track completion of the scenario-application CLI work. The CLI is present in the repository; issue closure/acceptance remains outstanding. |
 | `ThruntOps-a14` | Open | Manually verify the Splunk backend architecture and deployment. |
-| `ThruntOps-8x2` | Open | Verify cross-repository role name, revision, scenario IDs, and variable alignment. |
 | `ThruntOps-9w8` | Open | Complete the full repository static quality-gate task. |
 | `ThruntOps-qnx` | Open | Complete final clean deployment review; its criteria prohibit starting a range deployment during that review. |
 | `ThruntOps-10r` | Open | Validate the aligned lab and close its dependent validation tasks. |
