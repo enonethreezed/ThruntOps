@@ -111,3 +111,22 @@ ludus range status
 ---
 
 ## Notes
+# Splunk diagnostics
+
+For the missing Sysmon events / `errorCode=5` issue on Windows member hosts,
+run the read-only collector from an elevated PowerShell prompt on a workstation
+and, for comparison, a domain controller after deployment:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\diagnose-splunk-sysmon.ps1
+```
+
+The script captures the SplunkForwarder service account and SID, Event Log
+Readers membership, Sysmon channel metadata and access descriptor, a direct
+event-read test, effective Splunk inputs/outputs, relevant UF log messages,
+Sysmon service/provider state, and related Windows errors. It does not change
+the service, configuration, or ACLs. It writes a timestamped directory and a
+ZIP archive in the current directory. Review and redact the output before
+sharing it; it can contain host names, domain details, file paths, and event
+messages.
