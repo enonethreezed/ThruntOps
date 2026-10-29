@@ -10,7 +10,7 @@ nav_order: 1
 
 A Ludus-based lab for TTP detection testing: one SIEM, one Active Directory domain, one workstation, one attacker box.
 
-Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). Single 2022 baseline with a choice of SIEM backend.
+Deployed on Proxmox via [Ludus](https://docs.ludus.cloud). The checked-in active range profiles use the 2022 AD baseline with a choice of SIEM backend. Vulnerability scenarios are applied separately and manually after deployment.
 
 ## Backends
 
@@ -28,4 +28,12 @@ All backends share the same four-node topology (SIEM, DC01-2022, WIN11-22H2-1, K
 ./siem.sh deploy splunk
 ```
 
-→ [Installation](install.md) · [Users](users.md) · [Kali](kali.md) · [AD Vulnerability Scenarios](vulnerabilities.md)
+## Current project status
+
+The three checked-in backend profiles share the same four-node topology. Static
+tests and the site build have passed in recent checks; this does not imply that
+every backend or scenario has been validated in a live deployment. Several
+manual validation and alignment tasks remain open. The current Splunk
+workstation issue and its evidence are recorded on the [project status page](status.md).
+
+→ [Installation](install.md) · [Users](users.md) · [Kali](kali.md) · [AD Vulnerability Scenarios](vulnerabilities.md) · [Project Status](status.md)

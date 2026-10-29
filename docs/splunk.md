@@ -110,23 +110,56 @@ ludus range status
 
 ---
 
-## Notes
-# Splunk diagnostics
+## Sysmon collection diagnostics
 
-For the missing Sysmon events / `errorCode=5` issue on Windows member hosts,
-run the read-only collector from an elevated PowerShell prompt on a workstation
-and, for comparison, a domain controller after deployment:
+The project has an open issue (`ThruntOps-m13`): Sysmon events are present on
+domain controllers but missing from `index=sysmon` on Windows member machines.
+The Universal Forwarder logs `errorCode=5` (`ERROR_ACCESS_DENIED`) when it
+subscribes to `Microsoft-Windows-Sysmon/Operational`. Wazuh has previously
+collected this same channel successfully on the workstations, so this is not
+known to be a general Windows 11 or Sysmon-channel failure.
+
+### Collect diagnostics
+
+Run the read-only collector from an elevated PowerShell prompt on each affected
+member host and a DC for comparison. If the script is on the user's Desktop:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
-.\scripts\diagnose-splunk-sysmon.ps1
+& "$env:USERPROFILE\Desktop\diagnose-splunk-sysmon.ps1"
 ```
 
-The script captures the SplunkForwarder service account and SID, Event Log
-Readers membership, Sysmon channel metadata and access descriptor, a direct
-event-read test, effective Splunk inputs/outputs, relevant UF log messages,
-Sysmon service/provider state, and related Windows errors. It does not change
-the service, configuration, or ACLs. It writes a timestamped directory and a
-ZIP archive in the current directory. Review and redact the output before
-sharing it; it can contain host names, domain details, file paths, and event
-messages.
+The script is also available at `scripts/diagnose-splunk-sysmon.ps1`. It records
+the service identity and SID settings, local Event Log Readers membership,
+channel metadata/ACL, a direct read test under the current elevated user,
+effective UF inputs/outputs, relevant logs, and Sysmon state. It does not change
+the service, configuration, or ACLs. It writes a timestamped directory and ZIP
+in the current directory. Redact host names, domain details, file paths, and
+event messages before sharing.
+
+### Latest WIN11 observation
+
+Collected from `tla-ad-win11-22h2-enterprise-x64-1` in range `tla` on
+2026-10-29:
+
+- Sysmon64 was running; the Operational channel was enabled and held events.
+- Splunk UF 10.2.1 was running as `NT SERVICE\SplunkForwarder`. Its effective
+  Sysmon input was enabled and targeted `index=sysmon`.
+- The UF log still recorded `errorCode=5` on subscription.
+- The channel ACL included read access for `Event Log Readers`, but that local
+  group had no members. The service SID type was `NONE`.
+- Reading the channel as elevated `thruntops\domainadmin` succeeded. This does
+  not prove the UF service token can read it.
+
+These results point to a missing/effective service permission on the member
+host, but do not yet prove the full root cause or a fix. The next comparison is
+the same collection on a DC; any proposed permission change needs validation on
+a disposable or snapshotted range. The collector had a non-fatal duplicate
+`StartName` selection warning; the account information was still captured by
+the service query and `sc.exe` output.
+
+## Notes
+
+- Verify that `index=sysmon` exists on the Splunk server and that Windows
+  forwarders are connected before attributing missing data to event access.
+- Confirm source and host values when searching; see [Verification](#verify).
