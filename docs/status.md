@@ -50,33 +50,34 @@ checks do not establish live behavior for every backend or scenario.
 
 ## Splunk Sysmon finding
 
-The latest read-only collection came from `tla-ad-win11-22h2-enterprise-x64-1`
-in range `tla` on 2026-10-29. It confirms:
+Read-only collections from `tla-ad-win11-22h2-enterprise-x64-1` and
+`tla-ad-dc-win2022-server-x64` in range `tla` on 2026-10-29 show:
 
-- Windows 11 22H2 is domain joined; Sysmon64 is running and the Sysmon
-  Operational channel is enabled and contains events.
-- Splunk Universal Forwarder 10.2.1 is running as
-  `NT SERVICE\SplunkForwarder`; the configured Sysmon input is enabled and
-  targets `index=sysmon`.
-- Splunk's log still reports `errorCode=5` while subscribing to
-  `Microsoft-Windows-Sysmon/Operational`.
-- The channel ACL grants read access to the `Event Log Readers` group, but that
-  group had no members on this workstation. The Splunk service SID type is
-  `NONE`.
-- A direct event read succeeded in the elevated `domainadmin` session. That
-  confirms the channel and its events are readable by that administrator; it
-  does **not** test the Splunk service's access token.
+- Sysmon64 was running and the enabled Sysmon Operational channel contained
+  events on both machines. A direct channel read succeeded as elevated
+  `domainadmin` on both; this does **not** test Splunk's service token.
+- Both had the same channel ACL, including full access for `SYSTEM` and
+  `BUILTIN\Administrators`, plus read access for the Event Log Readers SID.
+- On WIN11, Splunk UF 10.2.1 ran as `NT SERVICE\SplunkForwarder`; its effective
+  Sysmon input was enabled and targeted `index=sysmon`. The log contained
+  `errorCode=5` when subscribing. Event Log Readers existed but was empty.
+- On the DC, Splunk UF 10.2.1 ran as `LocalSystem`; Event Log Readers was not
+  found. No matching subscription errors appeared in the collected logs.
+- The Splunk service SID type was `NONE` on both hosts.
 
-This narrows the investigation to how the Splunk service is granted and receives
-event-log read access on member machines. It is not yet a verified root-cause
-fix. The collector did not modify the host. Its service summary also emitted a
-non-fatal duplicate-property warning; the service account and SID type were
-available from the other collected commands.
+The strongest current explanation is the differing Splunk service identity:
+the DC's `LocalSystem` token is covered by the channel ACL, while WIN11's
+`NT SERVICE\SplunkForwarder` identity is not shown as a channel reader and its
+Event Log Readers group is empty. This is a well-supported diagnosis, but no
+permission/account change has been applied or validated as a fix. The collector
+did not modify either host. Its service summary emitted a non-fatal
+duplicate-property warning; other commands still captured the service account
+and SID type.
 
-Next validation depends on comparing a domain controller's collector output
-and then testing any service-account/group/ACL correction on a disposable or
-snapshotted range. Do not treat the administrator read test as proof that the
-service can subscribe.
+Next validation is to inspect why the role's intended Event Log Readers grant
+did not result in membership on WIN11, then test a narrowly scoped permission
+correction on a disposable or snapshotted range. Do not treat the administrator
+read test as proof that the service can subscribe.
 
 ## Published website
 

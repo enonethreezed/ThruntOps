@@ -137,26 +137,30 @@ the service, configuration, or ACLs. It writes a timestamped directory and ZIP
 in the current directory. Redact host names, domain details, file paths, and
 event messages before sharing.
 
-### Latest WIN11 observation
+### Latest DC/WIN11 comparison
 
-Collected from `tla-ad-win11-22h2-enterprise-x64-1` in range `tla` on
-2026-10-29:
+Collected from `tla-ad-win11-22h2-enterprise-x64-1` and
+`tla-ad-dc-win2022-server-x64` in range `tla` on 2026-10-29:
 
-- Sysmon64 was running; the Operational channel was enabled and held events.
-- Splunk UF 10.2.1 was running as `NT SERVICE\SplunkForwarder`. Its effective
-  Sysmon input was enabled and targeted `index=sysmon`.
-- The UF log still recorded `errorCode=5` on subscription.
-- The channel ACL included read access for `Event Log Readers`, but that local
-  group had no members. The service SID type was `NONE`.
-- Reading the channel as elevated `thruntops\domainadmin` succeeded. This does
-  not prove the UF service token can read it.
+- On both hosts, Sysmon64 was running, the channel was enabled and contained
+  events, and its ACL was identical. The ACL grants full access to `SYSTEM` and
+  Administrators and read access to the Event Log Readers SID.
+- On WIN11, Splunk UF 10.2.1 ran as `NT SERVICE\SplunkForwarder`, the Sysmon
+  input was enabled for `index=sysmon`, and the log contained subscription
+  failures with `errorCode=5`. Event Log Readers existed but was empty.
+- On the DC, Splunk UF 10.2.1 ran as `LocalSystem`; Event Log Readers was not
+  found and no matching subscription errors appeared in the collected logs.
+- The Splunk service SID type was `NONE` on both hosts. A direct read as
+  elevated `domainadmin` succeeded on both, but does not test the service token.
 
-These results point to a missing/effective service permission on the member
-host, but do not yet prove the full root cause or a fix. The next comparison is
-the same collection on a DC; any proposed permission change needs validation on
-a disposable or snapshotted range. The collector had a non-fatal duplicate
-`StartName` selection warning; the account information was still captured by
-the service query and `sc.exe` output.
+The service identity is the clearest difference: the DC uses `LocalSystem`,
+which is permitted by the channel ACL; WIN11 uses the virtual service identity,
+which is not shown as a channel reader. This strongly explains the observed
+access-denied error, but a fix has not yet been tested. Investigate why the
+existing role's intended Event Log Readers membership is absent, then validate
+a least-privilege correction on a disposable or snapshotted range. The collector
+emitted a non-fatal duplicate `StartName` selection warning; service identity
+was still captured by other commands.
 
 ## Notes
 
