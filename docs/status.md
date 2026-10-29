@@ -65,19 +65,24 @@ Read-only collections from `tla-ad-win11-22h2-enterprise-x64-1` and
   found. No matching subscription errors appeared in the collected logs.
 - The Splunk service SID type was `NONE` on both hosts.
 
-The strongest current explanation is the differing Splunk service identity:
-the DC's `LocalSystem` token is covered by the channel ACL, while WIN11's
-`NT SERVICE\SplunkForwarder` identity is not shown as a channel reader and its
-Event Log Readers group is empty. This is a well-supported diagnosis, but no
-permission/account change has been applied or validated as a fix. The collector
-did not modify either host. Its service summary emitted a non-fatal
-duplicate-property warning; other commands still captured the service account
-and SID type.
+The service identity was the key difference. On WIN11, adding
+`NT SERVICE\SplunkForwarder` to the existing `Event Log Readers` group and
+restarting the service cleared the live failure: `./siem.sh check splunk` then
+reported recent Sysmon events from both WIN11 and the DC. No DC changes were
+needed. This validates the targeted permission change on the current range.
 
-Next validation is to inspect why the role's intended Event Log Readers grant
-did not result in membership on WIN11, then test a narrowly scoped permission
-correction on a disposable or snapshotted range. Do not treat the administrator
-read test as proof that the service can subscribe.
+The latest Ludus deployment log for WIN11 did not contain the corresponding
+grant task, even though it exists in the repository role. This indicates the
+range used a stale cached `ludus_splunk_uf` role. The live fix is applied, but
+future deployments will need the repository role synchronized into Ludus and
+validated to ensure the grant is provisioned automatically. The collector did
+not modify either host. Its service summary emitted a non-fatal duplicate-
+property warning; other commands still captured the service account and SID
+type.
+
+Next validation is to synchronize the current repository role for a future
+deployment and confirm that it provisions membership automatically. The
+current range already has the narrow membership fix; the DC is unchanged.
 
 ## Published website
 

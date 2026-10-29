@@ -153,14 +153,18 @@ Collected from `tla-ad-win11-22h2-enterprise-x64-1` and
 - The Splunk service SID type was `NONE` on both hosts. A direct read as
   elevated `domainadmin` succeeded on both, but does not test the service token.
 
-The service identity is the clearest difference: the DC uses `LocalSystem`,
-which is permitted by the channel ACL; WIN11 uses the virtual service identity,
-which is not shown as a channel reader. This strongly explains the observed
-access-denied error, but a fix has not yet been tested. Investigate why the
-existing role's intended Event Log Readers membership is absent, then validate
-a least-privilege correction on a disposable or snapshotted range. The collector
-emitted a non-fatal duplicate `StartName` selection warning; service identity
-was still captured by other commands.
+The service identity explained the difference: the DC uses `LocalSystem`,
+which is permitted by the channel ACL; WIN11 uses the virtual service identity.
+On WIN11, adding `NT SERVICE\SplunkForwarder` to the existing `Event Log
+Readers` group and restarting the service cleared the failure. A subsequent
+`./siem.sh check splunk` passed and reported fresh Sysmon events from both
+Windows hosts. No DC changes were needed.
+
+The latest Ludus deployment log did not show the repository role's grant task,
+so the range appears to have used a stale cached `ludus_splunk_uf` role. The
+current WIN11 fix is live, but future deployments need the updated role synced
+and verified. The collector emitted a non-fatal duplicate `StartName` selection
+warning; service identity was still captured by other commands.
 
 ## Notes
 
