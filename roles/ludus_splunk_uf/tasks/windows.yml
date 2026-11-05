@@ -35,13 +35,21 @@
     timeout: 60
   when: splunk_install is changed
 
-- name: (splunk_uf/win) Grant Splunk Forwarder access to Windows event channels
+- name: (splunk_uf/win) Get Splunk Forwarder service account
+  ansible.windows.win_service_info:
+    name: SplunkForwarder
+  register: splunk_forwarder_service
+
+- name: (splunk_uf/win) Grant service account access to Windows event channels
   ansible.windows.win_group_membership:
     name: Event Log Readers
     members:
       - "NT SERVICE\\SplunkForwarder"
     state: present
   notify: restart splunkforwarder
+  when:
+    - splunk_forwarder_service.exists
+    - splunk_forwarder_service.services[0].username | lower is search('splunkforwarder')
 
 - name: (splunk_uf/win) Configure outputs.conf
   ansible.windows.win_copy:
