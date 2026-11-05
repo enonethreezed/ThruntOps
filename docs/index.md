@@ -4,7 +4,7 @@ layout: home
 nav_order: 1
 ---
 
-<img src="logo.png" alt="ThruntOps" width="256">
+<img src="logotipo-just-the-docs.png" alt="ThruntOps — Tactics, Techniques &amp; Paranoia" width="720">
 
 # ThruntOps
 
