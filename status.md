@@ -1,12 +1,12 @@
 ---
 title: Project Status
 layout: default
-nav_order: 11
+nav_order: 12
 ---
 
 # Project Status
 
-Status snapshot: 2026-10-29. This page distinguishes repository-local checks
+Status snapshot: 2026-11-05. This page distinguishes repository-local checks
 from validation that requires a live Ludus deployment. Issue status is tracked
 with Beads; the entries below reflect the open/in-progress work items at the
 time of this snapshot.
@@ -28,23 +28,19 @@ time of this snapshot.
   `scripts/diagnose-splunk-sysmon.ps1`; usage and current findings are in the
   [Splunk backend guide](splunk.md).
 
-Recent repository checks recorded for this work include Python unit tests,
-YAML parsing, Ansible Lint, `git diff --check`, and a Jekyll site build. These
-checks do not establish live behavior for every backend or scenario.
+Repository-local quality gates pass: Python tests, YAML lint, Ansible Lint,
+shell syntax checks, Markdown link checks, `git diff --check`, and a Jekyll site
+build. Structural checks confirm that the three checked-in backend profiles
+share the four-node topology and do not enable opt-in scenarios. The scenario
+catalog, exploit runner, and vulnerability ledger align across the ThruntOps
+and ThruntOpsExploits repositories. Static checks do not establish live
+behavior for every backend or scenario.
 
 ## Open project work
 
 | Beads issue | Status | Remaining work |
 |---|---|---|
-| `ThruntOps-on1` | In progress | Track completion of the scenario-application CLI work. The CLI is present in the repository; issue closure/acceptance remains outstanding. |
-| `ThruntOps-a14` | Open | Manually verify the Splunk backend architecture and deployment. |
-| `ThruntOps-9w8` | Open | Complete the full repository static quality-gate task. |
-| `ThruntOps-qnx` | Open | Complete final clean deployment review; its criteria prohibit starting a range deployment during that review. |
-| `ThruntOps-10r` | Open | Validate the aligned lab and close its dependent validation tasks. |
-| `ThruntOps-1ne` | Open | Align AD identity seeding with external scenario principals. |
-| `ThruntOps-bzj` | In progress | Rewrite active project documentation. |
-| `ThruntOps-oqc` | In progress | Revalidate the Windows Server 2025 functional-level fix with a live deployment. |
-| `ThruntOps-m13` | In progress | Resolve and validate missing Splunk Sysmon events on Windows member hosts. |
+| `ThruntOps-m13` | In progress | Validate the Splunk Universal Forwarder Sysmon channel-access fix on Windows member hosts. A live deployment/validation is currently underway; results are not yet confirmed. |
 
 ## Splunk Sysmon finding
 
@@ -70,21 +66,17 @@ reported recent Sysmon events from both WIN11 and the DC. No DC changes were
 needed. This validates the targeted permission change on the current range.
 
 The latest Ludus deployment log for WIN11 did not contain the corresponding
-grant task, even though it exists in the repository role. This indicates the
-range used a stale cached `ludus_splunk_uf` role. The live fix is applied, but
-future deployments will need the repository role synchronized into Ludus and
-validated to ensure the grant is provisioned automatically. The collector did
-not modify either host. Its service summary emitted a non-fatal duplicate-
-property warning; other commands still captured the service account and SID
-type.
-
-Next validation is to synchronize the current repository role for a future
-deployment and confirm that it provisions membership automatically. The
-current range already has the narrow membership fix; the DC is unchanged.
+grant task, even though it exists in the repository role. This indicated that
+the observed range used a stale cached `ludus_splunk_uf` role. At that time, the
+live fix was applied manually and confirmed. A new deployment and validation is
+now underway to check that the repository role provisions the membership
+automatically; its result is pending. The read-only collector did not modify
+either host. Its service summary emitted a non-fatal duplicate-property
+warning; other commands still captured the service account and SID type.
 
 ## Published website
 
-The GitHub Pages site is generated from the Markdown in `docs/`. Publishing the
-documentation commit to the repository's configured branch updates the website
-through the Pages workflow; a successful local Jekyll build only verifies the
-site can be generated locally, not that the remote deployment has completed.
+The website is published from the `gh-pages` branch. Build the site locally,
+sync the contents of `docs/` to the root of `gh-pages` while preserving existing
+assets, then push that branch. A successful local Jekyll build alone does not
+confirm remote publication.

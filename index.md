@@ -31,9 +31,8 @@ All backends share the same four-node topology (SIEM, DC01-2022, WIN11-22H2-1, K
 ## Current project status
 
 The three checked-in backend profiles share the same four-node topology. Static
-tests and the site build have passed in recent checks; this does not imply that
-every backend or scenario has been validated in a live deployment. Several
-manual validation and alignment tasks remain open. The current Splunk
-workstation issue and its evidence are recorded on the [project status page](status.md).
+tests and the site build pass; this does not imply that every backend or
+scenario has been validated live. Validation of the Splunk Sysmon collection
+fix on Windows member hosts is underway. See the [project status page](status.md).
 
-→ [Installation](install.md) · [Users](users.md) · [Kali](kali.md) · [AD Vulnerability Scenarios](vulnerabilities.md) · [Project Status](status.md)
+→ [Installation](install.md) · [Users](users.md) · [Kali](kali.md) · [Vulnerability Provision](vulnerability-provision.md) · [Vulnerabilities Check](vulnerability-check.md) · [AD Vulnerability Scenarios](vulnerabilities.md) · [Project Status](status.md)
