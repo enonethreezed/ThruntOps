@@ -127,7 +127,12 @@ The unified `siem.sh` script (`./siem.sh <deploy|start|stop|check|status> <elast
 ./siem.sh deploy elastic   # ranges/elk-base-2022.yml
 ./siem.sh deploy wazuh     # ranges/wazuh-base-2022.yml
 ./siem.sh deploy splunk    # ranges/splunk-base-2022.yml
+./siem.sh deploy splunk --license /path/to/Splunk.License
 ```
+
+For Splunk, `--license <file>` is optional. After deployment completes, the
+script installs the local license file through the Splunk REST API on port 8089;
+the API account must have the `license_edit` capability.
 
 Or step by step:
 

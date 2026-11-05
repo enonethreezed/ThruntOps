@@ -1,7 +1,7 @@
 ---
 title: AD Vulnerability Scenarios
 layout: default
-nav_order: 8
+nav_order: 9
 ---
 
 # AD Vulnerability Scenarios
@@ -13,6 +13,12 @@ part of the range deployment. Run them only in an isolated ThruntOps range.
 
 The project uses hands-on Kali commands and published tool/technique references
 for these exercises. It does **not** use Atomic Red Team.
+
+## Provisioning scenarios
+
+Use the dedicated [Vulnerability Provision](vulnerability-provision) page for
+requirements, CLI help, scenario listing, status checks, and the apply workflow.
+This page focuses on exploiting the provisioned states from Kali.
 
 ## Lab values
 
@@ -50,6 +56,111 @@ and test it offline with a password-recovery tool. The default profile password
 is `password1`.
 
 **References:** [Impacket GetNPUsers](https://github.com/fortra/impacket/blob/master/examples/GetNPUsers.py) · [The Hacker Recipes: AS-REP roasting](https://www.thehacker.recipes/ad/movement/kerberos/roasting/asreproast)
+
+## Timeroasting
+
+**What it is:** Microsoft's SNTP extension allows an unauthenticated request to
+the domain controller to obtain a response authenticated with a computer
+account's password hash. This profile creates the enabled computer account
+`computer.timeroasting$` with the deliberately weak default password
+`password1`. The role sets that password only when the account has no initialized
+password, so applying the profile again does not rotate it.
+
+Apply with `python3 scripts/thruntops-scenarios.py --range <range_id> apply timeroasting`.
+From Kali, run the standalone Timeroast client against `$DC_IP`, then test its
+output offline with Hashcat (mode 31300 is MS-SNTP). Timeroast output identifies
+accounts by RID; map the target RID to the computer account in AD when
+validating the result.
+
+```bash
+python3 timeroast.py "$DC_IP" > timeroast-hashes.txt
+hashcat -m 31300 --username timeroast-hashes.txt /usr/share/wordlists/rockyou.txt
+```
+
+**References:** [The Hacker Recipes: Timeroasting](https://www.thehacker.recipes/ad/movement/kerberos/roasting/timeroast) · [Timeroast tool](https://github.com/bvcyber/Timeroast)
+
+## Shadow Credentials
+
+**What it is:** An account that can write another principal's
+`msDS-KeyCredentialLink` attribute can add a key credential and authenticate
+using the corresponding certificate (Key Trust). This profile creates the
+target `user.shadowcred` and low-privilege actor `svc.shadowcred`, then grants
+the actor an explicit `WriteProperty` ACE scoped only to
+`msDS-KeyCredentialLink` on the target. It does not rely on the patched
+implicit-owner behavior for self-created computer accounts.
+
+Apply with:
+`python3 scripts/thruntops-scenarios.py --range <range_id> apply shadow-credentials`.
+From Kali, use PyWhisker to add a key credential as the delegated actor:
+
+```bash
+pywhisker -d thruntops.domain -u svc.shadowcred -p 'password1' \
+  --target user.shadowcred --action add --dc-ip "$DC_IP"
+```
+
+PyWhisker writes the certificate/PFX material locally and reports its path and
+password. Treat those outputs as secrets. The target account password defaults
+to `password1`; the actor password also defaults to `password1`. Remove the
+created key credential after testing (record its Device ID and use PyWhisker's
+`remove` action), or restore the lab snapshot.
+
+**References:** [PyWhisker](https://github.com/ShutdownRepo/pywhisker) · [The Hacker Recipes: Shadow Credentials](https://www.thehacker.recipes/ad/movement/kerberos/shadow-credentials)
+
+## DPAPI secrets
+
+**What it is:** Windows DPAPI can protect user data using keys associated with
+the user's profile. This profile creates `user.dpapi` in AD and runs as that
+user on the Windows 11 workstation to store a `CurrentUser`-protected secret at
+`%LOCALAPPDATA%\ThruntOps\dpapi-secret.txt`. The default secret and account
+password are both `password1`.
+
+Apply with
+`python3 scripts/thruntops-scenarios.py --range <range_id> apply dpapi`.
+The file contains a DPAPI-protected `ConvertFrom-SecureString` value, not the
+plaintext. From a PowerShell session running as `THRUNTOPS\user.dpapi`, the
+profile-protected value can be decrypted with:
+
+```powershell
+$blob = Get-Content "$env:LOCALAPPDATA\ThruntOps\dpapi-secret.txt" -Raw
+$secure = ConvertTo-SecureString $blob
+[System.Net.NetworkCredential]::new('', $secure).Password
+```
+
+The profile creates the secret idempotently and uses the target user's loaded
+Windows profile so the DPAPI protection is bound to that user. Restore the
+workstation snapshot or remove the test user and profile artifacts during
+cleanup.
+
+**References:** [Microsoft DPAPI overview](https://learn.microsoft.com/en-us/windows/win32/secauthn/data-protection) · [ConvertFrom-SecureString](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/convertfrom-securestring)
+
+## Group Managed Service Account (gMSA)
+
+**What it is:** A gMSA password is managed by Active Directory and normally
+readable only by explicitly authorized principals. This profile creates
+`svc.gmsa` and deliberately authorizes the baseline low-privilege `domainuser`
+to retrieve its managed password. It is a password-retrieval misconfiguration,
+not a CVE, and it does not assign a crackable static password to the gMSA.
+
+Apply with
+`python3 scripts/thruntops-scenarios.py --range <range_id> apply gmsa`.
+The profile creates a KDS root key only if the domain lacks one; in this
+single-DC lab it backdates the key by 10 hours to avoid the normal forest
+replication wait. Do not use that shortcut in a multi-DC or production forest.
+
+From Kali, authenticate to LDAP as the configured low-privilege domain user
+with [gMSADumper](https://github.com/micahvandeusen/gMSADumper) to read the
+authorized gMSA password blob:
+
+```bash
+python3 gMSADumper.py -u domainuser -p 'password' \
+  -d thruntops.domain -l "$DC_IP"
+```
+
+Use the baseline credentials configured for the range if they differ from the
+example. Cleanup may remove `svc.gmsa`; retain the KDS root key because it is a
+domain-wide prerequisite that may be shared by other gMSAs.
+
+**References:** [Microsoft gMSA management](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/manage/group-managed-service-accounts/group-managed-service-accounts/manage-group-managed-service-accounts) · [Ansible microsoft.ad.service_account](https://docs.ansible.com/projects/ansible/latest/collections/microsoft/ad/service_account_module.html) · [gMSADumper](https://github.com/micahvandeusen/gMSADumper)
 
 ## Kerberoasting
 
