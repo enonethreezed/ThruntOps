@@ -29,3 +29,6 @@ vault_password*
 
 # Deploy logs
 ludus_deploy.log
+
+# Vulnerability runner evidence (may contain hashes, logs, and test artifacts)
+thruntops-exploits-*/

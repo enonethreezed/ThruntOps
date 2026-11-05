@@ -1,7 +1,7 @@
 ---
 title: AD Vulnerability Scenarios
 layout: default
-nav_order: 9
+nav_order: 10
 ---
 
 # AD Vulnerability Scenarios
@@ -17,7 +17,9 @@ for these exercises. It does **not** use Atomic Red Team.
 ## Provisioning scenarios
 
 Use the dedicated [Vulnerability Provision](vulnerability-provision) page for
-requirements, CLI help, scenario listing, status checks, and the apply workflow.
+requirements, CLI help, scenario listing, configuration status, and the apply
+workflow. Use [Vulnerabilities Check](vulnerability-check) for live checks,
+scenario validation, and the Kali runner.
 This page focuses on exploiting the provisioned states from Kali.
 
 ## Lab values

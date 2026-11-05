@@ -39,7 +39,8 @@ See the [Installation guide](https://enonethreezed.github.io/ThruntOps/install) 
 
 The scenario catalog, prerequisites, commands, cleanup guidance, and explicit
 limitations are documented in the [AD scenario guide](https://enonethreezed.github.io/ThruntOps/vulnerabilities).
-List the available CLI entries with:
+The [Vulnerabilities Check](https://enonethreezed.github.io/ThruntOps/vulnerability-check)
+page contains the scenario ledger and Kali runner usage. To list CLI scenarios:
 
 ```bash
 python3 scripts/thruntops-scenarios.py list
@@ -50,6 +51,10 @@ the selected roles and hosts and requires confirmation; it does not redeploy or
 destroy the range. Restore a snapshot or use documented cleanup to return to
 baseline.
 
+The Kali runner can check live provisioning without exercising attacks by using
+`--provision-check`. Without that flag it attempts exploitation for the selected
+scenarios; review its safety and cleanup guidance before running it.
+
 ## Status
 
-Repository and deployment status is tracked in the [project status page](https://enonethreezed.github.io/ThruntOps/status). Static tests and the documentation build have passed in recent checks; live validation is separate and remains pending for several project items.
+Repository and deployment status is tracked in the [project status page](https://enonethreezed.github.io/ThruntOps/status). Repository checks pass; live validation of the Splunk Sysmon collection fix on member hosts is underway.
