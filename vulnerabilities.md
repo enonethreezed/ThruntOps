@@ -276,6 +276,9 @@ with an appropriate `ntlmrelayx` listener and use only targets inside this lab.
 
 ## Detection and cleanup
 
+The upstream AD CS scenarios have a dedicated [ADCS Exploitation Scenarios](adcs-scenarios)
+guide, covering the ESC entries available through the provisioner.
+
 Run one scenario at a time and search the selected SIEM for activity on the DC
 and workstation at the time of the test. Kerberos requests and NTLM
 authentication should be visible only if the relevant Windows event channels
