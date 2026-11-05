@@ -158,6 +158,12 @@ For more details, see README.md and docs/QUICKSTART.md.
     Never touch Ludus's own code or the roles/modules provided by the Ludus tool itself (e.g. anything under /opt/ludus, or upstream roles such as badsectorlabs.*). Only this repo's own roles, ranges, and configs are in scope.
     All repo content (code, comments, scripts, docs, commit messages, and new beads/GitHub tracking) must be written in English. This does not apply to conversation with the user, which may be in any language.
 
+**GitHub Pages Publication**
+
+    The live site is published from the repository's `gh-pages` branch, with the Jekyll site files at the branch root. Changes committed only to `main` do not update the website.
+    After changing files under `docs/`, build the site locally, then synchronize the contents of `docs/` (not the `docs/` directory itself) to the root of `gh-pages`, preserving the existing site files such as `logo.png`.
+    Commit and push the synchronized site to `origin/gh-pages`, then verify the remote branch contains the new pages. Check the live site when accessible; GitHub Pages publication may take time after the branch push.
+
 **Agent Response Contract (Mandatory)**
 
 This defines the relationship model between the user and the agent’s responses. It is mandatory for work in this repository.
