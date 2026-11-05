@@ -503,14 +503,63 @@ def show_status(range_id: str) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Selectively provision ThruntOps AD scenarios on an existing Ludus range."
+        description=(
+            "Selectively provision ThruntOps AD scenarios on an existing Ludus range. "
+            "This does not destroy or fully redeploy the range."
+        ),
+        epilog=(
+            "Examples:\n"
+            "  python3 scripts/thruntops-scenarios.py list\n"
+            "  python3 scripts/thruntops-scenarios.py --range lab1 status\n"
+            "  python3 scripts/thruntops-scenarios.py --range lab1 apply\n"
+            "  python3 scripts/thruntops-scenarios.py --range lab1 apply asrep adcs-esc1\n\n"
+            "Apply requires an interactive confirmation: type APPLY at the preview. "
+            "All requested target VMs must already be running. See docs/vulnerabilities.md "
+            "for prerequisites, selection behavior, persistence, and cleanup."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--range", dest="range_id", help="Explicit Ludus range ID (required for apply/status).")
+    parser.add_argument(
+        "--range",
+        dest="range_id",
+        help="Ludus range ID (required for status/apply; place before the command).",
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("list", help="List supported local and ADCS scenarios.")
-    subparsers.add_parser("status", help="Show scenarios recorded in the selected range configuration.")
-    apply_parser = subparsers.add_parser("apply", help="Interactively choose and apply scenario(s).")
-    apply_parser.add_argument("scenarios", nargs="*", help="Scenario names; omit to choose from a menu.")
+    subparsers.add_parser(
+        "list",
+        help="List supported local and upstream ADCS scenarios (no range needed).",
+        description="Print the exact scenario names accepted by the apply command.",
+    )
+    subparsers.add_parser(
+        "status",
+        help="Show scenarios configured in a range (does not inspect live Windows state).",
+        description=(
+            "Read the selected Ludus range configuration and report which catalog "
+            "scenarios are recorded there."
+        ),
+    )
+    apply_parser = subparsers.add_parser(
+        "apply",
+        help="Preview, confirm, and apply selected scenario(s) to a deployed range.",
+        description=(
+            "Select scenario names or choose from an interactive menu. The CLI checks "
+            "that target VMs are running, previews roles and hosts, and requires typing "
+            "APPLY before it changes the range configuration or runs roles."
+        ),
+        epilog=(
+            "Examples:\n"
+            "  python3 scripts/thruntops-scenarios.py --range lab1 apply\n"
+            "  python3 scripts/thruntops-scenarios.py --range lab1 apply asrep\n"
+            "  python3 scripts/thruntops-scenarios.py --range lab1 apply asrep adcs-esc1"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    apply_parser.add_argument(
+        "scenarios",
+        nargs="*",
+        metavar="SCENARIO",
+        help="Scenario name(s) from 'list'; omit to select from a numbered menu.",
+    )
     return parser
 
 
