@@ -40,6 +40,67 @@ python3 -m pip install -r scripts/requirements.txt
 python3 scripts/thruntops-scenarios.py list
 ```
 
+For example, the help output (`-h`) shows the available commands, range option,
+and typical invocations:
+
+```text
+usage: thruntops-scenarios.py [-h] [--range RANGE_ID] {list,status,apply} ...
+
+Selectively provision ThruntOps AD scenarios on an existing Ludus range.
+This does not destroy or fully redeploy the range.
+
+positional arguments:
+  {list,status,apply}
+    list               List supported local and upstream ADCS scenarios (no range needed).
+    status             Show scenarios configured in a range (does not inspect live Windows state).
+    apply              Preview, confirm, and apply selected scenario(s) to a deployed range.
+
+options:
+  -h, --help           show this help message and exit
+  --range RANGE_ID     Ludus range ID (required for status/apply; place before the command).
+
+Examples:
+  python3 scripts/thruntops-scenarios.py list
+  python3 scripts/thruntops-scenarios.py --range lab1 status
+  python3 scripts/thruntops-scenarios.py --range lab1 apply
+  python3 scripts/thruntops-scenarios.py --range lab1 apply asrep adcs-esc1
+
+Apply requires an interactive confirmation: type APPLY at the preview.
+All requested target VMs must already be running.
+```
+
+The `list` command prints the names to use with `apply` and identifies whether
+each scenario uses a local role or the upstream ADCS role. Example output:
+
+```text
+asrep                          AS-REP roasting [local]
+timeroasting                   Timeroasting [local]
+shadow-credentials             Shadow Credentials [local]
+kerberoasting                  Kerberoasting [local]
+targeted-kerberoasting         Targeted Kerberoasting [local]
+ntlm-relay                     NTLM relay [local]
+coercion                       Authentication coercion (MS-RPRN) [local]
+dpapi                          DPAPI Secrets [local]
+gmsa                           gMSA password access [local]
+adcs-esc1                      ESC1 [upstream ADCS]
+adcs-esc2                      ESC2 [upstream ADCS]
+adcs-esc3                      ESC3 [upstream ADCS]
+adcs-esc3-cra                  ESC3 CRA variant [upstream ADCS]
+adcs-esc4                      ESC4 [upstream ADCS]
+adcs-esc5                      ESC5 [upstream ADCS]
+adcs-esc6                      ESC6 [upstream ADCS]
+adcs-esc7                      ESC7 [upstream ADCS]
+adcs-esc8                      ESC8 [upstream ADCS]
+adcs-esc9                      ESC9 [upstream ADCS]
+adcs-esc10-case1               ESC10 case 1 [upstream ADCS]
+adcs-esc10-case2               ESC10 case 2 [upstream ADCS]
+adcs-esc11                     ESC11 [upstream ADCS]
+adcs-esc13                     ESC13 [upstream ADCS]
+adcs-esc14                     ESC14 [upstream ADCS]
+adcs-esc15                     ESC15 [upstream ADCS]
+adcs-esc16                     ESC16 [upstream ADCS]
+```
+
 The catalog includes local roles such as `asrep`, `timeroasting`,
 `shadow-credentials`, `kerberoasting`, `targeted-kerberoasting`, `ntlm-relay`,
 `coercion`, `dpapi`, and `gmsa`, plus selected upstream ADCS scenarios such as
