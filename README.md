@@ -2,8 +2,8 @@
 
 ![ThruntOps](logotipo-just-the-docs.png)
 
-<p style="text-align:center;">Tactics, Techniques & Paranoia.</p>
-<p style="text-align:center;">Attack. Detect. Repeat.</p><br>
+<h2 align="center">Tactics, Techniques &amp; Paranoia.</h2>
+<h3 align="center">Attack. Detect. Repeat.</p>
 
 ## What?
 A Ludus-based lab for TTP detection testing: one SIEM, one Active Directory domain, one workstation, and one attacker box.<br>
