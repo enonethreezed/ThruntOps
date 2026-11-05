@@ -27,8 +27,8 @@
 - name: Prepend the domain controller to the persisted interface DNS config
   ansible.builtin.replace:
     path: /etc/network/interfaces
-    regexp: '^(\s*dns-nameservers\s+)(?!.*{{ ludus_kali_krb5_dc_ip }})(.*)$'
-    replace: '\1{{ ludus_kali_krb5_dc_ip }} \2'
+    regexp: "^(\\s*dns-nameservers\\s+)(?!.*{{ ludus_kali_krb5_dc_ip }})(.*)$"
+    replace: "\\1{{ ludus_kali_krb5_dc_ip }} \\2"
 
 - name: Write /etc/krb5.conf
   ansible.builtin.copy:

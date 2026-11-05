@@ -6,7 +6,7 @@
 
 - name: (wazuh_agent/linux) Download Wazuh agent .deb
   ansible.builtin.get_url:
-    url: "{{ wazuh_agent_deb_url }}"
+    url: "{{ ludus_wazuh_agent_deb_url }}"
     dest: /tmp/wazuh-agent.deb
     mode: "0644"
   when: not wazuh_bin.stat.exists
@@ -15,15 +15,15 @@
   ansible.builtin.apt:
     deb: /tmp/wazuh-agent.deb
   environment:
-    WAZUH_MANAGER: "{{ wazuh_manager_ip }}"
-    WAZUH_REGISTRATION_SERVER: "{{ wazuh_manager_ip }}"
+    WAZUH_MANAGER: "{{ ludus_wazuh_agent_manager_ip }}"
+    WAZUH_REGISTRATION_SERVER: "{{ ludus_wazuh_agent_manager_ip }}"
   when: not wazuh_bin.stat.exists
 
 - name: (wazuh_agent/linux) Configure manager IP in ossec.conf
   ansible.builtin.lineinfile:
     path: /var/ossec/etc/ossec.conf
-    regexp: '<address>.*</address>'
-    line: '      <address>{{ wazuh_manager_ip }}</address>'
+    regexp: "<address>.*</address>"
+    line: "      <address>{{ ludus_wazuh_agent_manager_ip }}</address>"
     backrefs: true
   notify: restart wazuh agent linux
 

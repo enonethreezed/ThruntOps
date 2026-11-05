@@ -2,6 +2,7 @@
 galaxy_info:
   role_name: ludus_wazuh_agent
   author: thruntops
+  license: MIT
   description: Install and register Wazuh agent on Windows and Linux hosts
   min_ansible_version: "2.9"
   platforms:
@@ -10,6 +11,5 @@ galaxy_info:
         - noble
     - name: Windows
       versions:
-        - 2022Server
-        - 11
+        - all
 dependencies: []

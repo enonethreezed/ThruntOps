@@ -19,7 +19,7 @@
 
 - name: (wazuh_server) Download Wazuh install script
   ansible.builtin.get_url:
-    url: "{{ wazuh_install_script_url }}"
+    url: "{{ ludus_wazuh_server_install_script_url }}"
     dest: /tmp/wazuh-install.sh
     mode: "0755"
   when: not wazuh_installed.stat.exists
@@ -33,7 +33,7 @@
 - name: (wazuh_server) Set dashboard/indexer admin password
   ansible.builtin.command: >
     /usr/share/wazuh-indexer/plugins/opensearch-security/tools/wazuh-passwords-tool.sh
-    -u admin -p '{{ wazuh_admin_password }}'
+    -u admin -p '{{ ludus_wazuh_server_admin_password }}'
   register: pwd_result
   changed_when: pwd_result.rc == 0
   failed_when: pwd_result.rc != 0
@@ -45,7 +45,7 @@
     content: |
       import sqlite3
       from werkzeug.security import generate_password_hash
-      hashed = generate_password_hash('{{ wazuh_api_password }}')
+      hashed = generate_password_hash('{{ ludus_wazuh_server_api_password }}')
       db = '/var/ossec/api/configuration/security/rbac.db'
       conn = sqlite3.connect(db)
       conn.execute("UPDATE users SET password=? WHERE username='wazuh'", (hashed,))
@@ -62,7 +62,7 @@
 - name: (wazuh_server) Set indexer password in wazuh-manager keystore
   ansible.builtin.shell: |
     set -o pipefail
-    echo '{{ wazuh_admin_password }}' | /var/ossec/bin/wazuh-keystore -f indexer -k password
+    echo '{{ ludus_wazuh_server_admin_password }}' | /var/ossec/bin/wazuh-keystore -f indexer -k password
   args:
     executable: /bin/bash
   changed_when: true
@@ -82,7 +82,7 @@
     url: "https://localhost:55000/security/user/authenticate"
     method: POST
     user: wazuh
-    password: "{{ wazuh_api_password }}"
+    password: "{{ ludus_wazuh_server_api_password }}"
     force_basic_auth: true
     validate_certs: false
     status_code: 200

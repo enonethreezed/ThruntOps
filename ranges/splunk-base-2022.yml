@@ -1,3 +1,4 @@
+---
 defaults:
   ad_domain_admin: domainadmin
   ad_domain_admin_password: password
@@ -52,8 +53,9 @@ ludus:
       - ludus_sysmon_windows
       - ludus_splunk_uf
     role_vars:
-      ludus_splunk_server_ip: "10.1.20.1"
-      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi"
+      ludus_splunk_uf_server_ip: "10.1.20.1"
+      ludus_splunk_uf_package_windows: >-
+        https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi
 
   - vm_name: "{{ range_id }}-ad-win11-22h2-enterprise-x64-1"
     hostname: "{{ range_id }}-WIN11-22H2-1"
@@ -71,8 +73,9 @@ ludus:
       - ludus_sysmon_windows
       - ludus_splunk_uf
     role_vars:
-      ludus_splunk_server_ip: "10.1.20.1"
-      ludus_splunk_uf_package_windows: "https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi"
+      ludus_splunk_uf_server_ip: "10.1.20.1"
+      ludus_splunk_uf_package_windows: >-
+        https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi
 
   - vm_name: "{{ range_id }}-kali"
     hostname: "{{ range_id }}-kali"

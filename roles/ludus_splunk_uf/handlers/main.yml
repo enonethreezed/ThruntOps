@@ -1,5 +1,5 @@
 ---
-- name: restart splunkforwarder
+- name: Restart splunkforwarder
   ansible.windows.win_shell: |
     $ErrorActionPreference = 'Stop'
     $svc = Get-Service -Name SplunkForwarder
@@ -16,7 +16,7 @@
     (Get-Service -Name SplunkForwarder).WaitForStatus('Running', '00:02:00')
   listen: restart splunkforwarder
 
-- name: restart splunkforwarder linux
+- name: Restart splunkforwarder linux
   ansible.builtin.service:
     name: SplunkForwarder
     state: restarted

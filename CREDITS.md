@@ -49,7 +49,9 @@ Splunk Enterprise and Universal Forwarder used in the `splunk-dual-2022.yml` pro
 ### Microsoft SQL Server
 [microsoft.com](https://www.microsoft.com/en-us/sql-server)
 
-SQL Server 2019 planned as an independent attack surface (xp_cmdshell, NTLM capture, DBA privilege escalation) — see [MSSQL TTPs](docs/mssql.md).
+SQL Server 2019 is planned as an independent attack surface (xp_cmdshell,
+NTLM capture, DBA privilege escalation). MSSQL TTP documentation has not yet
+been added.
 
 ### Microsoft Active Directory & ADCS
 [microsoft.com](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/)

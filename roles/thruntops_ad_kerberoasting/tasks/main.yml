@@ -38,7 +38,7 @@
       set: "{{ thruntops_ad_kerberoasting_spn }}"
     attributes:
       set:
-        msDS-SupportedEncryptionTypes: 4  # RC4-HMAC only — forces a crackable etype 23 TGS-REP
+        msDS-SupportedEncryptionTypes: 4 # RC4-HMAC only — forces a crackable etype 23 TGS-REP
   no_log: true
   when: inventory_hostname is search('-ad-dc-win2022-server-x64$')
 

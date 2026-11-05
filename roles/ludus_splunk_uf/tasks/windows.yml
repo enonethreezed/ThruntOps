@@ -20,7 +20,7 @@
   ansible.windows.win_command: >
     msiexec.exe /i C:\tmp\splunkforwarder.msi /quiet
     SPLUNK_PASSWORD="{{ ludus_splunk_uf_password }}"
-    RECEIVING_INDEXER="{{ ludus_splunk_server_ip }}:{{ ludus_splunk_server_port }}"
+    RECEIVING_INDEXER="{{ ludus_splunk_uf_server_ip }}:{{ ludus_splunk_uf_server_port }}"
     WINEVENTLOG_APP_ENABLE=1
     WINEVENTLOG_SEC_ENABLE=1
     WINEVENTLOG_SYS_ENABLE=1
@@ -28,7 +28,7 @@
   when: splunk_svc.state is not defined or splunk_svc.state == ""
   register: splunk_install
 
-- name: (splunk_uf/win) Wait for Splunk UF to initialize after install
+- name: (splunk_uf/win) Wait for Splunk UF to initialize after install  # noqa: no-handler
   ansible.windows.win_wait_for:
     path: C:\Program Files\SplunkUniversalForwarder\etc\system\local
     state: present
@@ -39,7 +39,7 @@
   ansible.windows.win_group_membership:
     name: Event Log Readers
     members:
-      - 'NT SERVICE\SplunkForwarder'
+      - "NT SERVICE\\SplunkForwarder"
     state: present
   notify: restart splunkforwarder
 
@@ -51,9 +51,9 @@
       defaultGroup = default-autolb-group
 
       [tcpout:default-autolb-group]
-      server = {{ ludus_splunk_server_ip }}:{{ ludus_splunk_server_port }}
+      server = {{ ludus_splunk_uf_server_ip }}:{{ ludus_splunk_uf_server_port }}
 
-      [tcpout-server://{{ ludus_splunk_server_ip }}:{{ ludus_splunk_server_port }}]
+      [tcpout-server://{{ ludus_splunk_uf_server_ip }}:{{ ludus_splunk_uf_server_port }}]
   notify: restart splunkforwarder
 
 - name: (splunk_uf/win) Configure inputs.conf

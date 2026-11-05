@@ -48,9 +48,9 @@
       defaultGroup = default-autolb-group
 
       [tcpout:default-autolb-group]
-      server = {{ ludus_splunk_server_ip }}:{{ ludus_splunk_server_port }}
+      server = {{ ludus_splunk_uf_server_ip }}:{{ ludus_splunk_uf_server_port }}
 
-      [tcpout-server://{{ ludus_splunk_server_ip }}:{{ ludus_splunk_server_port }}]
+      [tcpout-server://{{ ludus_splunk_uf_server_ip }}:{{ ludus_splunk_uf_server_port }}]
   notify: restart splunkforwarder linux
 
 - name: (splunk_uf/linux) Configure inputs.conf

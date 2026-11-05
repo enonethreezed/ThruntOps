@@ -1,3 +1,4 @@
+---
 galaxy_info:
   role_name: thruntops_ad_kerberoasting
   author: ThruntOps
@@ -9,7 +10,6 @@ galaxy_info:
   platforms:
     - name: Windows
       versions:
-        - "2022"
-        - "11"
+        - all
 
 dependencies: []

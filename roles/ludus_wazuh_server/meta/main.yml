@@ -2,6 +2,7 @@
 galaxy_info:
   role_name: ludus_wazuh_server
   author: thruntops
+  license: MIT
   description: Install Wazuh all-in-one (manager + indexer + dashboard) on Ubuntu
   min_ansible_version: "2.9"
   platforms:

@@ -1,5 +1,5 @@
 ---
-- name: restart wazuh agent windows
+- name: Restart wazuh agent windows
   block:
     - name: (handler) Stop WazuhSvc
       ansible.windows.win_service:
@@ -15,7 +15,7 @@
         name: WazuhSvc
         state: started
 
-- name: restart wazuh agent linux
+- name: Restart wazuh agent linux
   ansible.builtin.service:
     name: wazuh-agent
     state: restarted

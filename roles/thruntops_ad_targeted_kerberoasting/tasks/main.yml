@@ -37,7 +37,7 @@
         - "{{ thruntops_ad_targeted_kerberoasting_admin_group }}"
     attributes:
       set:
-        msDS-SupportedEncryptionTypes: 4  # RC4-HMAC only — forces a crackable etype 23 TGS-REP once SPN'd
+        msDS-SupportedEncryptionTypes: 4 # RC4-HMAC only — forces a crackable etype 23 TGS-REP once SPN'd
   no_log: true
 
 - name: Create the delegated helpdesk account

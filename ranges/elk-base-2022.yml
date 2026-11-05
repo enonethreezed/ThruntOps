@@ -1,3 +1,4 @@
+---
 defaults:
   ad_domain_admin: domainadmin
   ad_domain_admin_password: password

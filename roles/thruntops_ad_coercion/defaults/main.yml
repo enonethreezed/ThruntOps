@@ -6,4 +6,4 @@ thruntops_ad_coercion_password: "password1"
 thruntops_ad_coercion_description: >-
   Authentication coercion scenario account (ThruntOps-lrd.4).
 
-thruntops_ad_coercion_domain_controller_pattern: '-ad-dc-win2022-server-x64$'
+thruntops_ad_coercion_domain_controller_pattern: "-ad-dc-win2022-server-x64$"
