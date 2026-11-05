@@ -1,7 +1,7 @@
 ---
 title: AD Vulnerability Scenarios
 layout: default
-nav_order: 8
+nav_order: 9
 ---
 
 # AD Vulnerability Scenarios
@@ -14,151 +14,11 @@ part of the range deployment. Run them only in an isolated ThruntOps range.
 The project uses hands-on Kali commands and published tool/technique references
 for these exercises. It does **not** use Atomic Red Team.
 
-## Scenario CLI: installation and usage
+## Provisioning scenarios
 
-Run the CLI from the repository root. Requirements:
-
-- Python 3 and the packages in `scripts/requirements.txt` (PyYAML).
-- A configured Ludus CLI with access to the target range.
-- The range already deployed, with every VM targeted by the selected scenario
-  running. The CLI checks this before it asks for confirmation.
-
-If PyYAML is not installed, create a virtual environment and install the
-project's script requirements:
-
-```bash
-python3 -m venv .venv
-. .venv/bin/activate
-python3 -m pip install -r scripts/requirements.txt
-```
-
-### 1. List available scenarios
-
-`list` needs no range ID. Use its output for the exact names accepted by `apply`:
-
-```bash
-python3 scripts/thruntops-scenarios.py list
-```
-
-For example, the help output (`-h`) shows the available commands, range option,
-and typical invocations:
-
-```text
-usage: thruntops-scenarios.py [-h] [--range RANGE_ID] {list,status,apply} ...
-
-Selectively provision ThruntOps AD scenarios on an existing Ludus range.
-This does not destroy or fully redeploy the range.
-
-positional arguments:
-  {list,status,apply}
-    list               List supported local and upstream ADCS scenarios (no range needed).
-    status             Show scenarios configured in a range (does not inspect live Windows state).
-    apply              Preview, confirm, and apply selected scenario(s) to a deployed range.
-
-options:
-  -h, --help           show this help message and exit
-  --range RANGE_ID     Ludus range ID (required for status/apply; place before the command).
-
-Examples:
-  python3 scripts/thruntops-scenarios.py list
-  python3 scripts/thruntops-scenarios.py --range lab1 status
-  python3 scripts/thruntops-scenarios.py --range lab1 apply
-  python3 scripts/thruntops-scenarios.py --range lab1 apply asrep adcs-esc1
-
-Apply requires an interactive confirmation: type APPLY at the preview.
-All requested target VMs must already be running.
-```
-
-The `list` command prints the names to use with `apply` and identifies whether
-each scenario uses a local role or the upstream ADCS role. Example output:
-
-```text
-asrep                          AS-REP roasting [local]
-timeroasting                   Timeroasting [local]
-shadow-credentials             Shadow Credentials [local]
-kerberoasting                  Kerberoasting [local]
-targeted-kerberoasting         Targeted Kerberoasting [local]
-ntlm-relay                     NTLM relay [local]
-coercion                       Authentication coercion (MS-RPRN) [local]
-dpapi                          DPAPI Secrets [local]
-gmsa                           gMSA password access [local]
-adcs-esc1                      ESC1 [upstream ADCS]
-adcs-esc2                      ESC2 [upstream ADCS]
-adcs-esc3                      ESC3 [upstream ADCS]
-adcs-esc3-cra                  ESC3 CRA variant [upstream ADCS]
-adcs-esc4                      ESC4 [upstream ADCS]
-adcs-esc5                      ESC5 [upstream ADCS]
-adcs-esc6                      ESC6 [upstream ADCS]
-adcs-esc7                      ESC7 [upstream ADCS]
-adcs-esc8                      ESC8 [upstream ADCS]
-adcs-esc9                      ESC9 [upstream ADCS]
-adcs-esc10-case1               ESC10 case 1 [upstream ADCS]
-adcs-esc10-case2               ESC10 case 2 [upstream ADCS]
-adcs-esc11                     ESC11 [upstream ADCS]
-adcs-esc13                     ESC13 [upstream ADCS]
-adcs-esc14                     ESC14 [upstream ADCS]
-adcs-esc15                     ESC15 [upstream ADCS]
-adcs-esc16                     ESC16 [upstream ADCS]
-```
-
-The catalog includes local roles such as `asrep`, `timeroasting`,
-`shadow-credentials`, `kerberoasting`, `targeted-kerberoasting`, `ntlm-relay`,
-`coercion`, `dpapi`, and `gmsa`, plus selected upstream ADCS scenarios such as
-`adcs-esc1` and `adcs-esc10-case1`.
-
-### 2. Check the range configuration
-
-```bash
-python3 scripts/thruntops-scenarios.py --range <range_id> status
-```
-
-`status` reports scenarios detected in the saved Ludus range configuration. It
-does **not** connect to Windows to verify the vulnerable state is still present
-or that the last role run succeeded.
-
-### 3. Apply one or more scenarios
-
-Omit scenario names to get the interactive numbered menu:
-
-```bash
-python3 scripts/thruntops-scenarios.py --range <range_id> apply
-```
-
-Enter one or more menu numbers separated by commas; enter `q` to cancel. Or pass
-one or more exact names directly:
-
-```bash
-python3 scripts/thruntops-scenarios.py --range <range_id> apply asrep
-python3 scripts/thruntops-scenarios.py --range <range_id> apply asrep adcs-esc1
-```
-
-Names are case-insensitive; duplicate selections are ignored. `--range` must
-precede the subcommand. Run `python3 scripts/thruntops-scenarios.py --help` or
-`python3 scripts/thruntops-scenarios.py apply --help` for built-in command help.
-
-Before changing anything, the CLI previews the selected scenarios, roles, and
-target VMs. Review the preview carefully, then type exactly `APPLY` to continue.
-Any other response cancels without changing the configuration. Non-interactive
-execution is refused. The CLI registers selected local roles and, when needed,
-installs `badsectorlabs.ludus_adcs` version `1.6.0`.
-
-After confirmation, the CLI saves the updated range configuration and invokes
-Ludus with `--only-roles` and `--limit` for the selected roles and target VMs.
-It does **not** call `siem.sh deploy`, destroy VMs, or run a full range deploy.
-
-### Changes, failures, and cleanup
-
-Applying a scenario changes AD or Windows state and is not a temporary test
-session. The selected roles remain in the range configuration. The CLI has no
-disable/reset command, and setting a role variable to `false` does not undo
-changes already made on Windows. The upstream ADCS role is explicitly
-non-idempotent.
-
-If the role run fails, the updated range configuration is retained and the run
-may have partially applied changes. Inspect `ludus range logs --range
-<range_id>` before retrying; do not assume a retry will roll back or safely
-repeat every operation. To return to baseline, restore a suitable snapshot or
-perform the scenario-specific cleanup described below.
+Use the dedicated [Vulnerability Provision](vulnerability-provision) page for
+requirements, CLI help, scenario listing, status checks, and the apply workflow.
+This page focuses on exploiting the provisioned states from Kali.
 
 ## Lab values
 
