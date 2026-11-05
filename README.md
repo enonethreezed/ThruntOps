@@ -2,7 +2,7 @@
 
 ![ThruntOps](logotipo-just-the-docs.png)
 
-<p style="text-align:center;">Tactics, Techniques & Paranoia.</p><br>
+<p style="text-align:center;">Tactics, Techniques & Paranoia.</p>
 <p style="text-align:center;">Attack. Detect. Repeat.</p><br>
 
 ## What?
