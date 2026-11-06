@@ -1,0 +1,56 @@
+---
+- name: (thruntops_windows_audit/win) Enable selected advanced audit categories
+  ansible.windows.win_command: >-
+    auditpol.exe /set /category:"{{ item }}" /success:enable /failure:enable
+  loop:
+    - Account Logon
+    - Account Management
+    - Detailed Tracking
+    - Logon/Logoff
+    - Object Access
+    - Policy Change
+    - Privilege Use
+  changed_when: false
+
+- name: (thruntops_windows_audit/win) Enable directory service auditing on domain controller
+  ansible.windows.win_command: >-
+    auditpol.exe /set /category:"DS Access" /success:enable /failure:enable
+  changed_when: false
+  when: thruntops_windows_audit_is_domain_controller | bool
+
+- name: (thruntops_windows_audit/win) Enable command-line auditing for process creation events
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit
+    name: ProcessCreationIncludeCmdLine_Enabled
+    data: 1
+    type: dword
+    state: present
+
+- name: (thruntops_windows_audit/win) Enable PowerShell Script Block Logging
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+    name: EnableScriptBlockLogging
+    data: 1
+    type: dword
+    state: present
+
+- name: (thruntops_windows_audit/win) Enable PowerShell Module Logging
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging
+    name: EnableModuleLogging
+    data: 1
+    type: dword
+    state: present
+
+- name: (thruntops_windows_audit/win) Log all PowerShell modules
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames
+    name: "*"
+    data: "*"
+    type: string
+    state: present
+
+- name: (thruntops_windows_audit/win) Set PowerShell Operational channel maximum size
+  ansible.windows.win_command: >-
+    wevtutil.exe sl Microsoft-Windows-PowerShell/Operational /ms:104857600
+  changed_when: false

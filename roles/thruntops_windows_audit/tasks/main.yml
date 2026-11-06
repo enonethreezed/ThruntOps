@@ -1,0 +1,4 @@
+---
+- name: (thruntops_windows_audit) Configure Windows audit and PowerShell logging
+  ansible.builtin.include_tasks: windows.yml
+  when: ansible_os_family == "Windows"

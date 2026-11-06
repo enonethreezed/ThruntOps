@@ -92,6 +92,33 @@
       index = windows
       disabled = false
       renderXml = true
+
+      [WinEventLog://Microsoft-Windows-Windows Defender/Operational]
+      index = windows
+      disabled = false
+      renderXml = true
+
+      [WinEventLog://Microsoft-Windows-DNS-Client/Operational]
+      index = windows
+      disabled = false
+      renderXml = true
+
+      {% if thruntops_splunk_windows_telemetry_is_domain_controller | default(false) | bool %}
+      [WinEventLog://Microsoft-Windows-DNS-Server/Analytical]
+      index = windows
+      disabled = false
+      renderXml = true
+      {% endif %}
+
+      [monitor://C:\PSTranscripts\*.txt]
+      index = windows
+      sourcetype = thruntops:powershell:transcript
+      disabled = false
+
+      [monitor://C:\Windows\System32\LogFiles\Firewall\pfirewall.log]
+      index = windows
+      sourcetype = thruntops:windows:firewall
+      disabled = false
   notify: restart splunkforwarder
 
 - name: (splunk_uf/win) Ensure SplunkForwarder service is started and enabled

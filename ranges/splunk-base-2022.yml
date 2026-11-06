@@ -50,9 +50,13 @@ ludus:
       fqdn: thruntops.domain
       role: primary-dc
     roles:
+      - thruntops_windows_audit
+      - thruntops_splunk_windows_telemetry
       - ludus_sysmon_windows
       - ludus_splunk_uf
     role_vars:
+      thruntops_windows_audit_is_domain_controller: true
+      thruntops_splunk_windows_telemetry_is_domain_controller: true
       ludus_splunk_uf_server_ip: "10.1.20.1"
       ludus_splunk_uf_package_windows: >-
         https://download.splunk.com/products/universalforwarder/releases/10.2.1/windows/splunkforwarder-10.2.1-c892b66d163d-windows-x64.msi
@@ -70,6 +74,8 @@ ludus:
       fqdn: thruntops.domain
       role: member
     roles:
+      - thruntops_windows_audit
+      - thruntops_splunk_windows_telemetry
       - ludus_sysmon_windows
       - ludus_splunk_uf
     role_vars:

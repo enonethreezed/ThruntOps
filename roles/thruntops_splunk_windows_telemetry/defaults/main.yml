@@ -1,0 +1,4 @@
+---
+thruntops_splunk_windows_telemetry_is_domain_controller: false
+thruntops_splunk_windows_telemetry_transcript_path: 'C:\PSTranscripts'
+thruntops_splunk_windows_telemetry_firewall_log: 'C:\Windows\System32\LogFiles\Firewall\pfirewall.log'

@@ -45,8 +45,10 @@ ludus:
       fqdn: thruntops.domain
       role: primary-dc
     roles:
+      - thruntops_windows_audit
       - badsectorlabs.ludus_elastic_agent
     role_vars:
+      thruntops_windows_audit_is_domain_controller: true
       ludus_elastic_agent_version: "9.4.0"
 
   - vm_name: "{{ range_id }}-ad-win11-22h2-enterprise-x64-1"
@@ -62,6 +64,7 @@ ludus:
       fqdn: thruntops.domain
       role: member
     roles:
+      - thruntops_windows_audit
       - badsectorlabs.ludus_elastic_agent
     role_vars:
       ludus_elastic_agent_version: "9.4.0"

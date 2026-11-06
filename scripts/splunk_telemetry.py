@@ -98,14 +98,19 @@ def evaluate(payload: dict[str, Any]) -> dict[str, Any]:
     lookback = str(payload.get("lookback", "1h"))
 
     sources = (
-        ("windows", "Application", "application"),
-        ("windows", "Security", "security"),
-        ("windows", "System", "system"),
-        ("windows", "PowerShell/Operational", "powershell/operational"),
-        ("sysmon", "Sysmon/Operational", "sysmon/operational"),
+        ("windows", "Application", "application", False),
+        ("windows", "Security", "security", False),
+        ("windows", "System", "system", False),
+        ("windows", "PowerShell/Operational", "powershell/operational", False),
+        ("windows", "Defender/Operational", "defender/operational", False),
+        ("windows", "DNS Client/Operational", "dns-client/operational", False),
+        ("windows", "DNS Server/Analytical", "dns-server/analytical", True),
+        ("windows", "PowerShell transcription", "thruntops:powershell:transcript", False),
+        ("windows", "Windows Firewall log", "thruntops:windows:firewall", False),
+        ("sysmon", "Sysmon/Operational", "sysmon/operational", False),
     )
 
-    for index, label, source_token in sources:
+    for index, label, source_token, dc_only in sources:
         recent_key = f"{index}_recent"
         history_key = f"{index}_history"
         recent_rows = parsed[recent_key]
@@ -119,6 +124,8 @@ def evaluate(payload: dict[str, Any]) -> dict[str, Any]:
             index_exists = index in indexes
 
         for expected in expected_hosts:
+            if dc_only and not str(expected).casefold().endswith("dc01-2022"):
+                continue
             matching = [
                 row for row in recent_rows
                 if host_matches(str(row.get("host", "")), str(expected))

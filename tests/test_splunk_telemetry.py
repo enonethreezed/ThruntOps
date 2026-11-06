@@ -89,6 +89,35 @@ class SplunkTelemetryTests(unittest.TestCase):
         self.assertIn("index=windows exists but is empty", checks["lab-WIN11-22H2-1 / Application"])
         self.assertIn("historical events", checks["lab-WIN11-22H2-1 / Sysmon/Operational"])
 
+    def test_matches_added_windows_event_and_file_sources(self):
+        labels = (
+            ("Defender/Operational", "WinEventLog:Microsoft-Windows-Windows Defender/Operational"),
+            ("DNS Client/Operational", "WinEventLog:Microsoft-Windows-DNS-Client/Operational"),
+            ("DNS Server/Analytical", "WinEventLog:Microsoft-Windows-DNS-Server/Analytical"),
+            ("PowerShell transcription", "thruntops:powershell:transcript"),
+            ("Windows Firewall log", "thruntops:windows:firewall"),
+        )
+        payload = {
+            "expected_hosts": ["lab-DC01-2022", "lab-WIN11-22H2-1"],
+            "lookback": "1h",
+            "indexes": '{"entry":[{"name":"windows"},{"name":"sysmon"}]}',
+            "windows_recent": export(*(
+                {"host": "lab-DC01-2022", "count": "3", "last_seen": "2026-11-06T09:00:00",
+                 "source": [source], "sourcetype": [source]}
+                for _, source in labels
+            )),
+            "sysmon_recent": "",
+            "windows_history": "",
+            "sysmon_history": "",
+            "collector": "",
+        }
+        report = splunk_telemetry.evaluate(payload)
+        checks = {item["label"]: item for item in report["checks"]}
+        for label, _ in labels:
+            check = checks[f"lab-DC01-2022 / {label}"]
+            self.assertEqual(check["status"], "ok", check["message"])
+        self.assertNotIn("lab-WIN11-22H2-1 / DNS Server/Analytical", checks)
+
     def test_surfaces_collector_errors_for_expected_host(self):
         payload = {
             "expected_hosts": ["lab-WIN11-22H2-1"],

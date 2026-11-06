@@ -97,8 +97,30 @@ ludus range logs -f
 ```
 
 The check verifies recent arrival in `index=windows` by Application, Security,
-System, and PowerShell Operational source, and in `index=sysmon` by Sysmon
-source, for both Windows hosts. This is separate from forwarder connectivity.
+System, PowerShell Operational, Defender Operational, DNS Client Operational,
+PowerShell transcription, and Windows Firewall source. On the DC it also checks
+DNS Server Analytical. Sysmon/Operational is checked in `index=sysmon`. This is
+separate from forwarder connectivity; channel configuration does not prove that
+events are being generated or indexed.
+The Windows profiles configure success and failure auditing for Account Logon,
+Account Management, Detailed Tracking, Logon/Logoff, Object Access, Policy
+Change, and Privilege Use on both hosts; DS Access is DC-only. This enables
+process creation (4688) with command-line capture. Script Block and Module
+Logging are enabled through policy registry keys. Verify with
+`auditpol /get /category:*`, the `ProcessCreationIncludeCmdLine_Enabled`
+registry value, and the PowerShell policy keys under
+`HKLM\SOFTWARE\Policies\Microsoft\Windows\PowerShell`.
+
+The Splunk base range enables Defender Operational and DNS Client Operational
+on both Windows hosts, and DNS Server Analytical on the DC when that channel is
+available. Analytical DNS is disabled by default on Windows. PowerShell
+transcription writes plain-text files under `C:\PSTranscripts`; the Windows
+Firewall writes `pfirewall.log` under the system firewall log directory. These
+files can contain command text and network metadata. They are monitored into
+`index=windows`, with sourcetypes `thruntops:powershell:transcript` and
+`thruntops:windows:firewall`. The range does not configure rotation or cleanup
+for transcripts; remove them when no longer needed and account for their
+storage and retention separately from Splunk index retention.
 The default lookback is one hour; widen it for low-activity periods, for example:
 
 ```bash
