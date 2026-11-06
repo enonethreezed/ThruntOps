@@ -96,6 +96,19 @@ ludus range logs -f
 ./siem.sh status splunk
 ```
 
+The check verifies recent arrival in `index=windows` by Application, Security,
+System, and PowerShell Operational source, and in `index=sysmon` by Sysmon
+source, for both Windows hosts. This is separate from forwarder connectivity.
+The default lookback is one hour; widen it for low-activity periods, for example:
+
+```bash
+TELEMETRY_LOOKBACK=24h ./siem.sh check splunk
+```
+
+No-event results distinguish missing or empty indexes, host/source mismatches,
+and matching Universal Forwarder or Windows Event Log collector errors when
+Splunk has recorded them in `_internal`.
+
 Or manually via Splunk Web:
 
 - **Settings → Forwarding and receiving → Forwarder management** — both Windows VMs should appear

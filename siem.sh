@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Unified control script for the three validated SIEM stacks (elastic, wazuh,
 # splunk): range deploy, power on/off, post-deploy checklist, and live
-# agent/forwarder status.
+# agent/forwarder health, and source-level telemetry status.
 #
 # Usage:
 #   ./siem.sh <deploy|start|stop|check|status> <elastic|wazuh|splunk>
 #   ./siem.sh deploy splunk --license <local-license-file>
 #
-# Requires: curl, jq. Optional: ldapwhoami (ldap-utils package) for the
-# domain user check; python3 for the splunk status column parsing.
+# Requires: curl, jq, python3. Optional: ldapwhoami (ldap-utils package) for
+# the domain user check.
 #
 # Network override via env var if autodetection fails:
 #   RANGE_PREFIX=10.2 ./siem.sh check wazuh
@@ -54,7 +54,7 @@ esac
 
 DOMAIN_ADMIN_PASS="password"
 DOMAIN_USER_PASS="password"
-LOOKBACK="1h"
+LOOKBACK="${TELEMETRY_LOOKBACK:-1h}"
 
 # ==================================================================
 # deploy
@@ -396,7 +396,8 @@ status_wazuh() {
 # splunk
 # ==================================================================
 splunk_search() {
-  curl -sk -u "${API_USER}:${API_PASS}" "${SPLUNK_URL}/services/search/jobs/export" \
+  curl -skf --connect-timeout 5 --max-time 45 -u "${API_USER}:${API_PASS}" \
+    "${SPLUNK_URL}/services/search/jobs/export" \
     --data-urlencode "search=$1" -d "output_mode=json" -d "exec_mode=oneshot" -d "count=0" 2>/dev/null
 }
 
@@ -412,68 +413,75 @@ check_splunk_siem_up() {
   fi
 }
 
-check_splunk_endpoints() {
-  section "4. Endpoints enrolled and reporting"
-  local range_id search resp
-  range_id=$(echo "$STATUS_JSON" | jq -r '.rangeID // empty' 2>/dev/null)
-  SPLUNK_EXPECTED=()
-  for entry in "${VM_PATTERNS[@]}"; do
-    local label="${entry%%:*}"
-    [[ "$label" == "splunk" || "$label" == "kali" ]] && continue
-    SPLUNK_EXPECTED+=("${range_id}-${label}")
-  done
+check_splunk_telemetry() {
+  section "4. Windows telemetry arrival by host and source (lookback=${LOOKBACK})"
+  if [[ ! "$LOOKBACK" =~ ^[1-9][0-9]*[smhd]$ ]]; then
+    bad "Invalid TELEMETRY_LOOKBACK='${LOOKBACK}' (use a duration such as 1h, 30m, or 1d)"
+    return
+  fi
 
-  search="search index=* earliest=-${LOOKBACK} | stats latest(_time) as last_seen count by host | eval last_seen=strftime(last_seen, \"%Y-%m-%dT%H:%M:%S\") | fields host last_seen count"
-  resp=$(splunk_search "$search")
+  local range_id indexes windows_recent sysmon_recent windows_history sysmon_history collector
+  local expected_hosts payload report
+  range_id=$(echo "$STATUS_JSON" | jq -r '.rangeID // .range_id // empty' 2>/dev/null)
+  if [[ -z "$range_id" ]]; then
+    bad "Could not determine the range ID; cannot match Splunk event hosts"
+    return
+  fi
+  expected_hosts="${range_id}-DC01-2022,${range_id}-WIN11-22H2-1"
 
-  declare -A host_lastseen
-  while IFS= read -r line; do
-    [[ -z "$line" ]] && continue
-    local host last
-    host=$(echo "$line" | jq -r '.result.host // empty' 2>/dev/null)
-    last=$(echo "$line" | jq -r '.result.last_seen // "never"' 2>/dev/null)
-    [[ -n "$host" ]] && host_lastseen["$host"]="$last"
-  done <<< "$resp"
+  if ! indexes=$(curl -skf --connect-timeout 5 --max-time 20 -u "${API_USER}:${API_PASS}" \
+    "${SPLUNK_URL}/services/data/indexes?count=0&output_mode=json" 2>/dev/null); then
+    indexes=''
+  fi
 
-  for HOST in "${SPLUNK_EXPECTED[@]}"; do
-    local matched=""
-    for key in "${!host_lastseen[@]}"; do
-      [[ "${key,,}" == "${HOST,,}" ]] && matched="$key" && break
-    done
-    if [[ -n "$matched" ]]; then
-      ok "${HOST} — reporting (last_seen=${host_lastseen[$matched]})"
-    else
-      bad "${HOST} — no events in the last ${LOOKBACK}"
-    fi
-  done
-}
+  local search
+  search="search index=windows earliest=-${LOOKBACK} latest=now | stats count latest(_time) as last_seen by host source sourcetype"
+  if ! windows_recent=$(splunk_search "$search"); then
+    windows_recent='{"messages":[{"type":"FATAL","text":"Splunk search request failed (HTTP, authentication, or connection error)"}]}'
+  fi
+  search="search index=sysmon earliest=-${LOOKBACK} latest=now | stats count latest(_time) as last_seen by host source sourcetype"
+  if ! sysmon_recent=$(splunk_search "$search"); then
+    sysmon_recent='{"messages":[{"type":"FATAL","text":"Splunk search request failed (HTTP, authentication, or connection error)"}]}'
+  fi
+  search="search index=windows earliest=0 latest=now | stats count by host source sourcetype"
+  if ! windows_history=$(splunk_search "$search"); then
+    windows_history='{"messages":[{"type":"FATAL","text":"Historical Windows index query failed"}]}'
+  fi
+  search="search index=sysmon earliest=0 latest=now | stats count by host source sourcetype"
+  if ! sysmon_history=$(splunk_search "$search"); then
+    sysmon_history='{"messages":[{"type":"FATAL","text":"Historical Sysmon index query failed"}]}'
+  fi
+  search="search index=_internal earliest=-${LOOKBACK} latest=now (component=TcpOutputProc OR component=WinEventLogChannel OR component=WinEventLogMonitor) (log_level=ERROR OR log_level=WARN) | stats latest(_time) as last_seen values(log_level) as log_level latest(_raw) as message by host component"
+  if ! collector=$(splunk_search "$search"); then
+    collector='{"messages":[{"type":"FATAL","text":"Could not query Splunk _internal collector diagnostics"}]}'
+  fi
 
-check_splunk_sysmon() {
-  section "5. Sysmon active on Windows endpoints"
-  local search resp
-  search="search index=sysmon earliest=-${LOOKBACK} | stats latest(_time) as last_seen count by host | eval last_seen=strftime(last_seen, \"%Y-%m-%dT%H:%M:%S\") | fields host last_seen count"
-  resp=$(splunk_search "$search")
-
-  declare -A sysmon_lastseen
-  while IFS= read -r line; do
-    [[ -z "$line" ]] && continue
-    local host last
-    host=$(echo "$line" | jq -r '.result.host // empty' 2>/dev/null)
-    last=$(echo "$line" | jq -r '.result.last_seen // "never"' 2>/dev/null)
-    [[ -n "$host" ]] && sysmon_lastseen["$host"]="$last"
-  done <<< "$resp"
-
-  for HOST in "${SPLUNK_EXPECTED[@]}"; do
-    local matched=""
-    for key in "${!sysmon_lastseen[@]}"; do
-      [[ "${key,,}" == "${HOST,,}" ]] && matched="$key" && break
-    done
-    if [[ -n "$matched" ]]; then
-      ok "${HOST} — Sysmon active (last_seen=${sysmon_lastseen[$matched]})"
-    else
-      bad "${HOST} — no events in index=sysmon in the last ${LOOKBACK}"
-    fi
-  done
+  payload=$(jq -n \
+    --arg hosts "$expected_hosts" --arg lookback "$LOOKBACK" --arg indexes "$indexes" \
+    --arg windows_recent "$windows_recent" --arg sysmon_recent "$sysmon_recent" \
+    --arg windows_history "$windows_history" --arg sysmon_history "$sysmon_history" \
+    --arg collector "$collector" \
+    '{expected_hosts: ($hosts | split(",")), lookback: $lookback, indexes: $indexes,
+      windows_recent: $windows_recent, sysmon_recent: $sysmon_recent,
+      windows_history: $windows_history, sysmon_history: $sysmon_history, collector: $collector}')
+  if ! report=$(printf '%s\n' "$payload" | python3 scripts/splunk_telemetry.py); then
+    bad "Could not parse Splunk telemetry query results"
+    return
+  fi
+  if ! echo "$report" | jq -e '.checks | type == "array"' >/dev/null 2>&1; then
+    bad "Splunk telemetry parser returned an invalid report"
+    return
+  fi
+  while IFS=$'\t' read -r status label message; do
+    case "$status" in
+      ok)   ok "${label} — ${message}" ;;
+      warn) warn "${label} — ${message}" ;;
+      *)    bad "${label} — ${message}" ;;
+    esac
+  done < <(echo "$report" | jq -r '.checks[] | [.status, .label, .message] | @tsv')
+  if [[ -n "$(echo "$report" | jq -r '.inventory_errors[]? // empty')" ]]; then
+    warn "Could not list configured Splunk indexes; index-specific query results are still reported"
+  fi
 }
 
 status_splunk() {
@@ -570,7 +578,7 @@ case "$ACTION" in
     case "$SIEM" in
       elastic) check_elastic_siem_up; check_elastic_endpoints ;;
       wazuh)   check_wazuh_siem_up;   check_wazuh_endpoints;   check_wazuh_sysmon ;;
-      splunk)  check_splunk_siem_up;  check_splunk_endpoints;  check_splunk_sysmon ;;
+      splunk)  check_splunk_siem_up;  check_splunk_telemetry ;;
     esac
     section "Summary"
     echo "  OK: ${PASS}   FAIL: ${FAIL}   WARN: ${WARN}"
