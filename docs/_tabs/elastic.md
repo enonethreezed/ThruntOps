@@ -2,6 +2,7 @@
 title: Elastic Backend
 icon: fas fa-chart-line
 order: 5
+mermaid: true
 ---
 
 Elastic Stack SIEM with a single 2022 AD domain, a Windows 11 workstation, and a Kali attacker VM.
@@ -35,20 +36,23 @@ All VMs run on VLAN 20.
 ## Network Diagram
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph VLAN20["VLAN 20"]
         subgraph domain["thruntops.domain"]
-            DC1["🖥 DC01-2022\n.20.11\nPrimary DC"]
-            W1["🖥 WIN11-22H2-1\n.20.21\nWorkstation"]
+            DC1["DC01-2022<br/>.20.11<br/>Primary DC"]
+            W1["WIN11-22H2-1<br/>.20.21<br/>Workstation"]
         end
-        ELASTIC["🐧 elastic\n.20.1\nElastic SIEM"]
-        KALI["🗡 kali\n.20.250\nAttacker"]
+        ELASTIC["elastic<br/>.20.1<br/>Elastic Stack + Fleet"]
+        KALI["kali<br/>.20.250<br/>Attacker"]
     end
 
-    W1 -->|"member"| DC1
-    ELASTIC -.->|"Fleet agent"| DC1
-    ELASTIC -.->|"Fleet agent"| W1
-    KALI -.->|"attack traffic"| DC1
+    DC1 <-->|"AD domain services"| W1
+    DC1 -->|"Elastic Agent telemetry"| ELASTIC
+    W1 -->|"Elastic Agent telemetry"| ELASTIC
+    DC1 -.->|"Fleet check-in / policy"| ELASTIC
+    W1 -.->|"Fleet check-in / policy"| ELASTIC
+    KALI -.->|"lab traffic"| DC1
+    KALI -.->|"lab traffic"| W1
 ```
 
 ---

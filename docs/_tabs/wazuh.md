@@ -2,6 +2,7 @@
 title: Wazuh Backend
 icon: fas fa-shield-halved
 order: 6
+mermaid: true
 ---
 
 Wazuh all-in-one SIEM with a single 2022 AD domain, a Windows 11 workstation, and a Kali attacker VM.
@@ -35,20 +36,21 @@ All VMs run on VLAN 20.
 ## Network Diagram
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph VLAN20["VLAN 20"]
         subgraph domain["thruntops.domain"]
-            DC1["🖥 DC01-2022\n.20.11\nPrimary DC"]
-            W1["🖥 WIN11-22H2-1\n.20.21\nWorkstation"]
+            DC1["DC01-2022<br/>.20.11<br/>Primary DC"]
+            W1["WIN11-22H2-1<br/>.20.21<br/>Workstation"]
         end
-        WAZUH["🐧 wazuh\n.20.1\nWazuh SIEM"]
-        KALI["🗡 kali\n.20.250\nAttacker"]
+        WAZUH["wazuh<br/>.20.1<br/>Wazuh all-in-one"]
+        KALI["kali<br/>.20.250<br/>Attacker"]
     end
 
-    W1 -->|"member"| DC1
-    WAZUH -.->|"Wazuh agent"| DC1
-    WAZUH -.->|"Wazuh agent"| W1
-    KALI -.->|"attack traffic"| DC1
+    DC1 <-->|"AD domain services"| W1
+    DC1 -->|"Wazuh agent events"| WAZUH
+    W1 -->|"Wazuh agent events"| WAZUH
+    KALI -.->|"lab traffic"| DC1
+    KALI -.->|"lab traffic"| W1
 ```
 
 ---

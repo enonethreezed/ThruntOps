@@ -2,6 +2,7 @@
 title: Splunk Backend
 icon: fas fa-chart-column
 order: 7
+mermaid: true
 ---
 
 Splunk Enterprise SIEM with a single 2022 AD domain, a Windows 11 workstation, and a Kali attacker VM.
@@ -35,20 +36,21 @@ All VMs run on VLAN 20.
 ## Network Diagram
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph VLAN20["VLAN 20"]
         subgraph domain["thruntops.domain"]
-            DC1["🖥 DC01-2022\n.20.11\nPrimary DC"]
-            W1["🖥 WIN11-22H2-1\n.20.21\nWorkstation"]
+            DC1["DC01-2022<br/>.20.11<br/>Primary DC"]
+            W1["WIN11-22H2-1<br/>.20.21<br/>Workstation"]
         end
-        SPLUNK["🐧 splunk\n.20.1\nSplunk SIEM"]
-        KALI["🗡 kali\n.20.250\nAttacker"]
+        SPLUNK["splunk<br/>.20.1<br/>Splunk Enterprise"]
+        KALI["kali<br/>.20.250<br/>Attacker"]
     end
 
-    W1 -->|"member"| DC1
-    SPLUNK -.->|"Universal Forwarder"| DC1
-    SPLUNK -.->|"Universal Forwarder"| W1
-    KALI -.->|"attack traffic"| DC1
+    DC1 <-->|"AD domain services"| W1
+    DC1 -->|"Universal Forwarder data · TCP 9997"| SPLUNK
+    W1 -->|"Universal Forwarder data · TCP 9997"| SPLUNK
+    KALI -.->|"lab traffic"| DC1
+    KALI -.->|"lab traffic"| W1
 ```
 
 ---
