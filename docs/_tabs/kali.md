@@ -1,7 +1,7 @@
 ---
 title: Kali
 icon: fas fa-terminal
-order: 3
+order: 4
 ---
 
 Every supported ThruntOps range includes one Kali attacker workstation.

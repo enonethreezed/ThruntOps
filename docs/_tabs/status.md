@@ -1,7 +1,7 @@
 ---
 title: Project Status
 icon: fas fa-chart-line
-order: 7
+order: 8
 ---
 
 Status snapshot: 2026-11-05. This page distinguishes repository-local checks

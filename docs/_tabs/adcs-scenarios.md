@@ -1,7 +1,7 @@
 ---
 title: ADCS Exploitation Scenarios
 icon: fas fa-shield-halved
-order: 11
+order: 12
 ---
 
 This page documents the AD CS scenarios exposed by the ThruntOps provisioner.

@@ -1,7 +1,7 @@
 ---
 title: Splunk Backend
 icon: fas fa-chart-column
-order: 6
+order: 7
 ---
 
 Splunk Enterprise SIEM with a single 2022 AD domain, a Windows 11 workstation, and a Kali attacker VM.

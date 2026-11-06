@@ -1,7 +1,7 @@
 ---
 title: Elastic Backend
 icon: fas fa-chart-line
-order: 4
+order: 5
 ---
 
 Elastic Stack SIEM with a single 2022 AD domain, a Windows 11 workstation, and a Kali attacker VM.

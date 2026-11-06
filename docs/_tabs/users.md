@@ -1,7 +1,7 @@
 ---
 title: Users
 icon: fas fa-users
-order: 2
+order: 3
 ---
 
 All credentials used in the ThruntOps lab.

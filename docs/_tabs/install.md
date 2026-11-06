@@ -1,7 +1,7 @@
 ---
 title: Installation
 icon: fas fa-book
-order: 1
+order: 2
 ---
 
 Full setup from a bare Debian/Proxmox host to a running ThruntOps lab.

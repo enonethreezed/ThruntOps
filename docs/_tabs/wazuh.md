@@ -1,7 +1,7 @@
 ---
 title: Wazuh Backend
 icon: fas fa-shield-halved
-order: 5
+order: 6
 ---
 
 Wazuh all-in-one SIEM with a single 2022 AD domain, a Windows 11 workstation, and a Kali attacker VM.
