@@ -1,10 +1,8 @@
 ---
-title: TTP Testing Methodology
+title: An approach to TTP testing
 icon: fas fa-flask
 order: 1
 ---
-
-# TTP Testing Methodology
 
 This document defines an evidence-driven methodology for testing tactics, techniques, and procedures (TTPs) in ThruntOps. It adapts principles from [Verified IDA](https://github.com/SentineLabs/verified-ida): link claims to current evidence, verify outcomes, retain failures and uncertainty, and make findings reviewable. Verified IDA is a reverse-engineering harness; this document is an adaptation, not an integration or a claim of compatibility.
 
@@ -150,4 +148,3 @@ Retain failed checks and review findings alongside successful results so that th
 Keep a record for each TTP containing the latest execution and scenario version, confirmed claims and evidence, negative and inconclusive results, observed differences between Elastic, Wazuh, and Splunk, open questions, conditions for repetition, and the last review date.
 
 Recheck prior conclusions when the scenario, tools, audit configuration, SIEM ingestion, or detection rules change. Historical records provide context; they do not replace current evidence.
-
