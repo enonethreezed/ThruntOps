@@ -1,14 +1,11 @@
 ---
-title: Wazuh Backend
-layout: default
-nav_order: 4
+title: Elastic Backend
+icon: fas fa-chart-line
+order: 4
 ---
 
-# Wazuh Backend
-{: .no_toc }
-
-Wazuh all-in-one SIEM with a single 2022 AD domain, a Windows 11 workstation, and a Kali attacker VM.
-{: .fs-6 .fw-300 }
+Elastic Stack SIEM with a single 2022 AD domain, a Windows 11 workstation, and a Kali attacker VM.
+{: .fs-6 .fw_300 }
 
 ---
 
@@ -26,7 +23,7 @@ All VMs run on VLAN 20.
 
 | IP | Hostname | OS | Role |
 |---|---|---|---|
-| .20.1 | wazuh | Ubuntu 24.04 | SIEM — Wazuh all-in-one (manager + indexer + dashboard) |
+| .20.1 | elastic | Debian 12 | SIEM — Elastic Stack + Fleet |
 | .20.11 | DC01-2022 | Windows Server 2022 | Primary DC — `thruntops.domain` |
 | .20.21 | WIN11-22H2-1 | Windows 11 22H2 | Workstation — `thruntops.domain` |
 | .20.250 | kali | Kali Linux | Attacker box |
@@ -44,13 +41,13 @@ graph TB
             DC1["🖥 DC01-2022\n.20.11\nPrimary DC"]
             W1["🖥 WIN11-22H2-1\n.20.21\nWorkstation"]
         end
-        WAZUH["🐧 wazuh\n.20.1\nWazuh SIEM"]
+        ELASTIC["🐧 elastic\n.20.1\nElastic SIEM"]
         KALI["🗡 kali\n.20.250\nAttacker"]
     end
 
     W1 -->|"member"| DC1
-    WAZUH -.->|"Wazuh agent"| DC1
-    WAZUH -.->|"Wazuh agent"| W1
+    ELASTIC -.->|"Fleet agent"| DC1
+    ELASTIC -.->|"Fleet agent"| W1
     KALI -.->|"attack traffic"| DC1
 ```
 
@@ -60,23 +57,23 @@ graph TB
 
 | Service | URL | User | Password |
 |---|---|---|---|
-| Wazuh Dashboard | `https://<range_ip>.20.1` | `wazuh` / `admin` | `Thisisapassword1-` (set in `ranges/wazuh-base-2022.yml`) |
+| Elastic / Kibana | `https://<range_ip>.20.1:5601` | `elastic` | `thisisapassword` (set in `ranges/elk-base-2022.yml`) |
 
-Domain and local accounts use Ludus defaults — see [Users](users.md).
+Domain and local accounts use Ludus defaults — see [Users](../users/).
 
 ---
 
 ## Deployment
 
 ```bash
-./siem.sh deploy wazuh   # ranges/wazuh-base-2022.yml
+./siem.sh deploy elastic   # ranges/elk-base-2022.yml
 ```
 
 Or step by step:
 
 ```bash
 ludus range destroy
-ludus range config set -f ranges/wazuh-base-2022.yml
+ludus range config set -f ranges/elk-base-2022.yml
 ludus range deploy
 ludus range logs -f
 ```
@@ -86,13 +83,15 @@ ludus range logs -f
 ## Verify
 
 ```bash
-./siem.sh check wazuh
-./siem.sh status wazuh
+./siem.sh check elastic
+./siem.sh status elastic
 ```
 
-Or manually, confirm all agents are active in the Wazuh dashboard:
+Or manually, confirm all agents enrolled in Fleet:
 
-**Modules → Agents** — both Windows VMs (`DC01-2022`, `WIN11-22H2-1`) should show status `active`.
+**Kibana → Management → Fleet → Agents**
+
+Both Windows VMs (`DC01-2022`, `WIN11-22H2-1`) should show status `Healthy`.
 
 Check range status:
 
@@ -104,4 +103,5 @@ ludus range status
 
 ## Notes
 
-- Windows agents include Sysmon telemetry via `ludus_sysmon_windows`
+- `elk-base-2022.yml` deploys Elastic Stack version `9.4.0`
+- Elastic Agent is pinned to `9.4.0` via `ludus_elastic_agent_version` (role_vars on each Windows VM) to match the stack version

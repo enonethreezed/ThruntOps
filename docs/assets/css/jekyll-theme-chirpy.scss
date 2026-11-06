@@ -1,0 +1,21 @@
+---
+---
+
+@use 'abstracts/variables' with (
+  $theme: '{{ site.theme_mode }}'
+);
+
+@use 'main.bundle';
+
+html[data-bs-theme='dark'] {
+  --main-bg: #000;
+  --sidebar-bg: #050805;
+  --text-color: #d0e8d3;
+  --heading-color: #39ff14;
+  --link-color: #39ff14;
+  --link-underline-color: #176b19;
+  --sidebar-active-color: #39ff14;
+  --toc-highlight: #00e676;
+  --highlight-bg-color: #080d08;
+  --inline-code-bg: #101810;
+}

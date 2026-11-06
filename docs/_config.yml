@@ -1,18 +1,49 @@
 ---
 title: ThruntOps
-description: Ludus TTP detection lab
-remote_theme: just-the-docs/just-the-docs
+tagline: Tactics, Techniques & Paranoia.
+description: A Ludus-based purple-team lab for TTP detection testing.
+url: https://enonethreezed.github.io
+baseurl: /ThruntOps
+lang: en
+timezone: Europe/Madrid
+theme: jekyll-theme-chirpy
+theme_mode: dark
+avatar: /logo.png
 
-color_scheme: thruntops
+github:
+  username: enonethreezed
 
-mermaid:
-  version: "10"
+social:
+  name: ThruntOps
+  links:
+    - https://github.com/enonethreezed/ThruntOps
 
 plugins:
-  - jekyll-remote-theme
+  - jekyll-archives
+  - jekyll-include-cache
+  - jekyll-paginate
+  - jekyll-seo-tag
+  - jekyll-sitemap
 
-nav_external_links:
-  - title: GitHub
-    url: https://github.com/enonethreezed/ThruntOps
+collections:
+  tabs:
+    output: true
+    sort_by: order
 
-footer_content: "ThruntOps — MIT License"
+defaults:
+  - scope:
+      path: ""
+      type: tabs
+    values:
+      layout: page
+      permalink: /:title/
+
+kramdown:
+  syntax_highlighter: rouge
+
+sass:
+  style: compressed
+
+exclude:
+  - Gemfile
+  - Gemfile.lock

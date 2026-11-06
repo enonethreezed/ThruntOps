@@ -1,11 +1,8 @@
 ---
 title: Users
-layout: default
-nav_order: 7
+icon: fas fa-users
+order: 2
 ---
-
-# Users
-{: .no_toc }
 
 All credentials used in the ThruntOps lab.
 {: .fs-6 .fw-300 }

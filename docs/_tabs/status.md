@@ -1,10 +1,8 @@
 ---
 title: Project Status
-layout: default
-nav_order: 12
+icon: fas fa-chart-line
+order: 7
 ---
-
-# Project Status
 
 Status snapshot: 2026-11-05. This page distinguishes repository-local checks
 from validation that requires a live Ludus deployment. Issue status is tracked
@@ -26,7 +24,7 @@ time of this snapshot.
   2025 DC.
 - The read-only Splunk/Sysmon collector is
   `scripts/diagnose-splunk-sysmon.ps1`; usage and current findings are in the
-  [Splunk backend guide](splunk.md).
+  [Splunk backend guide](../splunk/).
 
 Repository-local quality gates pass: Python tests, YAML lint, Ansible Lint,
 shell syntax checks, Markdown link checks, `git diff --check`, and a Jekyll site

@@ -1,10 +1,8 @@
 ---
 title: AD Vulnerability Scenarios
-layout: default
-nav_order: 10
+icon: fas fa-bug
+order: 10
 ---
-
-# AD Vulnerability Scenarios
 
 This page describes the credential-access states provisioned by the local
 ThruntOps AD roles and how to exercise them from the lab's Kali VM. These are
@@ -16,9 +14,9 @@ for these exercises. It does **not** use Atomic Red Team.
 
 ## Provisioning scenarios
 
-Use the dedicated [Vulnerability Provision](vulnerability-provision) page for
+Use the dedicated [Vulnerability Provision](../vulnerability-provision/) page for
 requirements, CLI help, scenario listing, configuration status, and the apply
-workflow. Use [Vulnerabilities Check](vulnerability-check) for live checks,
+workflow. Use [Vulnerabilities Check](../vulnerability-check/) for live checks,
 scenario validation, and the Kali runner.
 This page focuses on exploiting the provisioned states from Kali.
 
@@ -278,14 +276,14 @@ with an appropriate `ntlmrelayx` listener and use only targets inside this lab.
 
 ## Detection and cleanup
 
-The upstream AD CS scenarios have a dedicated [ADCS Exploitation Scenarios](adcs-scenarios)
+The upstream AD CS scenarios have a dedicated [ADCS Exploitation Scenarios](../adcs-scenarios/)
 guide, covering the ESC entries available through the provisioner.
 
 Run one scenario at a time and search the selected SIEM for activity on the DC
 and workstation at the time of the test. Kerberos requests and NTLM
 authentication should be visible only if the relevant Windows event channels
 are being collected. Check the backend guide for its query and data-source
-details: [Elastic](elastic.md), [Wazuh](wazuh.md), or [Splunk](splunk.md).
+details: [Elastic](../elastic/), [Wazuh](../wazuh/), or [Splunk](../splunk/).
 
 Remove the temporary SPN after the targeted Kerberoasting exercise. To return
 the lab to its baseline, remove the scenario identities and restore the LDAP

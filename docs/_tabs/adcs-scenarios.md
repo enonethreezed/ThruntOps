@@ -1,10 +1,8 @@
 ---
 title: ADCS Exploitation Scenarios
-layout: default
-nav_order: 11
+icon: fas fa-shield-halved
+order: 11
 ---
-
-# ADCS Exploitation Scenarios
 
 This page documents the AD CS scenarios exposed by the ThruntOps provisioner.
 They use the upstream `badsectorlabs.ludus_adcs` role pinned to **1.6.0** and
@@ -12,7 +10,7 @@ are intended only for an isolated lab you control. Provisioning and exploitation
 change persistent AD/CA state. Do not run these procedures against production
 or third-party systems.
 
-Provision individual scenarios from the [Vulnerability Provision](vulnerability-provision)
+Provision individual scenarios from the [Vulnerability Provision](../vulnerability-provision/)
 page. The selected role runs on the DC, which also hosts the enterprise CA in
 this lab.
 

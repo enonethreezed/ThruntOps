@@ -1,10 +1,8 @@
 ---
 title: Kali
-layout: default
-nav_order: 6
+icon: fas fa-terminal
+order: 3
 ---
-
-# Kali
 
 Every supported ThruntOps range includes one Kali attacker workstation.
 
@@ -24,5 +22,5 @@ The Active Directory vulnerability role configures vulnerable directory state
 on the domain controller. Tools on Kali are used manually to inspect and test
 that state after provisioning.
 
-See [AD Vulnerability Scenarios](vulnerabilities.md) for scenario explanations,
+See [AD Vulnerability Scenarios](../vulnerabilities/) for scenario explanations,
 Kali-based test commands, and references to the relevant tool documentation.

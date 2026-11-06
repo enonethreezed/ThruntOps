@@ -1,11 +1,8 @@
 ---
 title: Installation
-layout: default
-nav_order: 2
+icon: fas fa-book
+order: 1
 ---
-
-# Installation Guide
-{: .no_toc }
 
 Full setup from a bare Debian/Proxmox host to a running ThruntOps lab.
 {: .fs-6 .fw-300 }
@@ -197,4 +194,4 @@ RANGE_PREFIX=10.<range> ./siem.sh check <elastic|wazuh|splunk>
 
 - DCs do not support local SAM accounts — local user provisioning only applies to member machines
 - `ludus ansible roles add` does **not** overwrite an existing role — use `--force` flag to update installed roles
-- The attacker VM is documented in [Kali](kali.md)
+- The attacker VM is documented in [Kali](../kali/)

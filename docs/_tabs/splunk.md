@@ -1,11 +1,8 @@
 ---
 title: Splunk Backend
-layout: default
-nav_order: 5
+icon: fas fa-chart-column
+order: 6
 ---
-
-# Splunk Backend
-{: .no_toc }
 
 Splunk Enterprise SIEM with a single 2022 AD domain, a Windows 11 workstation, and a Kali attacker VM.
 {: .fs-6 .fw-300 }
@@ -62,7 +59,7 @@ graph TB
 |---|---|---|---|
 | Splunk Web | `http://<range_ip>.20.1:8000` | `admin` | `thisisapassword` (set in `ranges/splunk-base-2022.yml`) |
 
-Domain and local accounts use Ludus defaults — see [Users](users.md).
+Domain and local accounts use Ludus defaults — see [Users](../users/).
 
 ---
 
