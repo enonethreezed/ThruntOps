@@ -10,7 +10,7 @@
       foreach ($channel in $channels) {
         $log = Get-WinEvent -ListLog $channel -ErrorAction Stop
         if (-not $log.IsEnabled) {
-          & wevtutil.exe sl $channel /e:true
+          & wevtutil.exe sl $channel /e:true /q:true
           if ($LASTEXITCODE -ne 0) { throw "Failed to enable $channel" }
           $Ansible.Changed = $true
         }
@@ -25,7 +25,7 @@
   ansible.windows.win_powershell:
     script: |
       $ErrorActionPreference = 'Stop'
-      $channel = 'Microsoft-Windows-DNS-Server/Analytical'
+      $channel = 'Microsoft-Windows-DNSServer/Analytical'
       $log = Get-WinEvent -ListLog $channel -ErrorAction SilentlyContinue
       if ($null -eq $log) {
         $Ansible.Result = 'DNS Server Analytical channel is unavailable; DNS Server role may not be installed'
@@ -33,7 +33,7 @@
       }
       $changed = $false
       if (-not $log.IsEnabled) {
-        & wevtutil.exe sl $channel /e:true
+        & wevtutil.exe sl $channel /e:true /q:true
         if ($LASTEXITCODE -ne 0) { throw "Failed to enable $channel" }
         $changed = $true
       }
@@ -49,6 +49,15 @@
   ansible.windows.win_file:
     path: "{{ thruntops_splunk_windows_telemetry_transcript_path }}"
     state: directory
+
+- name: (splunk_windows_telemetry/win) Allow interactive users to write PowerShell transcripts
+  ansible.windows.win_acl:
+    path: "{{ thruntops_splunk_windows_telemetry_transcript_path }}"
+    user: BUILTIN\Users
+    rights: Modify
+    type: allow
+    state: present
+    inherit: ContainerInherit, ObjectInherit
 
 - name: (splunk_windows_telemetry/win) Enable PowerShell transcription
   ansible.windows.win_regedit:

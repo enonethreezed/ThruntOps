@@ -53,6 +53,24 @@ def _values(value: Any) -> list[str]:
     return [str(value)]
 
 
+def _source_matches(value: str, token: str) -> bool:
+    value = value.casefold().rstrip("/")
+    token = token.casefold().strip("/")
+    for prefix in ("wineventlog:", "xmlwineventlog:"):
+        if value.startswith(prefix):
+            channel = value[len(prefix):]
+            return channel == token or channel.endswith(token)
+    return value == token
+
+
+def _row_matches_source(row: dict[str, Any], token: str) -> bool:
+    return any(
+        _source_matches(value, token)
+        for field in ("source", "sourcetype")
+        for value in _values(row.get(field))
+    )
+
+
 def _format_timestamp(value: Any) -> str:
     try:
         return datetime.fromtimestamp(float(value), tz=timezone.utc).isoformat(timespec="seconds")
@@ -104,7 +122,7 @@ def evaluate(payload: dict[str, Any]) -> dict[str, Any]:
         ("windows", "PowerShell/Operational", "powershell/operational", False),
         ("windows", "Defender/Operational", "defender/operational", False),
         ("windows", "DNS Client/Operational", "dns-client/operational", False),
-        ("windows", "DNS Server/Analytical", "dns-server/analytical", True),
+        ("windows", "DNS Server/Analytical", "dnsserver/analytical", True),
         ("windows", "PowerShell transcription", "thruntops:powershell:transcript", False),
         ("windows", "Windows Firewall log", "thruntops:windows:firewall", False),
         ("sysmon", "Sysmon/Operational", "sysmon/operational", False),
@@ -129,11 +147,7 @@ def evaluate(payload: dict[str, Any]) -> dict[str, Any]:
             matching = [
                 row for row in recent_rows
                 if host_matches(str(row.get("host", "")), str(expected))
-                and any(
-                    source_token in value.casefold()
-                    for field in ("source", "sourcetype")
-                    for value in _values(row.get(field))
-                )
+                and _row_matches_source(row, source_token)
             ]
             observed_hosts = sorted({str(row.get("host", "")) for row in recent_rows if row.get("host")})
             if index_exists is False:
@@ -165,11 +179,7 @@ def evaluate(payload: dict[str, Any]) -> dict[str, Any]:
                 ]
                 historic_for_host = any(
                     host_matches(str(row.get("host", "")), str(expected))
-                    and any(
-                        source_token in value.casefold()
-                        for field in ("source", "sourcetype")
-                        for value in _values(row.get(field))
-                    )
+                    and _row_matches_source(row, source_token)
                     for row in history_rows
                 )
                 if historic_for_host:

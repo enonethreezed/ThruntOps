@@ -104,7 +104,7 @@
       renderXml = true
 
       {% if thruntops_splunk_windows_telemetry_is_domain_controller | default(false) | bool %}
-      [WinEventLog://Microsoft-Windows-DNS-Server/Analytical]
+      [WinEventLog://Microsoft-Windows-DNSServer/Analytical]
       index = windows
       disabled = false
       renderXml = true

@@ -93,7 +93,7 @@ class SplunkTelemetryTests(unittest.TestCase):
         labels = (
             ("Defender/Operational", "WinEventLog:Microsoft-Windows-Windows Defender/Operational"),
             ("DNS Client/Operational", "WinEventLog:Microsoft-Windows-DNS-Client/Operational"),
-            ("DNS Server/Analytical", "WinEventLog:Microsoft-Windows-DNS-Server/Analytical"),
+            ("DNS Server/Analytical", "WinEventLog:Microsoft-Windows-DNSServer/Analytical"),
             ("PowerShell transcription", "thruntops:powershell:transcript"),
             ("Windows Firewall log", "thruntops:windows:firewall"),
         )
@@ -117,6 +117,28 @@ class SplunkTelemetryTests(unittest.TestCase):
             check = checks[f"lab-DC01-2022 / {label}"]
             self.assertEqual(check["status"], "ok", check["message"])
         self.assertNotIn("lab-WIN11-22H2-1 / DNS Server/Analytical", checks)
+
+    def test_does_not_misclassify_firewall_path_as_system_channel(self):
+        payload = {
+            "expected_hosts": ["lab-DC01-2022"],
+            "lookback": "1h",
+            "indexes": '{"entry":[{"name":"windows"},{"name":"sysmon"}]}',
+            "windows_recent": export({
+                "host": "lab-DC01-2022", "count": "5",
+                "source": [r"C:\\Windows\\System32\\LogFiles\\Firewall\\pfirewall.log"],
+                "sourcetype": ["thruntops:windows:firewall"],
+            }),
+            "sysmon_recent": "",
+            "windows_history": "",
+            "sysmon_history": "",
+            "collector": "",
+        }
+        report = splunk_telemetry.evaluate(payload)
+        checks = {item["label"]: item for item in report["checks"]}
+        system = checks["lab-DC01-2022 / System"]
+        firewall = checks["lab-DC01-2022 / Windows Firewall log"]
+        self.assertNotEqual(system["status"], "ok")
+        self.assertEqual(firewall["status"], "ok")
 
     def test_surfaces_collector_errors_for_expected_host(self):
         payload = {
